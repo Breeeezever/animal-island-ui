@@ -214,6 +214,32 @@ describe('Rate', () => {
             expect(onChange).toHaveBeenLastCalledWith(1);
         });
 
+        it('受控值为小数时按取整后的星级移动并聚焦', async () => {
+            const { user, onChange, getInputs } = setup({ value: 4.6 });
+            getInputs()[4].focus();
+            await user.keyboard('{ArrowLeft}');
+            expect(onChange).toHaveBeenLastCalledWith(4);
+            expect(document.activeElement).toBe(getInputs()[3]);
+        });
+
+        it('受控值超出 count 时方向键仍落在范围内', async () => {
+            const { user, onChange, getInputs } = setup({ count: 3, value: 5 });
+            getInputs()[2].focus();
+            await user.keyboard('{ArrowLeft}');
+            expect(onChange).toHaveBeenLastCalledWith(2);
+            expect(document.activeElement).toBe(getInputs()[1]);
+        });
+
+        it('键盘选择时收起悬停预览', async () => {
+            const { user, getInputs, getLabels, activeCount } = setup({ defaultValue: 2 });
+            await user.hover(getLabels()[4]);
+            expect(activeCount()).toBe(5);
+
+            getInputs()[1].focus();
+            await user.keyboard('{ArrowRight}');
+            expect(activeCount()).toBe(3);
+        });
+
         it('ArrowRight 到最大值后保持不变', async () => {
             const { user, onChange, getInputs } = setup({ defaultValue: 5 });
             getInputs()[4].focus();

@@ -86,11 +86,12 @@ export const Rate: React.FC<RateProps> = ({
             switch (e.key) {
                 case 'ArrowRight':
                 case 'ArrowUp':
-                    next = Math.min(count, rateValue + 1);
+                    // 从夹取后的整数值出发：受控值可能是小数或超出 count
+                    next = Math.min(count, checkedValue + 1);
                     break;
                 case 'ArrowLeft':
                 case 'ArrowDown':
-                    next = Math.max(1, rateValue - 1);
+                    next = Math.max(1, checkedValue - 1);
                     break;
                 case 'Home':
                     next = 1;
@@ -103,10 +104,12 @@ export const Rate: React.FC<RateProps> = ({
             }
 
             e.preventDefault();
+            // 键盘选择同样要收起悬停预览，否则停在旧星星上的鼠标会盖住新评分
+            setHoverValue(0);
             inputRefs.current[next - 1]?.focus();
             commit(next);
         },
-        [onKeyDown, readonly, rateValue, count, commit]
+        [onKeyDown, readonly, checkedValue, count, commit]
     );
 
     const handleMouseLeave = useCallback(
