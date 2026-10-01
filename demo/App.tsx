@@ -87,6 +87,7 @@ const MENU_ITEMS: MenuItem[] = [
             { key: 'time-picker', label: 'TimePicker 时间选择' },
             { key: 'checkbox', label: 'Checkbox 多选框' },
             { key: 'radio', label: 'Radio 单选框' },
+            { key: 'rate', label: 'Rate 评分', isNew: true },
             { key: 'form', label: 'Form 表单' },
             { key: 'upload', label: 'Upload 上传', isNew: true },
         ],

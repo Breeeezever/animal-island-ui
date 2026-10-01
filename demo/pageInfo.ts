@@ -76,6 +76,10 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
         title: 'Radio 单选框',
         desc: '单选框组件 — 支持受控/非受控、水平/垂直排列、三种尺寸、禁用单项或全部禁用',
     },
+    rate: {
+        title: 'Rate 评分',
+        desc: '评分组件 — 支持受控/非受控、三种尺寸、只读展示',
+    },
     tooltip: {
         title: 'Tooltip 气泡提示',
         desc: '气泡提示组件 — 支持 12 个方向、hover/click/focus 三种触发，default/island 两种风格，bordered 边框可配置',

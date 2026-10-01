@@ -5,6 +5,7 @@ import IconDemo from './components/Icon/IconDemo';
 import TabsDemo from './components/Tabs';
 import CheckboxDemo from './components/Checkbox';
 import RadioDemo from './components/Radio';
+import RateDemo from './components/Rate';
 import TooltipDemo from './components/Tooltip';
 import TitleDemo from './components/Title';
 import CodeBlockDemo from './components/CodeBlock';
@@ -68,6 +69,7 @@ const PAGES: Record<string, React.FC> = {
     tabs: TabsDemo,
     checkbox: CheckboxDemo,
     radio: RadioDemo,
+    rate: RateDemo,
     tooltip: TooltipDemo,
     title: TitleDemo,
     codeblock: CodeBlockDemo,

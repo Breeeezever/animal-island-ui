@@ -330,6 +330,103 @@ flex-direction: column;
 gap: 8px;
 ```
 
+## Rate
+
+星级评分组件。每颗星都是 `naive-icons` 的 `StarIcon`，星上叠了一个视觉隐藏的原生 radio，因此整组天然具备单选语义与键盘能力。
+
+Props：
+
+| name           | type                             | default    | 说明                                       |
+| -------------- | -------------------------------- | ---------- | ------------------------------------------ |
+| `value`        | `number`                         | —          | 受控评分                                   |
+| `defaultValue` | `number`                         | `0`        | 非受控默认评分                             |
+| `count`        | `number`                         | `5`        | 星星数量                                   |
+| `size`         | `'small' \| 'middle' \| 'large'` | `'middle'` | 尺寸                                       |
+| `readonly`     | `boolean`                        | `false`    | 只读：无悬停预览、无点击、input 禁用       |
+| `allowClear`   | `boolean`                        | `true`     | 再次点击当前星时把评分清空为 `0`           |
+| `onChange`     | `(value) => void`                | —          | 评分变化回调，清空时收到 `0`               |
+
+评分会被夹取到 `[0, count]` 并就近取整，因此传入 `4.6` 这类平均分会点亮 5 颗星并选中第 5 颗 —— 组件始终保证恰好有一颗星可以用 Tab 到达。
+
+**尺寸表（图标盒子、间距，以及把 22px 扩散基准映射到当前星尺寸的 splash 缩放）：**
+
+| 属性         | small   | middle      | large   |
+| ------------ | ------- | ----------- | ------- |
+| 星星盒子     | 20×20px | **26×26px** | 34×34px |
+| 间距         | 4px     | 6px         | 8px     |
+| splash 缩放  | 0.91    | 1.18        | 1.55    |
+
+**精确样式：**
+
+```css
+/* group */
+display: inline-flex; align-items: center;
+gap: var(--rate-gap); /* 按尺寸 4 / 6 / 8px */
+
+/* star —— 图标自带金色填充和一张脸，所以两者都交给 CSS 控制 */
+.star {
+    display: block;
+    width: var(--rate-size);
+    height: var(--rate-size);
+}
+.star .icon {
+    /* naive-icons 的 StarIcon 写死了描边 #2A2A2A、填充 #E9C46A 和两只眼睛 */
+    display: block; width: 100%; height: 100%;
+    stroke: #c4b89e; /* --animal-text-color-disabled —— 未选中只有描边 */
+    transition: stroke 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.star .icon path {
+    fill: #f5c31c; /* --animal-warning-color */
+    fill-opacity: 0;
+    transition: fill-opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.star .icon circle {
+    /* 图标上的两只眼睛只在点亮后出现 */
+    fill: #794f27;
+    opacity: 0;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.active .star .icon { stroke: #dba90e; /* --animal-warning-color-active */ }
+.active .star .icon path { fill-opacity: 1; }
+.active .star .icon circle { opacity: 1; }
+
+/* item 与 hover 上浮 */
+.item { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+.item:hover { transform: translateY(-1px); }
+
+/* focus-visible —— 焦点环画在星星上，隐藏的 radio 仍是焦点所有者 */
+.input:focus-visible ~ .star {
+    border-radius: 50%;
+    outline: 2px solid #f5c31c; /* @focus-yellow */
+    outline-offset: 1px;
+}
+
+/* 选中动画 —— 新点亮的星星弹一下，再补一组六点扩散 */
+@keyframes animal-rate-pop {
+    0% { transform: scale(0.55); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+/* .pop 以 0.35s cubic-bezier(0.4, 0, 0.2, 1) 播放，并用 60ms 逐颗延迟
+   （--rate-pop-delay），让新点亮的星星依次弹出 */
+
+.splash {
+    position: absolute; top: 50%; left: 50%;
+    width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    border-radius: 50%;
+    transform: scale(var(--rate-splash-scale)); /* 22px 基准几何 → 当前星尺寸 */
+    animation: animal-rate-splash 0.6s ease forwards;
+    pointer-events: none;
+}
+/* animal-rate-splash 只画六个点，不铺底色 —— 最终被填充的只有星星本身。点向外飞到
+   36px/32px 并带负 spread，同时渐隐，颜色取 #f5c31c。同一时刻只挂载一个 splash
+   （被点击的那颗星），并以提交计数器作为 key，因此每次提交都能重放动画。 */
+
+/* 只读 —— 去掉 hover 上浮与手型光标，星星保持金色 */
+.readonly .item { cursor: default; }
+.readonly .item:hover { transform: none; }
+```
+
 ## Select
 
 受控下拉选择器，hover/click 展开下拉面板，选项支持键盘 ↑/↓ 导航 + Enter 确认 + Esc 取消。
