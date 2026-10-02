@@ -136,6 +136,10 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
         title: 'Image 图片',
         desc: '图片组件 — 白色衬板相框 + 错误占位，支持懒加载、点击预览',
     },
+    avatar: {
+        title: 'Avatar 头像',
+        desc: '头像组件 — 图片 / 图标 / 文字三种形态，圆形 / 方形两种形状，预设三档与任意数值尺寸，图片加载失败自动回退，支持头像组叠加与超出折叠',
+    },
     countdown: {
         title: 'Countdown 倒计时',
         desc: '倒计时组件 — 接收结束时间，支持天/时/分/秒格式、三种尺寸、两种风格与归零回调',

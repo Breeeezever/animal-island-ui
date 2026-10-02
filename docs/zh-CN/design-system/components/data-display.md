@@ -471,3 +471,41 @@ stampYear?: string; // 发行年份，如「2026」 — 右上角照片上
 > - 加载失败时渲染内置占位，占位以 `role="img"` + `aria-label` 暴露（优先用 `alt`，缺省为「图片加载失败」）。
 > - 未加载完成时图片 `opacity: 0`；`onLoad` 后淡入（`.loaded .img`）。
 > - **预览无障碍**：打开时聚焦关闭按钮；`Escape` 关闭；Tab 圈定在关闭按钮上（遮罩内唯一可聚焦元素）；关闭后焦点还给触发元素。弹层为 `role="dialog"` + `aria-modal`，名称取自 `alt`，关闭按钮带 `aria-label="关闭预览"`。触发按钮使用黄色 `#ffcc00` 焦点环（`:focus-visible`），取代浏览器默认样式。
+
+## Avatar（圆形 / 圆角方形贴纸头像）
+
+来源：`src/components/Avatar/avatar.module.less`。一个 `<span>`，展示图片 / 图标 / 文字三种内容。尺寸沿用 Button 阶梯：`small` / `middle` / `large` 为 **32 / 40 / 48px**；任意数字 `size` 原样生效。
+
+```css
+/* 根元素 */
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--animal-primary-color-bg); /* #e6f9f6 浅青 */
+    color: var(--animal-primary-color);         /* #19c8b9 青绿 */
+    font-weight: 600;
+    border-radius: 999px; /* 圆形 */
+    vertical-align: middle;
+}
+
+/* 方形 */
+.shape-square { border-radius: 8px; } /* 与 Image 相框圆角一致 */
+
+/* 图片铺满 */
+.img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* 文字 / 图标容器 —— 用于 gap 自动缩放测量 */
+.string { display: inline-flex; align-items: center; justify-content: center; line-height: 1; white-space: nowrap; }
+
+/* 占位（图标 / 文字）—— 奶油贴纸描边 */
+.placeholder { border: 2px solid var(--animal-bg-color); }
+```
+
+**文字 / 图标占位** —— 内容为青绿主色，落在浅青 primary-bg 上；2px `--animal-bg-color`（#f8f8f0）描边形成「贴纸」分离感。预设字号 14 / 16 / 20px；数字尺寸按 `max(12, round(size * 0.4))` 推导。**`gap` 自动缩小**：挂载后测量 `.string` 宽度，超过 `size - gap * 2` 时按比例缩小字号（`useLayoutEffect` → `setScale`）——仅文字头像。将 naive-icons 图标组件作为 `children`（元素 type 为函数组件）会创建图标头像，与 `icon` 走同一渲染路径（不参与缩小测量）；字符串 / 数字 children 为文字头像。
+
+**图片加载** —— `<img>` 铺满（`object-fit: cover`，无内边距）。`error` 时重渲染为占位（图标，缺省 naive-icons `UserIcon`，或 `children`），除非 `onError` 返回 `false`。`src` 变化重置加载状态。img 带 `alt`（缺省 `alt=""` 为装饰性图片）；纯默认图标暴露 `role="img"` + `aria-label="avatar"`。
+
+**Avatar.Group** —— `.group` 外壳 `display: inline-flex`；头像通过 `margin-left: calc(-1 * var(--avatar-group-gap))` 相互叠加，gap 变量由 `gap` prop（默认 8px）内联设置。每个头像保留 2px `--animal-bg-color` 描边，让叠加读作「刻意堆叠」而非「裁切」。`maxCount` 裁切子级并渲染 `+N` 胶囊（`styles.avatar` + `placeholder`，可用 `maxStyle` 覆盖样式）；组级 `size` / `shape` 会克隆注入到未显式指定的子 Avatar。`Avatar.Group` 也可经 `Avatar` 静态属性访问（便捷别名）。

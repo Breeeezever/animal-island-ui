@@ -112,6 +112,7 @@ const MENU_ITEMS: MenuItem[] = [
         label: '── 数据展示 ──',
         children: [
             { key: 'card', label: 'Card 卡片' },
+            { key: 'avatar', label: 'Avatar 头像', isNew: true },
             // 隐藏：暂不展示，恢复时取消注释
             { key: 'collapse', label: 'Collapse 折叠面板' },
             { key: 'tabs', label: 'Tabs 标签页' },

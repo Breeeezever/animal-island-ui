@@ -471,3 +471,42 @@ stampYear?: string; // 发行年份，如「2026」 — 右上角照片上
 > - On load error the built-in placeholder is rendered, exposed as `role="img"` with `aria-label` (uses `alt`, else "图片加载失败").
 > - While unloaded, the image is `opacity: 0`; `onLoad` fades it in (`.loaded .img`).
 > - **Preview a11y**: opening focuses the close button; `Escape` closes; Tab stays trapped on the close button (the only focusable element); closing restores focus to the trigger. The overlay is `role="dialog"` + `aria-modal` with a name derived from `alt`, and the close button carries `aria-label="关闭预览"`. The trigger button shows the yellow `#ffcc00` focus ring (`:focus-visible`) instead of the browser default.
+
+## Avatar (circle/squircle sticker head)
+
+Source: `src/components/Avatar/avatar.module.less`. A `<span>` that shows either an image, an icon, or text. Sizes are the Button ladder: **32 / 40 / 48px** for `small` / `middle` / `large`; any numeric `size` is used verbatim.
+
+```css
+/* root */
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--animal-primary-color-bg); /* #e6f9f6 light teal */
+    color: var(--animal-primary-color);         /* #19c8b9 teal */
+    font-weight: 600;
+    border-radius: 999px; /* circle */
+    vertical-align: middle;
+}
+
+/* square */
+.shape-square { border-radius: 8px; } /* matches the Image mat radius */
+
+/* image fills the circle */
+.img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* text/icon holder — measured for gap-based auto-shrink */
+.string { display: inline-flex; align-items: center; justify-content: center; line-height: 1; white-space: nowrap; }
+
+/* placeholder (icon/text) — cream sticker ring */
+.placeholder { border: 2px solid var(--animal-bg-color); }
+```
+
+**Text/icon placeholder** — content colour is the teal primary on a light-teal primary-bg; the 2px `--animal-bg-color` (#f8f8f0) border gives the "sticker" separation. Font size per preset is 14 / 16 / 20px; for numeric sizes it derives as `max(12, round(size * 0.4))`. **`gap` auto-shrink**: after mount the `.string` width is measured and, when it exceeds `size - gap * 2`, the font scales down by that ratio (`useLayoutEffect` → `setScale`) — text avatars only. Passing a naive-icons component as `children` (element type is a function component) creates an icon avatar that shares the `icon` rendering path (no shrink measurement); string/number children are text avatars.
+
+**Image loading** — an `<img>` fills the box (`object-fit: cover`, no padding). On `error` the component re-renders the placeholder (icon, defaulting to the naive-icons `UserIcon`, or `children`) unless `onError` returns `false`. `src` change resets the load state. The img carries `alt` when provided, `alt=""` (decorative) otherwise; the bare default icon exposes `role="img"` + `aria-label="avatar"`.
+
+**Avatar.Group** — `display: inline-flex` on a `.group` wrapper; avatars overlap via `margin-left: calc(-1 * var(--avatar-group-gap))` with the gap variable set inline from the `gap` prop (default 8px). Each avatar keeps a 2px `--animal-bg-color` ring so the overlap reads as deliberate stacking, not clipping. `maxCount` slices children and renders a `+N` pill (`styles.avatar` + `placeholder`, style overridable via `maxStyle`); group-level `size`/`shape` are cloned into children that don't set their own. `Avatar.Group` also works as a static property on `Avatar` (convenience alias).
+

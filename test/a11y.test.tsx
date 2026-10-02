@@ -50,6 +50,7 @@ import { Drawer } from '@/components/Drawer';
 import { Footer } from '@/components/Footer';
 import { Form, FormItem } from '@/components/Form';
 import { Image } from '@/components/Image';
+import { Avatar, AvatarGroup } from '@/components/Avatar';
 import { Input } from '@/components/Input';
 import { Modal } from '@/components/Modal';
 import { Notification } from '@/components/Notification';
@@ -396,6 +397,23 @@ describe('a11y smoke / 全组件 axe-core 自动检查', () => {
     it('Image (带 alt)', async () => {
         const r = render(<Image src="https://example.com/photo.png" alt="岛屿风景" width={120} height={120} />);
         await expectNoA11yViolations(containerOf(r), 'Image');
+    });
+
+    it('Avatar (带 alt 图片头像)', async () => {
+        const r = render(<Avatar src="https://example.com/u.png" alt="岛民头像" />);
+        await expectNoA11yViolations(containerOf(r), 'Avatar');
+    });
+
+    it('AvatarGroup (图片头像组)', async () => {
+        const r = render(
+            <AvatarGroup maxCount={3}>
+                <Avatar src="https://example.com/a.png" alt="A" />
+                <Avatar src="https://example.com/b.png" alt="B" />
+                <Avatar>勤</Avatar>
+                <Avatar>劳</Avatar>
+            </AvatarGroup>
+        );
+        await expectNoA11yViolations(containerOf(r), 'AvatarGroup');
     });
 
     it('Image (preview 弹层)', async () => {

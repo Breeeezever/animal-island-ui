@@ -7,7 +7,7 @@
 <br/>
 
 <div align="center">
-一款可爱风格的 React UI 组件库
+一款治愈系风格的 React UI 组件库
 </div>
 <br/>
 <div align="center">
@@ -18,7 +18,7 @@
     <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
     <br/>
     <a href="../coverage/badges/coverage.json"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/guokaigdg/animal-island-ui/main/coverage/badges/coverage.json&style=flat-square" alt="Coverage"></a>
-    <img src="https://img.shields.io/badge/components-36-blue?style=flat-square" alt="Components">
+    <img src="https://img.shields.io/badge/components-37-blue?style=flat-square" alt="Components">
     <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
 </div>
 <br/>
@@ -34,17 +34,18 @@
 
 ## 介绍
 
-本项目是基于 React + TypeScript 实现的轻量 UI 组件库，采用原创的治愈系海岛风格设计语言。所有视觉元素、布局、图标、动画均为本项目独立设计实现。
+基于 React + TypeScript 的轻量 UI 组件库，采用原创的治愈系海岛风格设计语言，所有视觉元素、布局、图标、动画均为独立设计实现。
 
 ## 预览
 
 - 在线预览：[animal-island-ui](https://guokaigdg.github.io/animal-island-ui/#/)
 
-## 图标
+## 相关
 
-如需图标，推荐使用 **naive-icons**：<https://github.com/guokaigdg/naive-icons>
+- 图标（**naive-icons**）：<https://github.com/guokaigdg/naive-icons>
+- Vue 版本（**animal-island-vue**）：<https://github.com/guokaigdg/animal-island-vue>
 
-## 🚀 用 AI 工具生成 animal-island-ui 风格页面
+## 用 AI 工具生成 animal-island-ui 风格页面
 
 ### 方式一：安装 skill（AI 编程 Agent 推荐）
 
@@ -94,16 +95,16 @@ function App() {
 
 按读者与场景路由（英文为主文档，中文镜像在 [`docs/zh-CN/`](./zh-CN/)）：
 
-| 文档                                                                           | 用途                                                                                                                          |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| [`docs/design-system/`](./zh-CN/design-system/README.md)                       | 🎨 设计系统严格定义 (single source of truth) —— 设计 token、设计规则、逐组件像素级规范、CSS 变量模板。                        |
-| [`skills/animal-island-ui-style/`](../skills/animal-island-ui-style/README.md) | 🤖 可安装的 Agent skill（`skills add guokaigdg/animal-island-ui`）—— React 项目使用 + 单文件 HTML 生成，含分组件 props 参考。 |
-| [`docs/one-click-prompt.md`](./zh-CN/one-click-prompt.md)                      | 🚀 给普通用户的一键提示词 —— 粘贴一段引导提示词，AI 自行抓取规范文件并产出可直接双击预览的 `index.html`。                     |
-| [`docs/design-prompts.md`](./zh-CN/design-prompts.md)                          | 设计 / 出图工具提示词（v0 / Figma AI / Midjourney / DALL-E），指向规范文件链接。                                              |
-| [`docs/development/`](./zh-CN/development/README.md)                           | 本仓库开发文档 —— 目录结构、组件开发、代码规范、测试、构建契约。                                                              |
-| [`docs/adr/`](./zh-CN/adr/README.md)                                           | 架构决策记录 (ADR)。                                                                                                          |
-| [`AGENTS.md`](../AGENTS.md)                                                    | 在本仓库内工作的 coding agent 入口。                                                                                          |
-| [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                        | 贡献指南。                                                                                                                    |
+| 文档                                                                           | 用途                                                                                                                       |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/design-system/`](./zh-CN/design-system/README.md)                       | 设计系统严格定义 (single source of truth) —— 设计 token、设计规则、逐组件像素级规范、CSS 变量模板。                        |
+| [`skills/animal-island-ui-style/`](../skills/animal-island-ui-style/README.md) | 可安装的 Agent skill（`skills add guokaigdg/animal-island-ui`）—— React 项目使用 + 单文件 HTML 生成，含分组件 props 参考。 |
+| [`docs/one-click-prompt.md`](./zh-CN/one-click-prompt.md)                      | 给普通用户的一键提示词 —— 粘贴一段引导提示词，AI 自行抓取规范文件并产出可直接双击预览的 `index.html`。                     |
+| [`docs/design-prompts.md`](./zh-CN/design-prompts.md)                          | 设计 / 出图工具提示词（v0 / Figma AI / Midjourney / DALL-E），指向规范文件链接。                                           |
+| [`docs/development/`](./zh-CN/development/README.md)                           | 本仓库开发文档 —— 目录结构、组件开发、代码规范、测试、构建契约。                                                           |
+| [`docs/adr/`](./zh-CN/adr/README.md)                                           | 架构决策记录 (ADR)。                                                                                                       |
+| [`AGENTS.md`](../AGENTS.md)                                                    | 在本仓库内工作的 coding agent 入口。                                                                                       |
+| [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                        | 贡献指南。                                                                                                                 |
 
 ## 本地开发
 
@@ -132,12 +133,8 @@ npm run build:demo
 - 本项目为独立创作的开源项目，并非任何游戏公司的官方产品，与任何公司及其产品无关联、授权或合作关系。
 - 本仓库内所有视觉素材（图标、插画、动画）均为本项目原创作品。
 
-## 联系方式
+## 支持
 
-如有问题，欢迎提交 GitHub [Issue](https://github.com/guokaigdg/animal-island-ui/issues)。
+- 最直接的支持就是点个赞、转发分享；如果对项目有想法或建议，欢迎提交 [Issue](https://github.com/guokaigdg/animal-island-ui/issues) 或 PR。
 
-## 给小岛续续航
-
-如果这个项目对你有帮助，不妨请开发者的猫吃个罐罐——喵星人才是小岛运转的真正燃料
-
-[赞助小岛](https://guokaigdg.github.io/home/payment.html)
+- 如果项目对你有所帮助，也可以请开发者的猫吃个罐罐——喵星人才是小岛运转的真正燃料。[赞助小岛](https://guokaigdg.github.io/home/payment.html)

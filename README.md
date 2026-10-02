@@ -7,7 +7,7 @@
 <br/>
 
 <div align="center">
-A React UI component library with a cute style
+A cozy React UI component library
 </div>
 <br/>
 <div align="center">
@@ -18,7 +18,7 @@ A React UI component library with a cute style
     <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
     <br/>
     <a href="./coverage/badges/coverage.json"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/guokaigdg/animal-island-ui/main/coverage/badges/coverage.json&style=flat-square" alt="Coverage"></a>
-    <img src="https://img.shields.io/badge/components-36-blue?style=flat-square" alt="Components">
+    <img src="https://img.shields.io/badge/components-37-blue?style=flat-square" alt="Components">
     <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
 </div>
 <br/>
@@ -35,17 +35,18 @@ A React UI component library with a cute style
 
 ## Introduction
 
-This project is a lightweight UI component library built with React + TypeScript. It features an original, cozy island-style design language. All visual elements, layouts, icons, and animations are independently designed and implemented from scratch.
+A lightweight React + TypeScript component library with an original, cozy island-style design language. Every visual element, layout, icon, and animation is crafted from scratch.
 
 ## Preview
 
 - Online Preview: [animal-island-ui](https://guokaigdg.github.io/animal-island-ui/#/)
 
-## Icons
+## Related
 
-Need icons? The recommended set is **naive-icons**: <https://github.com/guokaigdg/naive-icons>
+- Icons (**naive-icons**): <https://github.com/guokaigdg/naive-icons>
+- Vue version (**animal-island-vue**): <https://github.com/guokaigdg/animal-island-vue>
 
-## 🚀 Use AI to Generate animal-island-ui Pages
+## Use AI to Generate animal-island-ui Pages
 
 ### Option 1: Install the skill (recommended for AI coding agents)
 
@@ -96,16 +97,16 @@ function App() {
 
 Routed by audience and scenario (English primary; Chinese mirrors under [`docs/zh-CN/`](./docs/zh-CN/)):
 
-| Document                                                                      | Purpose                                                                                                                                                       |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`docs/design-system/`](./docs/design-system/README.md)                       | 🎨 Canonical design definition (single source of truth) — tokens, design rules, pixel-exact per-component specs, CSS variable template.                       |
-| [`skills/animal-island-ui-style/`](./skills/animal-island-ui-style/README.md) | 🤖 Installable Agent skill (`skills add guokaigdg/animal-island-ui`) — React project usage + standalone-HTML generation, with per-component props references. |
-| [`docs/one-click-prompt.md`](./docs/one-click-prompt.md)                      | 🚀 One-click prompt for non-developers — paste one bootstrap prompt, the AI fetches the specs itself and returns a ready `index.html`.                        |
-| [`docs/design-prompts.md`](./docs/design-prompts.md)                          | Prompts for design/image tools (v0 / Figma AI / Midjourney / DALL-E), linking to the canonical spec files.                                                    |
-| [`docs/development/`](./docs/development/README.md)                           | Development guide for this repository — structure, component development, coding standards, testing, build contract.                                          |
-| [`docs/adr/`](./docs/adr/README.md)                                           | Architecture decision records.                                                                                                                                |
-| [`AGENTS.md`](./AGENTS.md)                                                    | Entry point for coding agents working in this repository.                                                                                                     |
-| [`CONTRIBUTING.md`](./CONTRIBUTING.md)                                        | Contributing guide.                                                                                                                                           |
+| Document                                                                      | Purpose                                                                                                                                                    |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/design-system/`](./docs/design-system/README.md)                       | Canonical design definition (single source of truth) — tokens, design rules, pixel-exact per-component specs, CSS variable template.                       |
+| [`skills/animal-island-ui-style/`](./skills/animal-island-ui-style/README.md) | Installable Agent skill (`skills add guokaigdg/animal-island-ui`) — React project usage + standalone-HTML generation, with per-component props references. |
+| [`docs/one-click-prompt.md`](./docs/one-click-prompt.md)                      | One-click prompt for non-developers — paste one bootstrap prompt, the AI fetches the specs itself and returns a ready `index.html`.                        |
+| [`docs/design-prompts.md`](./docs/design-prompts.md)                          | Prompts for design/image tools (v0 / Figma AI / Midjourney / DALL-E), linking to the canonical spec files.                                                 |
+| [`docs/development/`](./docs/development/README.md)                           | Development guide for this repository — structure, component development, coding standards, testing, build contract.                                       |
+| [`docs/adr/`](./docs/adr/README.md)                                           | Architecture decision records.                                                                                                                             |
+| [`AGENTS.md`](./AGENTS.md)                                                    | Entry point for coding agents working in this repository.                                                                                                  |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md)                                        | Contributing guide.                                                                                                                                        |
 
 ## Local Development
 
@@ -134,12 +135,8 @@ npm run build:demo
 - This is an independently created open-source project. It is not an official product of any game company and has no association, authorization, or cooperation with any company or its products.
 - All visual assets (icons, illustrations, animations) in this repository are original works created for this project.
 
-## Contact
+## Support
 
-For any questions, please open a GitHub [Issue](https://github.com/guokaigdg/animal-island-ui/issues).
+- The easiest way to support is to give it a star and share it. If you have ideas or suggestions about the project, feel free to open an [Issue](https://github.com/guokaigdg/animal-island-ui/issues) or submit a PR.
 
-## Keep the Island Running
-
-If this project has been helpful to you, consider buying the developer's cat a can of tuna — meowsters are the real fuel that keeps the island running.
-
-[Sponsor this Island](https://guokaigdg.github.io/home/payment.html)
+- If the project has been helpful to you, you could also buy the developer's cat a can of tuna — meowsters are the real fuel that keeps the island running. [Sponsor this Island](https://guokaigdg.github.io/home/payment.html)

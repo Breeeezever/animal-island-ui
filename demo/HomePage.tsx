@@ -458,6 +458,7 @@ const components = [
     { key: 'codeblock', name: 'CodeBlock', desc: '代码语法高亮组件' },
     { key: 'background', name: 'Background', desc: '奶油/深绿波点 + 彩色针糖 + 12 色 Card pattern 底色壁纸' },
     { key: 'image', name: 'Image', desc: '白色衬板图片，支持懒加载 / 点击预览' },
+    { key: 'avatar', name: 'Avatar', desc: '图片/图标/文字头像，圆形方形，头像组叠加与折叠' },
     { key: 'carousel', name: 'Carousel', desc: '自动播放、箭头/圆点与键盘导航' },
 ];
 

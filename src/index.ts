@@ -90,6 +90,9 @@ export type {
 export { Title } from './components/Title';
 export type { TitleProps, TitleSize, TitleColor } from './components/Title';
 
+export { Avatar, AvatarGroup } from './components/Avatar';
+export type { AvatarProps, AvatarSize, AvatarShape, AvatarGroupProps } from './components/Avatar';
+
 export { CodeBlock } from './components/CodeBlock';
 export type { CodeBlockProps } from './components/CodeBlock';
 
