@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-10-02
+
+### Added
+
+- `Avatar` 头像组件：图片 / 图标 / 文字三种形态，圆形 / 方形两种形状，三档预设尺寸（32 / 40 / 48px）与任意数值尺寸；`gap` 控制内边距并对超长文字自动缩放；图片加载失败自动回退到图标或文字。`Avatar.Group` 支持 `gap` 控制的头像叠加与 `maxCount` 超出折叠为「+N」，组级 `size` / `shape` 会注入未自行设置的子项，同时提供 `Avatar.Group` 静态属性写法
+- `Avatar` 的 a11y：图片头像透传 `alt`，裸图标头像带 `role="img"` + `aria-label="avatar"`，并新增 2 条 axe 冒烟用例
+
+### Fixed
+
+- Skill 组件目录回填此前漏登记的 `Upload` / `Pagination` / `Loading` / `Time`，英文 `SKILL.md` 补齐 Layout 与 Feedback 分类；`AGENTS.md` 组件数由 30 更正为 37
+- Skill props 参考按 200 行上限拆分：新建 `media.md`（Image / Avatar / Carousel），`layout.md`（199 → 154）与 `data-display.md`（196 → 124）回到上限以内
+- Demo Skill 页图标恢复渲染：`resolveIcon` 用 `typeof === 'function'` 判断组件，而 `naive-icons` 导出的是 `ForwardRefExoticComponent`（运行时为对象），此前 10 个图标全部解析失败；页面数据同步至 37 个组件
+- `Avatar.Group` 静态属性此前被 `as unknown as` 强转从公开类型中抹去，现已在 `AvatarProps` 导出处声明
+
+### Internal
+
+- `tsc --noEmit` 接入 `ci`：`npm run test:run` 现在串联 a11y 配置（此前混合 filter 时 `test/a11y.test.tsx` 会被静默跳过并仍报绿）
+- 清理 44 个累积的类型错误，其中 33 个源于 tsconfig `lib` 缺少 ES2022（`Array.prototype.at`）
+
 ## [2.0.0] - 2026-09-24
 
 ### Changed
