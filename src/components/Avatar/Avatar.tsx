@@ -39,7 +39,7 @@ export interface AvatarProps extends Omit<React.HTMLAttributes<HTMLSpanElement>,
     children?: React.ReactNode;
 }
 
-export const Avatar: React.FC<AvatarProps> = ({
+export const Avatar: React.FC<AvatarProps> & { Group: React.FC<AvatarGroupProps> } = ({
     shape = 'circle',
     size = 'middle',
     src,
@@ -203,4 +203,4 @@ export const AvatarGroup: React.FC<AvatarGroupProps> = ({
 AvatarGroup.displayName = 'AvatarGroup';
 
 // 兼容用法：Avatar.Group 也可经静态属性访问
-(Avatar as unknown as { Group: typeof AvatarGroup }).Group = AvatarGroup;
+Avatar.Group = AvatarGroup;

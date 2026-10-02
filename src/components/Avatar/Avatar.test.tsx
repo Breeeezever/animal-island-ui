@@ -80,8 +80,8 @@ describe('Avatar', () => {
     it('does not apply the placeholder class when an image is loaded', () => {
         const { container } = render(<Avatar src="/ok.png" />);
         const root = rootOf(container.querySelector('img'));
-        expect(root.className).toContain('avatar');
-        expect(root.className).not.toContain('placeholder');
+        expect(root?.className).toContain('avatar');
+        expect(root?.className).not.toContain('placeholder');
     });
 
     it('renders custom className and spreads HTML attributes', () => {
@@ -129,7 +129,7 @@ describe('AvatarGroup', () => {
         );
         const avatar = rootOf(screen.getByText('A'));
         expect(avatar).toHaveStyle({ width: '48px', height: '48px' });
-        expect(avatar.className).toContain('shape-square');
+        expect(avatar?.className).toContain('shape-square');
     });
 
     it('does not override a child Avatar that sets its own size', () => {

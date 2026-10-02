@@ -72,10 +72,12 @@ describe('Carousel', () => {
     it('焦点进入后暂停，并可从播放控制显式恢复', async () => {
         const onChange = vi.fn();
         let latestTimer: TimerHandler | undefined;
-        vi.spyOn(window, 'setInterval').mockImplementation((handler: TimerHandler) => {
+        // jsdom 的 window.setInterval 返回 number，但 @types/node 的同名签名（返回 Timeout）
+        // 会遮蔽 DOM 版本，所以这里显式断言回 DOM 签名
+        vi.spyOn(window, 'setInterval').mockImplementation(((handler: TimerHandler) => {
             latestTimer = handler;
             return 1;
-        });
+        }) as unknown as typeof window.setInterval);
         vi.spyOn(window, 'clearInterval').mockImplementation(() => {
             latestTimer = undefined;
         });

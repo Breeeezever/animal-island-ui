@@ -383,6 +383,7 @@ describe('Upload', () => {
             setRequestHeader: ReturnType<typeof vi.fn>;
             withCredentials?: boolean;
             status: number;
+            response: unknown;
             onload: (() => void) | null;
             onerror: (() => void) | null;
             onabort: (() => void) | null;
@@ -397,6 +398,7 @@ describe('Upload', () => {
             abort = vi.fn();
             setRequestHeader = vi.fn();
             status = 200;
+            response: unknown = '';
             onload: (() => void) | null = null;
             onerror: (() => void) | null = null;
             onabort: (() => void) | null = null;
@@ -547,7 +549,8 @@ describe('Upload', () => {
                 xhr.status = 200;
                 xhr.onload!();
             });
-            list = (onChange.mock.calls.at(-1)![0] as { fileList: Array<{ status: string }> }).fileList;
+            list = (onChange.mock.calls.at(-1)![0] as { fileList: Array<{ percent: number; status: string }> })
+                .fileList;
             expect(list[0].status).toBe('done');
             expect(screen.getByLabelText('上传完成')).toBeInTheDocument();
         });
