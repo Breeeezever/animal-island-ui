@@ -330,6 +330,105 @@ flex-direction: column;
 gap: 8px;
 ```
 
+## Rate
+
+Star rating widget. Each star is a `naive-icons` `StarIcon`; a visually hidden native radio sits on top of every star, so the group keeps single-select semantics and free keyboard support.
+
+Props:
+
+| name           | type                             | default    | Description                                                     |
+| -------------- | -------------------------------- | ---------- | --------------------------------------------------------------- |
+| `value`        | `number`                         | —          | Controlled rating                                               |
+| `defaultValue` | `number`                         | `0`        | Uncontrolled default rating                                     |
+| `count`        | `number`                         | `5`        | Number of stars                                                 |
+| `size`         | `'small' \| 'middle' \| 'large'` | `'middle'` | Size                                                            |
+| `readonly`     | `boolean`                        | `false`    | Display only: no hover preview, no click, inputs disabled       |
+| `allowClear`   | `boolean`                        | `true`     | Clicking the current star again clears the rating to `0`        |
+| `onChange`     | `(value) => void`                | —          | Fired on change; receives `0` when cleared                      |
+
+The rating is clamped to `[0, count]` and rounded to the nearest whole star, so an average like `4.6` lights 5 stars with the 5th selected — the widget always keeps exactly one star reachable by Tab.
+
+**Size table (icon box, gap, and the splash scale that maps the 22px burst geometry onto the star):**
+
+| Property       | small   | middle      | large   |
+| -------------- | ------- | ----------- | ------- |
+| star box       | 20×20px | **26×26px** | 34×34px |
+| gap            | 4px     | 6px         | 8px     |
+| splash scale   | 0.91    | 1.18        | 1.55    |
+
+**Exact styles:**
+
+```css
+/* group */
+display: inline-flex; align-items: center;
+gap: var(--rate-gap); /* 4 / 6 / 8px by size */
+
+/* star — the icon ships a gold fill and a face, so both are CSS-driven */
+.star {
+    display: block;
+    width: var(--rate-size);
+    height: var(--rate-size);
+}
+.star .icon {
+    /* the naive-icons StarIcon hard-codes stroke #2A2A2A, fill #E9C46A and two eyes */
+    display: block; width: 100%; height: 100%;
+    stroke: #c4b89e; /* --animal-text-color-disabled — an empty star is outline only */
+    transition: stroke 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.star .icon path {
+    fill: #f5c31c; /* --animal-warning-color */
+    fill-opacity: 0;
+    transition: fill-opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.star .icon circle {
+    /* the icon's two eyes only appear once the star is lit */
+    fill: #794f27;
+    opacity: 0;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.active .star .icon { stroke: #dba90e; /* --animal-warning-color-active */ }
+.active .star .icon path { fill-opacity: 1; }
+.active .star .icon circle { opacity: 1; }
+
+/* item + hover lift */
+.item { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+.item:hover { transform: translateY(-1px); }
+
+/* focus-visible — the ring lives on the star, the hidden radio stays the focus owner */
+.input:focus-visible ~ .star {
+    border-radius: 50%;
+    outline: 2px solid #f5c31c; /* @focus-yellow */
+    outline-offset: 1px;
+}
+
+/* selection animation — a pop on every newly lit star, then a six-dot burst */
+@keyframes animal-rate-pop {
+    0% { transform: scale(0.55); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+/* .pop runs it over 0.35s cubic-bezier(0.4, 0, 0.2, 1) with a 60ms stagger
+   (--rate-pop-delay), so the newly lit stars pop one after another */
+
+.splash {
+    position: absolute; top: 50%; left: 50%;
+    width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    border-radius: 50%;
+    transform: scale(var(--rate-splash-scale)); /* 22px reference geometry → star size */
+    animation: animal-rate-splash 0.6s ease forwards;
+    pointer-events: none;
+}
+/* animal-rate-splash draws the six dots only — no background disc, so the star is
+   the only element that ends up filled. The dots fly out to 36px/32px with a
+   negative spread and fade to transparent, painted in #f5c31c. Only one splash is
+   mounted at a time (the clicked star) and it is keyed by the commit counter, so
+   the animation replays on every commit. */
+
+/* readonly — no hover lift, default cursor; the stars keep their gold */
+.readonly .item { cursor: default; }
+.readonly .item:hover { transform: none; }
+```
+
 ## Select
 
 Controlled dropdown selector; the panel opens on hover/click, and options support ↑/↓ keyboard navigation, Enter to confirm and Esc to cancel.

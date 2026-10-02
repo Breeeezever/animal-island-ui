@@ -55,6 +55,7 @@ import { Modal } from '@/components/Modal';
 import { Notification } from '@/components/Notification';
 import { Progress } from '@/components/Progress';
 import { Radio } from '@/components/Radio';
+import { Rate } from '@/components/Rate';
 import { Select } from '@/components/Select';
 import { Switch } from '@/components/Switch';
 import { Table } from '@/components/Table';
@@ -175,6 +176,16 @@ describe('a11y smoke / 全组件 axe-core 自动检查', () => {
             />
         );
         await expectNoA11yViolations(containerOf(r), 'Checkbox');
+    });
+
+    it('Rate (可交互评分)', async () => {
+        const r = render(<Rate defaultValue={3} aria-label="岛屿评分" />);
+        await expectNoA11yViolations(containerOf(r), 'Rate');
+    });
+
+    it('Rate (只读评分)', async () => {
+        const r = render(<Rate defaultValue={4} readonly aria-label="岛屿评分" />);
+        await expectNoA11yViolations(containerOf(r), 'Rate readonly');
     });
 
     it('Tabs (有 label 列表)', async () => {

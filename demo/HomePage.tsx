@@ -438,6 +438,7 @@ const components = [
         desc: '受控/非受控、自定义文案、加载状态',
     },
     { key: 'checkbox', name: 'Checkbox', desc: '多选框组件，支持水平/垂直排列' },
+    { key: 'rate', name: 'Rate', desc: '评分组件，支持悬停预览与只读展示' },
     { key: 'date-picker', name: 'DatePicker', desc: '日期选择与范围选择，年/月/日面板、禁用日期、键盘导航' },
     { key: 'time-picker', name: 'TimePicker', desc: '时间选择，时/分/秒滚选、此刻/确定、步进' },
     { key: 'time', name: 'Time', desc: '实时时钟卡片，星期 + 月日 + HH:MM 每秒刷新' },
