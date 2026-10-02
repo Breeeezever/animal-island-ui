@@ -75,6 +75,33 @@ describe('Badge', () => {
             expect(queryIndicator(container)).toBeNull();
         });
 
+        it('空字符串 count 不渲染角标', () => {
+            const { container } = render(
+                <Badge count="">
+                    <span>头像</span>
+                </Badge>
+            );
+            expect(queryIndicator(container)).toBeNull();
+        });
+
+        it('纯空白字符串 count 不渲染角标', () => {
+            const { container } = render(
+                <Badge count="   ">
+                    <span>头像</span>
+                </Badge>
+            );
+            expect(queryIndicator(container)).toBeNull();
+        });
+
+        it('空字符串 count 在 dot 模式下仍展示小圆点', () => {
+            const { container } = render(
+                <Badge count="" dot>
+                    <span>头像</span>
+                </Badge>
+            );
+            expect(queryIndicator(container)).toHaveClass(styles.dot);
+        });
+
         it('支持 ReactNode 作为 count', () => {
             render(
                 <Badge count={<span data-testid="icon">icon</span>}>

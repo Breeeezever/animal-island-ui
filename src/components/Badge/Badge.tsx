@@ -64,7 +64,8 @@ export const Badge: React.FC<BadgeProps> = ({
     const displayCount = numeric !== null && numeric > overflowCount ? `${overflowCount}+` : count;
     const isZero = displayCount === 0 || displayCount === '0';
     const showAsDot = dot && !isZero;
-    const isEmpty = count === null || count === undefined;
+    // 空字符串（含纯空白）与 null / undefined 一样视为无内容，避免渲染出空心胶囊
+    const isEmpty = count === null || count === undefined || (typeof count === 'string' && count.trim() === '');
     // 无内容，或数值为 0 且未开启 showZero，且不是小圆点时整体隐藏
     const isHidden = !showAsDot && (isEmpty || (isZero && !showZero));
     // 不传 children 即独立使用：角标不再相对某元素定位

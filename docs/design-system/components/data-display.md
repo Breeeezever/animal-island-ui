@@ -432,7 +432,7 @@ Source: `src/components/Badge/Badge.tsx` + `badge.module.less`. **Corner count b
 > - The indicator is a `<sup>` (same element antd uses); `position: absolute` + `translate(50%, -50%)` pins it exactly on the wrapped element's top-right corner, and `transform-origin: 100% 0` makes the pop grow out of that corner.
 > - The 2px cream ring (`--animal-bg-color`) reuses Avatar's sticker ring, so a badge overlapping an image or icon separates cleanly instead of floating on the artwork. A standalone badge covers nothing, so it drops ring, shadow and offset.
 > - Capping applies to numbers and numeric strings only (`100` → `99+`); a ReactNode `count` (e.g. a naive-icons glyph) renders verbatim. The true value stays in the native `title` even when the visible text is capped — pass `title` explicitly to override it.
-> - Visibility: hidden when `count` is empty, when the value is `0` / `"0"` without `showZero`, and for `dot` when the value is zero; `dot` without a `count` still shows. `size` only affects the numeric pill — the dot box wins over it.
+> - Visibility: hidden when `count` is empty (`null`, `undefined` or a blank string), when the value is `0` / `"0"` without `showZero`, and for `dot` when the value is zero; `dot` without a `count` still shows. `size` only affects the numeric pill — the dot box wins over it.
 > - `color` is the shared island palette rather than antd's free-form CSS colour, so a badge cannot drift outside the Card / Tag colour language.
 
 ## Image (mat frame)
