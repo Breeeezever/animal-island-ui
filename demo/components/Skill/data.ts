@@ -107,7 +107,7 @@ export const SKILL_TREE = `animal-island-ui-style/
 └── references/
     ├── react-project.md         # 场景一：React 项目 + npm 包
     ├── standalone-html.md       # 场景二：单文件 HTML，无构建
-    └── components/              # 按分类的 props 参考（9 个文件、30 个组件）`;
+    └── components/              # 按分类的 props 参考（12 个文件、37 个组件）`;
 
 export interface CatalogRow {
     category: string;
@@ -154,6 +154,12 @@ export const CATALOG: CatalogRow[] = [
         color: 'app-green',
         components: ['Table', 'CodeBlock', 'Tag'],
         reference: 'data-display.md',
+    },
+    {
+        category: 'Media',
+        color: 'lime-green',
+        components: ['Image', 'Avatar', 'Carousel'],
+        reference: 'media.md',
     },
     {
         category: 'Decorative',
