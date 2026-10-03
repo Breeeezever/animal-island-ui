@@ -1,7 +1,6 @@
 import React from 'react';
 import styles from './background.module.less';
-import sweetCorner from '../../assets/image/sweet-corner.svg';
-import coffeeBreak from '../../assets/image/coffee-break.svg';
+import { sweetCorner, coffeeBreak } from '../../assets/image/sceneImages';
 
 /**
  * 背景图案类型（dots-* 波点壁纸的底色与 Card pattern-* 系列一致）：
