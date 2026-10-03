@@ -105,6 +105,9 @@ export type { PaginationProps } from './components/Pagination';
 export { Tag } from './components/Tag';
 export type { TagProps, TagSize, TagVariant, TagColor } from './components/Tag';
 
+export { Badge } from './components/Badge';
+export type { BadgeProps, BadgeSize, BadgeColor } from './components/Badge';
+
 export {
     Notification,
     notificationOpen,

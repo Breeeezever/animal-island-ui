@@ -1,6 +1,6 @@
 # Data display — 精确样式规范
 
-承载内容展示的组件：Table、Pagination、CodeBlock、Tag 的精确取值
+承载内容展示的组件：Table、Pagination、CodeBlock、Tag、Badge、Image、Avatar 的精确取值
 
 ## Table（虚线行分隔，纯色 hover）
 
@@ -343,6 +343,97 @@ tab-size: 4;
 > - `border: 1.5px solid transparent` 默认占位，让 outlined/dashed 切换时不会因为 border 出现/消失导致尺寸抖动。
 > - `closable` × 按钮的 click `stopPropagation`，不会冒泡触发 `onClick`。
 > - 提供 `onClick` 时整个 tag 升格为 `role="button"` + `tabIndex={0}`，支持 Enter / Space 键盘触发。
+
+## Badge（角标数字，2px 奶油描边）
+
+源码：`src/components/Badge/Badge.tsx` + `badge.module.less`。**角标数字**：钉在被包裹元素右上角的 `<sup>` 胶囊，展示数字、封顶数字（`99+`）或一个纯小圆点；不包裹元素时即为独立使用。调色板与 Card / Tag 共用。
+
+```less
+/* 外壳 —— inline-flex，让 sup 相对被包裹元素定位 */
+.badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    line-height: 1;
+    font-family: inherit;
+}
+
+.indicator {
+    /* 定位位移抽成变量，让出场动画在独立使用下也能复用同一组 keyframes */
+    --badge-shift-x: 50%;
+    --badge-shift-y: -50%;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(var(--badge-shift-x), var(--badge-shift-y));
+    transform-origin: 100% 0;
+    background: #fc736d; /* app-red，默认色 */
+    color: #fff;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    border-radius: 999px; /* 胶囊 */
+    border: 2px solid var(--animal-bg-color, #f8f8f0); /* 与 Avatar 一致的奶油贴纸描边 */
+    box-shadow: var(--animal-shadow-sm, 0 2px 4px 0 rgba(61, 52, 40, 0.06));
+    animation: animal-badge-zoom-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 独立使用 —— 没有覆盖目标：取消位移、奶油描边与投影 */
+.standalone .indicator {
+    position: static;
+    --badge-shift-x: 0;
+    --badge-shift-y: 0;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* 尺寸 —— medium 为默认 */
+.size-medium { min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; }
+.size-small  { min-width: 16px; height: 16px; padding: 0 4px; font-size: 11px; }
+
+/* 小圆点 —— 定义在尺寸类之后，覆盖其宽高 */
+.dot { width: 10px; min-width: 0; height: 10px; padding: 0; }
+```
+
+**配色** —— 与 Card / Tag 调色板完全一致；浅色底（`app-yellow`、`lime-green`、`yellow-green`）换成深色文字保证数字可读：
+
+```less
+.color-app-red         { background: #fc736d; color: #fff; } /* 默认 */
+.color-app-pink        { background: #f8a6b2; color: #fff; }
+.color-app-orange      { background: #e59266; color: #fff; }
+.color-app-yellow      { background: #f7cd67; color: #725d42; }
+.color-app-teal        { background: #82d5bb; color: #fff; }
+.color-app-green       { background: #8ac68a; color: #fff; }
+.color-app-blue        { background: #889df0; color: #fff; }
+.color-purple          { background: #b77dee; color: #fff; }
+.color-lime-green      { background: #d1da49; color: #3d5a1a; }
+.color-yellow-green    { background: #ecdf52; color: #725d42; }
+.color-brown           { background: #9a835a; color: #fff; }
+.color-warm-peach-pink { background: #e18c6f; color: #fff; }
+```
+
+**出场动画** —— `<sup>` 只在可见时才挂载，所以这组 keyframes 恰好只在 0 → N 的切换时播放；`prefers-reduced-motion: reduce` 下关闭：
+
+```less
+@keyframes animal-badge-zoom-in {
+    from { opacity: 0; transform: translate(var(--badge-shift-x), var(--badge-shift-y)) scale(0.6); }
+    to   { opacity: 1; transform: translate(var(--badge-shift-x), var(--badge-shift-y)) scale(1); }
+}
+```
+
+> **关键设计决策**：
+> - 角标是 `<sup>`（与 antd 同款元素）；`position: absolute` + `translate(50%, -50%)` 让它精确钉在被包裹元素的右上角，`transform-origin: 100% 0` 让弹出动画从该角生长。
+> - 2px 奶油描边（`--animal-bg-color`）复用 Avatar 的贴纸描边，角标压在图片 / 图标上时能干净分离，而不是浮在画面上。独立使用时没有需要分离的目标，因此去掉描边、投影与位移。
+> - 封顶只对数字与数字字符串生效（`100` → `99+`）；ReactNode 类型的 `count`（如 naive-icons 图标）原样展示。可见文字被封顶时，真实数值仍保留在原生 `title` 中 —— 显式传入 `title` 可覆盖它。
+> - 显隐规则：`count` 为空（`null`、`undefined` 或空 / 纯空白字符串）、数值为 `0` / `"0"` 且未开启 `showZero` 时隐藏；`dot` 且数值为 0 时同样隐藏，但 `dot` 未传 `count` 仍会展示。`size` 只作用于数字胶囊 —— 小圆点的盒子尺寸优先。
+> - `color` 使用共享的海岛调色板而非 antd 的自由 CSS 颜色，角标不会脱离 Card / Tag 的色彩语言。
 
 ## Image（衬板相框）
 

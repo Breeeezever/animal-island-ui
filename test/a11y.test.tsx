@@ -51,6 +51,7 @@ import { Footer } from '@/components/Footer';
 import { Form, FormItem } from '@/components/Form';
 import { Image } from '@/components/Image';
 import { Avatar, AvatarGroup } from '@/components/Avatar';
+import { Badge } from '@/components/Badge';
 import { Input } from '@/components/Input';
 import { Modal } from '@/components/Modal';
 import { Notification } from '@/components/Notification';
@@ -402,6 +403,15 @@ describe('a11y smoke / 全组件 axe-core 自动检查', () => {
     it('Avatar (带 alt 图片头像)', async () => {
         const r = render(<Avatar src="https://example.com/u.png" alt="岛民头像" />);
         await expectNoA11yViolations(containerOf(r), 'Avatar');
+    });
+
+    it('Badge (包裹头像并显示数字)', async () => {
+        const r = render(
+            <Badge count={5} aria-label="未读消息">
+                <Avatar src="https://example.com/u.png" alt="岛民头像" />
+            </Badge>
+        );
+        await expectNoA11yViolations(containerOf(r), 'Badge');
     });
 
     it('AvatarGroup (图片头像组)', async () => {

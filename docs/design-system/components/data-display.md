@@ -1,6 +1,6 @@
 # Data display — pixel spec
 
-Exact values for the components that present content: Table, Pagination, CodeBlock and Tag.
+Exact values for the components that present content: Table, Pagination, CodeBlock, Tag, Badge, Image and Avatar.
 
 ## Table (dashed row rules, solid hover)
 
@@ -343,6 +343,97 @@ Source: `src/components/Tag/Tag.tsx` + `tag.module.less`. **Pill-shaped tag**: p
 > - `border: 1.5px solid transparent` is the default placeholder so that switching to outlined/dashed never resizes the tag as the border appears or disappears.
 > - The `closable` button's click calls `stopPropagation`, so it never bubbles into `onClick`.
 > - When `onClick` is provided, the whole tag is promoted to `role="button"` + `tabIndex={0}` and responds to Enter / Space.
+
+## Badge (corner count badge, 2px cream ring)
+
+Source: `src/components/Badge/Badge.tsx` + `badge.module.less`. **Corner count badge**: a `<sup>` pill pinned to the top-right of the wrapped element, showing a number, a capped number (`99+`) or a bare dot; it also works standalone (no wrapped element). The colour palette is shared with Card / Tag.
+
+```less
+/* wrapper — inline-flex so the sup anchors on the wrapped element */
+.badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    line-height: 1;
+    font-family: inherit;
+}
+
+.indicator {
+    /* positioning offsets are variables so the entrance animation also works standalone */
+    --badge-shift-x: 50%;
+    --badge-shift-y: -50%;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(var(--badge-shift-x), var(--badge-shift-y));
+    transform-origin: 100% 0;
+    background: #fc736d; /* app-red, the default */
+    color: #fff;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    border-radius: 999px; /* pill */
+    border: 2px solid var(--animal-bg-color, #f8f8f0); /* cream ring, same as Avatar's */
+    box-shadow: var(--animal-shadow-sm, 0 2px 4px 0 rgba(61, 52, 40, 0.06));
+    animation: animal-badge-zoom-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* standalone — nothing is covered: drop the offset, the cream ring and the shadow */
+.standalone .indicator {
+    position: static;
+    --badge-shift-x: 0;
+    --badge-shift-y: 0;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* size — medium is the default */
+.size-medium { min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; }
+.size-small  { min-width: 16px; height: 16px; padding: 0 4px; font-size: 11px; }
+
+/* dot — declared after the size classes so it overrides their box */
+.dot { width: 10px; min-width: 0; height: 10px; padding: 0; }
+```
+
+**Colour** — identical to the Card / Tag palette; the pale hues (`app-yellow`, `lime-green`, `yellow-green`) swap to dark text so the digits stay readable:
+
+```less
+.color-app-red         { background: #fc736d; color: #fff; } /* default */
+.color-app-pink        { background: #f8a6b2; color: #fff; }
+.color-app-orange      { background: #e59266; color: #fff; }
+.color-app-yellow      { background: #f7cd67; color: #725d42; }
+.color-app-teal        { background: #82d5bb; color: #fff; }
+.color-app-green       { background: #8ac68a; color: #fff; }
+.color-app-blue        { background: #889df0; color: #fff; }
+.color-purple          { background: #b77dee; color: #fff; }
+.color-lime-green      { background: #d1da49; color: #3d5a1a; }
+.color-yellow-green    { background: #ecdf52; color: #725d42; }
+.color-brown           { background: #9a835a; color: #fff; }
+.color-warm-peach-pink { background: #e18c6f; color: #fff; }
+```
+
+**Entrance motion** — the `<sup>` is only mounted once it becomes visible, so this keyframed pop plays exactly on a 0 → N transition; `prefers-reduced-motion: reduce` disables it:
+
+```less
+@keyframes animal-badge-zoom-in {
+    from { opacity: 0; transform: translate(var(--badge-shift-x), var(--badge-shift-y)) scale(0.6); }
+    to   { opacity: 1; transform: translate(var(--badge-shift-x), var(--badge-shift-y)) scale(1); }
+}
+```
+
+> **Key design decisions**:
+> - The indicator is a `<sup>` (same element antd uses); `position: absolute` + `translate(50%, -50%)` pins it exactly on the wrapped element's top-right corner, and `transform-origin: 100% 0` makes the pop grow out of that corner.
+> - The 2px cream ring (`--animal-bg-color`) reuses Avatar's sticker ring, so a badge overlapping an image or icon separates cleanly instead of floating on the artwork. A standalone badge covers nothing, so it drops ring, shadow and offset.
+> - Capping applies to numbers and numeric strings only (`100` → `99+`); a ReactNode `count` (e.g. a naive-icons glyph) renders verbatim. The true value stays in the native `title` even when the visible text is capped — pass `title` explicitly to override it.
+> - Visibility: hidden when `count` is empty (`null`, `undefined` or a blank string), when the value is `0` / `"0"` without `showZero`, and for `dot` when the value is zero; `dot` without a `count` still shows. `size` only affects the numeric pill — the dot box wins over it.
+> - `color` is the shared island palette rather than antd's free-form CSS colour, so a badge cannot drift outside the Card / Tag colour language.
 
 ## Image (mat frame)
 

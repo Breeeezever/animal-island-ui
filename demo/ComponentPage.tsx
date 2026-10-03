@@ -22,6 +22,7 @@ import SkeletonDemo from './components/Skeleton';
 import BackTopDemo from './components/BackTop';
 import ImageDemo from './components/Image';
 import AvatarDemo from './components/Avatar';
+import BadgeDemo from './components/Badge';
 import ButtonDemo from './components/Button';
 import InputDemo from './components/Input';
 import SwitchDemo from './components/Switch';
@@ -86,6 +87,7 @@ const PAGES: Record<string, React.FC> = {
     backtop: BackTopDemo,
     image: ImageDemo,
     avatar: AvatarDemo,
+    badge: BadgeDemo,
     countdown: CountdownDemo,
     time: TimeDemo,
     carousel: CarouselDemo,

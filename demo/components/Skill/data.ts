@@ -161,7 +161,7 @@ export const CATALOG: CatalogRow[] = [
     {
         category: 'Data displays',
         color: 'app-green',
-        components: ['Table', 'CodeBlock', 'Tag', 'Pagination'],
+        components: ['Table', 'CodeBlock', 'Tag', 'Badge', 'Pagination'],
         reference: 'data-display.md',
     },
     {
