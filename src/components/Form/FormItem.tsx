@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import classNames from 'classnames';
+import { CloseIcon } from 'naive-icons';
 import styles from './Form.module.less';
 import { FormContext } from './context';
 import { stringifyNamePath } from './types';
@@ -235,7 +236,9 @@ export const FormItem: React.FC<FormItemProps> = (props) => {
                 })}
             >
                 {hasFeedback && computedStatus === 'error' ? (
-                    <span className={styles[`${prefixCls}-feedback-icon`]}>✕</span>
+                    <span className={styles[`${prefixCls}-feedback-icon`]}>
+                        <CloseIcon size={12} />
+                    </span>
                 ) : null}
                 {showHelp}
             </div>

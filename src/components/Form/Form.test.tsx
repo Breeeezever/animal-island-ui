@@ -879,7 +879,7 @@ describe('Form', () => {
             expect(screen.getByRole('textbox')).toBeInTheDocument();
         });
 
-        it('hasFeedback 时错误状态下显示 ✕ 图标', async () => {
+        it('hasFeedback 时错误状态下显示反馈图标', async () => {
             const { container } = render(
                 <Form>
                     <Form.Item name="a" hasFeedback rules={[{ required: true, message: '必填' }]}>
@@ -893,7 +893,7 @@ describe('Form', () => {
             });
             const feedback = container.querySelector('.' + styles['island-form-item-feedback-icon']);
             expect(feedback).toBeInTheDocument();
-            expect(feedback?.textContent).toContain('✕');
+            expect(feedback?.querySelector('svg')).toBeInTheDocument();
         });
 
         it('validateStatus=success 手动指定覆盖自动推断', () => {
