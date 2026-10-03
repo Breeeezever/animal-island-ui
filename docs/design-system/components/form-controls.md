@@ -17,7 +17,7 @@ Pixel-level styling for the interactive input controls: Input, Switch, Checkbox,
 **Exact color values:**
 
 ```css
-background: #fffbe7;
+background: #fffdf7;         /* cream-deep — the panel tone shared with the Select / DatePicker / TimePicker popovers */
 /* no border; the total height is the token height (32/40/48px), with the space the border used to occupy now belonging to the content */
 /* no box-shadow by default; with shadow={true} the middle size takes 0 3px 0 0 #d4c9b4 from the table above */
 

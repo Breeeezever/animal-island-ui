@@ -49,7 +49,7 @@ animal-island-ui 是一套受《治愈系海岛风格》启发的 React + TypeSc
 | `Tag`          | 胶囊标签，3 尺寸 × 3 变体（solid/outlined/dashed）× 12 配色（与 Card 调色板完全对齐），支持 closable / onClick / disabled                                                                   | ✓    |               |
 | `Badge`        | 角标数字：图标 / 头像右上角的圆形徽标，支持数字、封顶数字（`99+`）、小红点、独立使用，2 尺寸 × 12 配色（与 Card / Tag 调色板一致）                                                                |      | ✓             |
 | `Notification` | 命令式全局通知：4 种 type × 6 个 position，支持 description / btn / onClick / key 复用更新 / destroy 全部                                                                      | ✓    |               |
-| `Progress`     | 场景图进度条：fill 显示 4 张岛屿场景图之一（默认 sweet-corner），背景图铺满整条轨道、无边框，按进度从左揭开，3 档 size，文字固定显示在进度条右侧，infoFormat 自定义、duration 控制 fill 宽度动画 |      | ✓             |
+| `Progress`     | 描边进度条：奶油色 pill 轨道 + 2px 沙色描边（size 为含描边的总高），fill 为薄荷色竖向渐变、按进度从左揭开、100% 时提亮；可选 `variant` 把渐变换成 4 张岛屿场景图之一铺满整条轨道，文字固定显示在进度条右侧，infoFormat 自定义、duration 控制 fill 宽度动画 |      | ✓             |
 | `Skeleton`     | 加载占位骨架，4 种变体（`text`/`circle`/`rect`/`paragraph`）加 `SkeletonButton` / `SkeletonInput` / `SkeletonAvatar` 子组件，暖白微光扫过                                                   |      | ✓             |
 | `Loading`      | 全屏夜空飘雪（`#0b101a` 底 + 中央暗角），50 片白雪花漂落旋转、可选居中 `tip`；`active` 关闭时淡出并卸载，支持 `prefers-reduced-motion`                                                           |      | ✓             |
 | `BackTop`      | 固定右下角回到顶部按钮（原创徽章图形，easeInOutQuad 平滑滚动）                                                                                                                            | ✓    |               |

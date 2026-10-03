@@ -2,10 +2,10 @@
 
 反馈进度与等待状态的组件：Progress、Skeleton、BackTop 的精确取值
 
-## Progress（场景图或纯色 fill + 波点 track）
+## Progress（描边轨道 + 渐变或场景图 fill）
 
 源码：`src/components/Progress/Progress.tsx`（受控渲染 + aria 适配）+ `types.ts`（类型定义）+ `progress.module.less`。
-**JSX 组件**（非命令式）：`percent` 受控传入，从 0 平滑动画到目标值。track 是奶油色波点 pill 带内阴影、无边框；传 `variant` 时 fill 是场景图（`sweet-corner.svg`、`forest-grove.svg` …）由组件内联注入，`background-size` 等于整条轨道宽度，场景铺满整条轨道；未传 `variant` 时 fill 回退为纯青色（`#19c8b9`）。百分比文字固定显示在进度条右侧。
+**JSX 组件**（非命令式）：`percent` 受控传入，从 0 平滑动画到目标值。track 是奶油色 pill，带细波点纹理和 2px 沙色实描边；传 `variant` 时 fill 是场景图（`sweet-corner.svg`、`forest-grove.svg` …）由组件内联注入，`background-size` 等于整条轨道宽度，场景铺满整条轨道；未传 `variant` 时 fill 回退为薄荷色竖向渐变。百分比文字固定显示在进度条右侧。
 
 **props**：
 ```ts
@@ -16,7 +16,7 @@ interface ProgressProps {
     percent: number;            // required, 0-100, auto-clamped; non-integers are rounded for aria
     size?: ProgressSize;        // small=14px / middle=24px / large=32px
     showInfo?: boolean;         // default true；文字显示在进度条右侧
-    variant?: ProgressVariant;  // fill 场景图；不传时用纯青色 #19c8b9
+    variant?: ProgressVariant;  // fill 场景图；不传时用薄荷渐变
     infoFormat?: (p: number) => ReactNode; // default `${p}%`
     duration?: number;          // seconds; 0 disables the fill width animation; default 0.6
     className?: string;
@@ -28,21 +28,23 @@ interface ProgressProps {
 ```css
 .track {
     position: relative;
+    box-sizing: border-box;  /* 高度含描边，保证 size 是总高 */
     flex: 1 1 auto;
     width: 100%;
     min-width: 80px;
     background:
-        radial-gradient(circle, rgba(196, 184, 158, 0.15) 1.5px, transparent 1.5px) 0 0 / 28px 28px,
-        radial-gradient(circle, rgba(196, 184, 158, 0.1) 1px, transparent 1px) 7px 7px / 14px 14px,
-        #f8f8f0;               /* 奶油色波点（与 Background default / Card pattern-default 一致） */
-    box-shadow: inset 0 2px 4px rgba(114, 93, 66, 0.08); /* 内凹阴影（很淡） */
-    border-radius: 999px;      /* pill */
+        radial-gradient(circle, rgba(196, 184, 158, 0.1) 1.5px, transparent 1.5px) 7px 7px / 14px 14px,
+        #f8f8f0;              /* 细奶油波点 + 未改动的奶油底 */
+    border: 2px solid #e2d6bd; /* 沙色实描边（替掉原来的内凹阴影） */
+    border-radius: 999px;    /* pill */
     overflow: hidden;
 }
 .track.size-small  { height: 14px; }
 .track.size-middle { height: 24px; }
 .track.size-large  { height: 32px; }
 ```
+
+原来的壁纸轨道，小点层保留了 14px 网格、7px 偏移、`#f8f8f0` 底色和 `rgba(196, 184, 158, 0.1)`，但**点半径是 1.5px，不是原来的 1px**。2px 描边吃掉了 4px 画布（14px 的 small 档内腔只剩 10px），原半径的点在这个更小的画布里显得又小又稀，所以把点径调宽来补偿。1.5px / 28px 的粗大点层去掉了：描边已经在勾边，再叠一层更大的点会显脏。`background-origin` 保持默认的 `padding-box`，所以波点从描边内侧起画，不会压在描边下面。
 
 **Fill（精确值）：**
 ```css
@@ -51,14 +53,21 @@ interface ProgressProps {
     top: 0; left: 0; bottom: 0;
     width: 0;
     border-radius: 999px;
-    /* 场景图由 Progress.tsx 内联注入：
+    background: linear-gradient(180deg, #3dd4c6 0%, #19c8b9 60%, #14b6a8 100%); /* 薄荷色，上亮下沉 */
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);  /* 顶部内高光 */
+    /* 传 variant 时由 Progress.tsx 内联注入场景图，覆盖渐变层：
        background-image: url(<variant svg>);
        background-repeat: no-repeat;
        background-position: left top;
        background-size: <trackWidth>px auto;  (图片铺满整条轨道，按进度从左裁剪) */
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    display: flex; align-items: center; justify-content: flex-end; padding-right: 4px;
+}
+
+/* 100% 完成态：整体提亮，读作「已抵达」而不是「还在加载」。
+   纯 CSS，挂在组件本来就渲染的 aria 值上。 */
+.progress[aria-valuenow='100'] .fill {
+    background: linear-gradient(180deg, #7fe0d5 0%, #3dd4c6 100%);
 }
 ```
 
@@ -77,6 +86,8 @@ interface ProgressProps {
 - `duration=0` → 关闭 fill 宽度过渡（`transition: none`），瞬间到位。
 - a11y：根 div 有 `role="progressbar"` + `aria-valuemin=0/aria-valuemax=100/aria-valuenow=<四舍五入后的 percent>/aria-valuetext=<infoFormat 的字符串结果>`。
 - `prefers-reduced-motion: reduce` 时 fill 宽度过渡自动关闭。
+- 不传 `variant` 时 `Progress.tsx` 仍会内联写入 `background-color: #19c8b9`；样式表里的渐变完全不透明、盖在其上，所以这个内联色只是兜底，不是实际观感。
+- 100% 提亮只作用于渐变 fill。传了 `variant` 时场景图会内联注入自己的 `background-image`，100% 下刻意保持场景原色不染色。
 
 ## Loading（全屏落雪）
 

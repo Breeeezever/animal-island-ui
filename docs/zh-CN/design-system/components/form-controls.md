@@ -17,7 +17,7 @@
 **精确颜色值：**
 
 ```css
-background: #fffbe7;
+background: #fffdf7;         /* cream-deep —— 与 Select / DatePicker / TimePicker 弹层共用的一块面板色 */
 /* 无边框；总高度即 token 高度（32/40/48px），原边框占用的空间并入内容区 */
 /* 默认无 box-shadow；shadow={true} 时按上表中号取 0 3px 0 0 #d4c9b4 */
 

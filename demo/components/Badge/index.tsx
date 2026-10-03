@@ -152,7 +152,7 @@ const BadgeDemo: React.FC = () => (
                 </Badge>
                 <Badge count={1000} overflowCount={999}>
                     <Avatar shape="square" size="large">
-                        999+
+                        <span style={{ fontSize: 16 }}>999+</span>
                     </Avatar>
                 </Badge>
             </div>

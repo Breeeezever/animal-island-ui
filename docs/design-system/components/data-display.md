@@ -394,13 +394,31 @@ Source: `src/components/Badge/Badge.tsx` + `badge.module.less`. **Corner count b
     box-shadow: none;
 }
 
-/* size — medium is the default */
-.size-medium { min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; }
-.size-small  { min-width: 16px; height: 16px; padding: 0 4px; font-size: 11px; }
+/* size — medium is the default; the type is sized to the 2px ring's inner cavity */
+.size-medium { min-width: 20px; height: 20px; padding: 0 6px; font-size: 10px; }
+.size-small  { min-width: 16px; height: 16px; padding: 0 4px; font-size: 9px; }
+
+/* circle — 1–2 character content locks to a true circle */
+.size-medium.circle { width: 20px; min-width: 0; padding: 0; }
+.size-small.circle  { width: 16px; min-width: 0; padding: 0; }
 
 /* dot — declared after the size classes so it overrides their box */
 .dot { width: 10px; min-width: 0; height: 10px; padding: 0; }
 ```
+
+**Circle vs pill** — the size classes alone let the box grow: with `0 6px` padding a two-digit badge is wider than it is tall, so it renders as a squashed pill rather than a circle. `Badge.tsx` therefore adds `.circle` whenever the rendered content is short, which pins `width` to the same value as `height` and makes the `999px` radius resolve to a true circle with the content centred by the `.indicator` flex box.
+
+The type is sized against the **inner cavity**, not the outer box. The 2px cream ring takes 4px off, leaving the `medium` circle a 16px interior; at the original 12px type `99` measured ~13.5px wide — 84% of the cavity, effectively touching the edge. The sizes are therefore 10px / 9px rather than 12px / 11px.
+
+The rule measures the **displayed text**, so numbers go through `String(value)` and land on the same path as strings:
+
+| content | shape | why |
+| ------- | ----- | --- |
+| `5`, `12`, `99`, `0` | circle | 1–2 characters |
+| `新` | circle | 1 full-width character still fits the diameter |
+| `100`, `99+`, `999+` | pill | 3+ characters |
+| `热更` | pill | 2 full-width characters overflow the circle |
+| `<GiftIcon />`, any ReactNode | pill | no measurable text; the caller's node decides the box |
 
 **Colour** — identical to the Card / Tag palette; the pale hues (`app-yellow`, `lime-green`, `yellow-green`) swap to dark text so the digits stay readable:
 

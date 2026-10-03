@@ -2,10 +2,10 @@
 
 Exact values for the components that report progress or pending state: Progress, Skeleton and BackTop.
 
-## Progress (scene or solid fill on dotted track)
+## Progress (outlined track, gradient or scene fill)
 
 Source: `src/components/Progress/Progress.tsx` (controlled rendering + aria wiring) + `types.ts` (type definitions) + `progress.module.less`.
-**A JSX component** (not imperative): `percent` is passed in controlled and animates smoothly from 0 to the target value. The track is a cream dotted pill with an inner shadow; when a `variant` is passed the fill is a scene image (`sweet-corner.svg`, `forest-grove.svg`, …) injected inline at `background-size` equal to the full track width so the scene spans the whole bar, while omitting `variant` falls back to a solid teal fill (`#19c8b9`). The label always sits right of the bar.
+**A JSX component** (not imperative): `percent` is passed in controlled and animates smoothly from 0 to the target value. The track is a cream pill carrying a fine dot texture and a solid 2px sand outline; when a `variant` is passed the fill is a scene image (`sweet-corner.svg`, `forest-grove.svg`, …) injected inline at `background-size` equal to the full track width so the scene spans the whole bar, while omitting `variant` falls back to a mint vertical gradient. The label always sits right of the bar.
 
 **props**:
 ```ts
@@ -16,7 +16,7 @@ interface ProgressProps {
     percent: number;            // required, 0-100, auto-clamped; non-integers are rounded for aria
     size?: ProgressSize;        // small=14px / middle=24px / large=32px
     showInfo?: boolean;         // default true; label sits right of the bar
-    variant?: ProgressVariant;  // scene image for the fill; omit to use solid #19c8b9
+    variant?: ProgressVariant;  // scene image for the fill; omit to use the mint gradient
     infoFormat?: (p: number) => ReactNode; // default `${p}%`
     duration?: number;          // seconds; 0 disables the fill width animation; default 0.6
     className?: string;
@@ -28,21 +28,23 @@ interface ProgressProps {
 ```css
 .track {
     position: relative;
+    box-sizing: border-box;  /* height includes the border, so size = total height */
     flex: 1 1 auto;
     width: 100%;
     min-width: 80px;
     background:
-        radial-gradient(circle, rgba(196, 184, 158, 0.15) 1.5px, transparent 1.5px) 0 0 / 28px 28px,
-        radial-gradient(circle, rgba(196, 184, 158, 0.1) 1px, transparent 1px) 7px 7px / 14px 14px,
-        #f8f8f0;               /* cream dots (same as Background default / Card pattern-default) */
-    box-shadow: inset 0 2px 4px rgba(114, 93, 66, 0.08); /* inner recess (very subtle) */
-    border-radius: 999px;      /* pill */
+        radial-gradient(circle, rgba(196, 184, 158, 0.1) 1.5px, transparent 1.5px) 7px 7px / 14px 14px,
+        #f8f8f0;              /* fine cream dots over the unchanged cream base */
+    border: 2px solid #e2d6bd; /* sand outline (replaces the old inset dent) */
+    border-radius: 999px;    /* pill */
     overflow: hidden;
 }
 .track.size-small  { height: 14px; }
 .track.size-middle { height: 24px; }
 .track.size-large  { height: 32px; }
 ```
+
+The small dot layer carries over from the old wallpaper track — 14px grid, 7px offset, `#f8f8f0` base, `rgba(196, 184, 158, 0.1)` — but the dot **radius is 1.5px, not the original 1px**. The 2px outline takes 4px off the canvas (the 14px `small` size leaves a 10px interior), so at the original radius the same dots read as smaller and sparser than they used to; widening the radius compensates. The coarser 1.5px / 28px layer was dropped: with the outline already drawing the edge, a second, larger dot layer reads as dirt. `background-origin` stays at its default `padding-box`, so the dots start inside the border rather than under it.
 
 **Fill (exact values):**
 ```css
@@ -51,14 +53,21 @@ interface ProgressProps {
     top: 0; left: 0; bottom: 0;
     width: 0;
     border-radius: 999px;
-    /* scene image injected inline by Progress.tsx:
+    background: linear-gradient(180deg, #3dd4c6 0%, #19c8b9 60%, #14b6a8 100%); /* mint, top-lit */
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);  /* top inner highlight */
+    /* scene image injected inline by Progress.tsx, replacing the gradient layer:
        background-image: url(<variant svg>);
        background-repeat: no-repeat;
        background-position: left top;
        background-size: <trackWidth>px auto;  (image spans the full track, clipped left by progress) */
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
-    display: flex; align-items: center; justify-content: flex-end; padding-right: 4px;
+}
+
+/* 100% completion state — brighter, so a full bar reads as "arrived", not "loading".
+   Pure CSS, keyed off the aria value the component already renders. */
+.progress[aria-valuenow='100'] .fill {
+    background: linear-gradient(180deg, #7fe0d5 0%, #3dd4c6 100%);
 }
 ```
 
@@ -77,6 +86,8 @@ interface ProgressProps {
 - `duration=0` → the fill width transition is disabled (`transition: none`) and jumps instantly.
 - a11y: the root div carries `role="progressbar"` plus `aria-valuemin=0` / `aria-valuemax=100` / `aria-valuenow=<rounded percent>` / `aria-valuetext=<string result of infoFormat>`.
 - Under `prefers-reduced-motion: reduce`, the fill width transition is switched off automatically.
+- Without a `variant`, `Progress.tsx` still sets an inline `background-color: #19c8b9`. The stylesheet gradient is fully opaque, so it paints on top and that inline color is only a paint-order fallback, not the visible result.
+- The 100% brightening applies to the gradient fill only. A `variant` injects its own `background-image` inline and deliberately keeps the scene art un-tinted at 100%.
 
 ## Loading (fullscreen falling snow)
 

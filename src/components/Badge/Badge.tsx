@@ -47,6 +47,19 @@ const toNumeric = (value: React.ReactNode): number | null => {
     return null;
 };
 
+/** 全角 / CJK 字符在正圆里会顶破圆直径：CJK 部首与汉字、兼容汉字、全角与半角形式 */
+const FULLWIDTH = /[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/;
+
+/** 1 到 99 这类 1–2 位内容锁成正圆；「100」「99+」等 3 位以上、以及两格全角字回退为胶囊 */
+const CIRCLE_MAX_LENGTH = 2;
+
+const fitsCircle = (value: React.ReactNode): boolean => {
+    // 数字按其显示文本量长度，这样 100 / 1000 自动落回胶囊，与字符串走同一套判定
+    const text = typeof value === 'number' ? String(value) : typeof value === 'string' ? value.trim() : null;
+    if (text === null || text.length === 0 || text.length > CIRCLE_MAX_LENGTH) return false;
+    return !(text.length === CIRCLE_MAX_LENGTH && FULLWIDTH.test(text));
+};
+
 export const Badge: React.FC<BadgeProps> = ({
     count = null,
     overflowCount = 99,
@@ -78,6 +91,8 @@ export const Badge: React.FC<BadgeProps> = ({
     const indicatorCls = classNames(
         styles.indicator,
         SIZE_CLASS[size],
+        // 正圆只对短内容有意义：dot 无内容，图标等 ReactNode 由调用方自行控制盒型
+        fitsCircle(displayCount) && styles.circle,
         showAsDot && styles.dot,
         styles[`color-${color}`]
     );

@@ -394,13 +394,31 @@ tab-size: 4;
     box-shadow: none;
 }
 
-/* 尺寸 —— medium 为默认 */
-.size-medium { min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; }
-.size-small  { min-width: 16px; height: 16px; padding: 0 4px; font-size: 11px; }
+/* 尺寸 —— medium 为默认；字号按 2px 描边内的净腔定 */
+.size-medium { min-width: 20px; height: 20px; padding: 0 6px; font-size: 10px; }
+.size-small  { min-width: 16px; height: 16px; padding: 0 4px; font-size: 9px; }
+
+/* 正圆 —— 1–2 位内容锁成正圆 */
+.size-medium.circle { width: 20px; min-width: 0; padding: 0; }
+.size-small.circle  { width: 16px; min-width: 0; padding: 0; }
 
 /* 小圆点 —— 定义在尺寸类之后，覆盖其宽高 */
 .dot { width: 10px; min-width: 0; height: 10px; padding: 0; }
 ```
+
+**正圆 vs 胶囊** —— 只靠尺寸类时盒子是可长的：加 `0 6px` 内边距后两位数比高度宽，渲染成扁胶囊而不是正圆。所以 `Badge.tsx` 在渲染内容较短时追加 `.circle`，把 `width` 钉死成与 `height` 相同，`999px` 圆角才成立；内容由 `.indicator` 的 flex 居中。
+
+字号按**内腔**而不是外框定。2px 奶油描边吃掉 4px，medium 的 20px 圆只剩 16px 净腔；原来的 12px 字号下 `99` 约 13.5px 宽 —— 占净腔 84%，基本顶到边。所以字号是 10px / 9px 而非 12px / 11px。
+
+判定量的是**最终显示的文本**，数字先经 `String(value)` 转成字符串，与字符串走同一套逻辑：
+
+| 内容 | 形态 | 原因 |
+| ---- | ---- | ---- |
+| `5`、`12`、`99`、`0` | 正圆 | 1–2 个字符 |
+| `新` | 正圆 | 1 个全角字符仍放得下 |
+| `100`、`99+`、`999+` | 胶囊 | 3 个字符以上 |
+| `热更` | 胶囊 | 2 个全角字符顶破圆直径 |
+| `<GiftIcon />` 等 ReactNode | 胶囊 | 无可量文本，盒型由调用方的节点决定 |
 
 **配色** —— 与 Card / Tag 调色板完全一致；浅色底（`app-yellow`、`lime-green`、`yellow-green`）换成深色文字保证数字可读：
 
