@@ -164,13 +164,13 @@ Source: `src/components/Pagination/pagination.module.less`. **Ghost-cell pager s
 > - The size changer is a self-contained popover (click outside / Escape closes) rather than reusing `Select`, so the pager has no dependency on the form components.
 > - a11y: root is `<nav aria-label="分页">`; the active page carries `aria-current="page"`; prev/next have `aria-label` and use native `disabled`; the jumper input has an `aria-label`.
 
-## CodeBlock (dark theme, JSX/TS tokenizer)
+## CodeBlock (dark theme, JSX/TS + shell tokenizer)
 
 Props:
 
-| name        | type            | default | description                                                                     |
-| ----------- | --------------- | ------- | ------------------------------------------------------------------------------- |
-| `code`      | `string`        | —       | **required**; raw source string, tokenized and highlighted internally as JSX/TS |
+| name        | type            | default | description                                                                                    |
+| ----------- | --------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `code`      | `string`        | —       | **required**; raw source string. JSX/TS code is tokenized and highlighted; lines starting with a shell command (`npm/yarn/pnpm/npx/node/git/...`) are highlighted as shell instead |
 | `style`     | `CSSProperties` | —       | merged over the default dark theme                                              |
 | `className` | `string`        | —       | custom class name                                                               |
 | `copyable`  | `boolean`       | `true`  | shows the copy button                                                           |
@@ -210,7 +210,7 @@ When the copy button is visible and the consumer has not supplied custom `paddin
 | operator  | `#d4b896` | `{}[]();,` and `+-\*/=<>&\|^~?:` etc.                                     |
 | default   | `#e8d5bc` | everything else                                                           |
 
-The top-right copy button uses the Clipboard API and reports `已复制` or `复制失败`; set `copyable={false}` to hide it. There is no `language` prop, line numbers or soft wrapping; non-JS/TS code is coloured by the generic rules and may render inaccurately.
+The top-right copy button uses the Clipboard API and reports `已复制` or `复制失败`; set `copyable={false}` to hide it. There is no `language` prop, line numbers or soft wrapping. When the first line starts with a shell command (`npm/yarn/pnpm/npx/node/git/cd/ls/...`), the block switches to shell highlighting: command names in the `jsx` colour, known subcommands (`install/add/build/git commit/...`) in `string`, flags (`-x` / `--flag`) in `operator`, `//` comments in italic `comment`; package/argument names stay in the default colour. Other non-JS/TS code is coloured by the generic rules and may render inaccurately.
 
 ## Tag (pill, 12-colour palette)
 

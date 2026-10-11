@@ -164,13 +164,13 @@ padding: 10px 16px 8px;
 > - 每页条数切换器为自包含弹层（点击外部 / Escape 关闭），不复用 `Select`，分页器因此不依赖表单组件。
 > - a11y：根节点为 `<nav aria-label="分页">`；当前页带 `aria-current="page"`；前后翻页按钮带 `aria-label` 并使用原生 `disabled`；跳转输入框带 `aria-label`。
 
-## CodeBlock（深色主题，JSX/TS 分词）
+## CodeBlock（深色主题，JSX/TS + shell 分词）
 
 Props：
 
-| name        | type            | default | 说明                                                 |
-| ----------- | --------------- | ------- | ---------------------------------------------------- |
-| `code`      | `string`        | —       | **必填**；原始源码字符串，内部自动按 JSX/TS 分词高亮 |
+| name        | type            | default | 说明                                                                     |
+| ----------- | --------------- | ------- | ------------------------------------------------------------------------ |
+| `code`      | `string`        | —       | **必填**；原始源码字符串。JSX/TS 代码自动分词高亮；以 shell 命令（`npm/yarn/pnpm/npx/node/git/...`）开头的行则按 shell 高亮 |
 | `style`     | `CSSProperties` | —       | 会合并覆盖默认深色主题                               |
 | `className` | `string`        | —       | 自定义类名                                           |
 | `copyable`  | `boolean`       | `true`  | 是否显示复制按钮                                     |
@@ -210,7 +210,7 @@ tab-size: 4;
 | operator  | `#d4b896` | `{}[]();,` 和 `+-\*/=<>&\|^~?:` 等                                 |
 | default   | `#e8d5bc` | 其余文本                                                           |
 
-右上角复制按钮使用 Clipboard API，并显示“已复制”或“复制失败”反馈；传入 `copyable={false}` 可隐藏。不支持 `language` prop、行号或折行；非 JS/TS 代码会按通用规则着色，显示可能不准确。
+右上角复制按钮使用 Clipboard API，并显示“已复制”或“复制失败”反馈；传入 `copyable={false}` 可隐藏。不支持 `language` prop、行号或折行。当首行以 shell 命令（`npm/yarn/pnpm/npx/node/git/cd/ls/...`）开头时，代码块自动切换为 shell 高亮：命令名用 `jsx` 色，已知子命令（`install/add/build/git commit/...`）用 `string` 色，flag（`-x` / `--flag`）用 `operator` 色，`//` 注释为斜体 `comment` 色；包名/参数保持默认色。其他非 JS/TS 代码会按通用规则着色，显示可能不准确。
 
 ## Tag（胶囊标签，12 色调色板）
 
