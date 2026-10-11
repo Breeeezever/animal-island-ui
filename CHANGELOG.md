@@ -7,9 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `CodeBlock` 新增 Shell 命令高亮：行首为 `npm` / `yarn` / `pnpm` / `npx` / `node` / `git` / `cd` 等命令时按 Shell 着色（命令名、子命令、flag、注释各自取色，注释为斜体淡色），此前一律按 JSX/TS 解析；为此把 token 渲染逻辑从 `highlightJSX` 中抽为 `renderTokens`，token 增加可选的斜体标记
+
 ### Changed
 
-- `naive-icons` 升级至 `1.6.0`（导出数 125 → 171）：新增 38 个图标（`AlertCircleIcon`、`AlertTriangleIcon`、`BadgeCheckIcon`、`FilterIcon`、`GridIcon`、`InboxIcon`、`InfoIcon`、`KeyboardIcon`、`ListIcon`、`ShieldIcon`、`SlidersIcon`、`SortIcon`、`VolumeIcon`、`XCircleIcon`、`ZoomInIcon` 等），并新增 `IconProps` / `IconName` / `IconComponent` / `PaletteColor` 类型，以及 `NAIVE_PALETTE` 调色板与 `normalizeIconProps` / `resolveStrokeWidth` / `scaledStroke` 工具导出
+- `naive-icons` 升级至 `1.6.0`（导出数 125 → 171，**无破坏性变更，旧图标全部保留**）：新增 38 个图标（`AlertCircleIcon`、`AlertTriangleIcon`、`BadgeCheckIcon`、`FilterIcon`、`GridIcon`、`InboxIcon`、`InfoIcon`、`KeyboardIcon`、`ListIcon`、`ShieldIcon`、`SlidersIcon`、`SortIcon`、`VolumeIcon`、`XCircleIcon`、`ZoomInIcon` 等），并新增 `IconProps` / `IconName` / `IconComponent` / `PaletteColor` 类型，以及 `NAIVE_PALETTE` 调色板与 `normalizeIconProps` / `resolveStrokeWidth` / `scaledStroke` 工具导出
+- `Select` 的 `allowClear` 清除按钮改为**仅在悬停时显示**，不再常驻于已选值旁
+- npm 11.17 默认拒绝执行依赖的安装脚本，`package.json` 新增 `allowScripts` 放行 `esbuild` 与 `fsevents`；此前 `fsevents` 的原生模块一直被静默跳过，`vite dev` 的文件监听退化为轮询
+
+### Fixed
+
+- `BackTop` 的返回顶部图标此前是组件目录内自带的 `rocket.svg`（且为旧稿，机身 / 火焰 / 舷窗坐标均已过时），现已改用 `naive-icons` 的 `RocketIcon` 并删除该文件；图标改为 `aria-hidden`，可读名称仅由按钮自身的 `aria-label` 提供，不再重复播报
+- `Drawer` **首次打开卡顿**：背景下沉景深原先对 `document.body` 下每个非 fixed 子元素施加 `filter: blur(1px)`。`filter` 是非合成器属性，会为每个元素新建合成层并对整个视口做逐像素高斯模糊，各层首次打开时需从零光栅化 —— 症状正是「第一次卡、之后顺」。景深现由 `scale(0.94)` + 圆角 + 遮罩压暗承担，并在过渡开始前用 `will-change` 完成分层
+- `Modal` 与 `Drawer` 补齐 `prefers-reduced-motion`：`Modal` 关闭面板 `scale(0.92) → scale(1)` 的缩放入场，`Drawer` 同时关闭背景下沉位移与面板自身的 `translateX/Y(±100%) → none` 滑入 —— 两者均为位移类动效。关闭后面板直接落位，不会停在中间帧或不可见。两者均保留遮罩的纯 opacity 淡入 —— opacity 不属于位移动效
+- `Loading` 在 `prefers-reduced-motion: reduce` 下只剩一块黑屏：雪花唯一的可见性来源就是那段动画，`.flake` 的静止位置在视口上方 `top: -30px`，而 reduced-motion 分支写的是 `animation: none`，50 片雪花因此整体冻在视口外。改用 `animation-play-state: paused` —— 雪花本就带负延迟，暂停会将其冻结在下落途中的随机高度，得到一张铺满视口的静态雪景
 
 ## [2.1.1] - 2026-10-03
 
