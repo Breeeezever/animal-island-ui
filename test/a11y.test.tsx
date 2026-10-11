@@ -28,7 +28,7 @@
  *   - meta-viewport           N/A
  */
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, type RenderResult } from '@testing-library/react';
+import { cleanup, render, act, type RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import React from 'react';
@@ -132,6 +132,12 @@ async function expectNoA11yViolations(root: Element | Document, label: string): 
 function containerOf(r: RenderResult): HTMLElement {
     return r.container;
 }
+
+/** Select 的下拉要等一帧 requestAnimationFrame 才挂载，测试里需要 flush 一帧 */
+const flushRaf = () =>
+    act(async () => {
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    });
 
 // ---------------------------------------------------------------------------
 // 测试套件
@@ -251,6 +257,65 @@ describe('a11y smoke / 全组件 axe-core 自动检查', () => {
             />
         );
         await expectNoA11yViolations(containerOf(r), 'Select');
+    });
+
+    it('Select allowClear (带 aria-label，已选值)', async () => {
+        const r = render(
+            <Select
+                aria-label="选择水果"
+                value="a"
+                allowClear
+                onChange={() => {}}
+                options={[
+                    { key: 'a', label: '苹果' },
+                    { key: 'b', label: '香蕉' },
+                ]}
+            />
+        );
+        await expectNoA11yViolations(containerOf(r), 'Select allowClear');
+    });
+
+    it('Select showSearch (带 aria-label，展开且命中)', async () => {
+        const user = userEvent.setup();
+        const r = render(
+            <Select
+                aria-label="选择水果"
+                value=""
+                showSearch
+                onChange={() => {}}
+                options={[
+                    { key: 'a', label: '苹果' },
+                    { key: 'b', label: '香蕉' },
+                ]}
+            />
+        );
+        const input = r.container.querySelector('[role="combobox"]') as HTMLInputElement;
+        input.focus();
+        await user.keyboard('{ArrowDown}');
+        await flushRaf();
+        await expectNoA11yViolations(containerOf(r), 'Select showSearch');
+    });
+
+    it('Select showSearch (展开后过滤为空 → 空态)', async () => {
+        const user = userEvent.setup();
+        const r = render(
+            <Select
+                aria-label="选择水果"
+                value=""
+                showSearch
+                onChange={() => {}}
+                options={[
+                    { key: 'a', label: '苹果' },
+                    { key: 'b', label: '香蕉' },
+                ]}
+            />
+        );
+        const input = r.container.querySelector('[role="combobox"]') as HTMLInputElement;
+        input.focus();
+        await user.keyboard('{ArrowDown}');
+        await flushRaf();
+        await user.type(input, 'zzz', { skipClick: true });
+        await expectNoA11yViolations(containerOf(r), 'Select showSearch empty');
     });
 
     it('DatePicker (带 aria-label，展开面板)', async () => {

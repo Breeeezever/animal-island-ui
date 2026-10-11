@@ -54,7 +54,7 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     },
     select: {
         title: 'Select 选择器',
-        desc: '下拉选择器组件 — 支持自定义选项列表，高亮当前选中项',
+        desc: '下拉选择器组件 — 支持自定义选项列表、allowClear 清空、showSearch 关键字过滤、键盘导航',
     },
     'date-picker': {
         title: 'DatePicker 日期选择',
