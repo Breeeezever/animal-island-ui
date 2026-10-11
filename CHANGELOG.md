@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- `naive-icons` 升级至 `1.6.0`（导出数 125 → 171）：新增 38 个图标（`AlertCircleIcon`、`AlertTriangleIcon`、`BadgeCheckIcon`、`FilterIcon`、`GridIcon`、`InboxIcon`、`InfoIcon`、`KeyboardIcon`、`ListIcon`、`ShieldIcon`、`SlidersIcon`、`SortIcon`、`VolumeIcon`、`XCircleIcon`、`ZoomInIcon` 等），并新增 `IconProps` / `IconName` / `IconComponent` / `PaletteColor` 类型，以及 `NAIVE_PALETTE` 调色板与 `normalizeIconProps` / `resolveStrokeWidth` / `scaledStroke` 工具导出
+
 ## [2.1.1] - 2026-10-03
 
 ### Added
