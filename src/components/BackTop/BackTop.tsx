@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import classNames from 'classnames';
+import { RocketIcon } from 'naive-icons';
 import styles from './back-top.module.less';
-import rocketIcon from './rocket.svg';
 
 export interface BackTopProps {
     /** 滚动容器，默认 window */
@@ -89,7 +89,7 @@ export const BackTop: React.FC<BackTopProps> = ({
                 }
             }}
         >
-            <img className={styles.img} src={rocketIcon} alt="返回顶部" />
+            <RocketIcon size={64} className={styles.img} />
         </div>
     );
 };

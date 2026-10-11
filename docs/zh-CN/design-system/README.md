@@ -52,7 +52,7 @@ animal-island-ui 是一套受《治愈系海岛风格》启发的 React + TypeSc
 | `Progress`     | 描边进度条：奶油色 pill 轨道 + 2px 沙色描边（size 为含描边的总高），fill 为薄荷色竖向渐变、按进度从左揭开、100% 时提亮；可选 `variant` 把渐变换成 4 张岛屿场景图之一铺满整条轨道，文字固定显示在进度条右侧，infoFormat 自定义、duration 控制 fill 宽度动画 |      | ✓             |
 | `Skeleton`     | 加载占位骨架，4 种变体（`text`/`circle`/`rect`/`paragraph`）加 `SkeletonButton` / `SkeletonInput` / `SkeletonAvatar` 子组件，暖白微光扫过                                                   |      | ✓             |
 | `Loading`      | 全屏夜空飘雪（`#0b101a` 底 + 中央暗角），50 片白雪花漂落旋转、可选居中 `tip`；`active` 关闭时淡出并卸载，支持 `prefers-reduced-motion`                                                           |      | ✓             |
-| `BackTop`      | 固定右下角回到顶部按钮（原创徽章图形，easeInOutQuad 平滑滚动）                                                                                                                            | ✓    |               |
+| `BackTop`      | 固定右下角回到顶部按钮（`naive-icons` 的 `RocketIcon`，easeInOutQuad 平滑滚动）                                                                                                                            | ✓    |               |
 | `Image`        | 衬板相框图片，支持懒加载、错误占位和点击预览                                                                                                                                                 | ✓    |               |
 | `Countdown`    | 实时截止倒计时，支持 DD/HH/mm/ss 格式、三种尺寸和两种视觉风格                                                                                                                               |      | ✓             |
 | `CountUp`      | 计分数字滚动：`duration` 秒内从 `start` 滚到 `end`（rAF 驱动）、5 条缓动曲线或自定义函数、千分位 / 小数位格式化、播放 / 暂停 / 继续，可选的结束庆祝动效（两拍弹跳、光环、CSS 星芒，可加文案贴纸），并在静止后通过 `role="status"` 播报得分          |      | ✓             |

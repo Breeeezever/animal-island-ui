@@ -1,8 +1,8 @@
 import React from 'react';
 import { Avatar, AvatarGroup, Radio, type AvatarShape } from '../../../src';
 import {
-    UserIcon,
-    FishIcon,
+    ImageIcon,
+    MapIcon,
     CoffeeCupIcon,
     RabbitIcon,
     OwlIcon,
@@ -82,7 +82,7 @@ const GROUP_API: ApiRow[] = [
 
 /** 图标头像展示：20 个 naive-icons 图标作为 children 创建图标头像（动物 / 天气 / 食物 / 物件随机混合） */
 const ICON_AVATARS = [
-    FishIcon,
+    ImageIcon,
     CoffeeCupIcon,
     RabbitIcon,
     OwlIcon,
@@ -115,7 +115,7 @@ export default function AvatarDemo() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                     <Avatar>岛</Avatar>
                     <Avatar>
-                        <FishIcon />
+                        <ImageIcon />
                     </Avatar>
                     <Avatar src={pick(0)} alt="岛屿风景" />
                 </div>
@@ -137,7 +137,7 @@ export default function AvatarDemo() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                     <Avatar shape={shape}>岛</Avatar>
-                    <Avatar shape={shape} icon={<UserIcon />} />
+                    <Avatar shape={shape} icon={<MapIcon />} />
                     <Avatar shape={shape} src={pick(4)} alt="阳光田野" />
                     <Avatar shape={shape} size="large" src={pick(5)} alt="湖畔清晨" />
                 </div>
@@ -177,7 +177,7 @@ export default function AvatarDemo() {
                     <Avatar size="middle">M</Avatar>
                     <Avatar size="large">L</Avatar>
                     <Avatar size={64}>64</Avatar>
-                    <Avatar size={96} src={pick(3)} alt="山间小镇" />
+                    <Avatar size={96} src={pick(14)} alt="岛屿远眺" />
                 </div>
             </section>
 
@@ -186,14 +186,14 @@ export default function AvatarDemo() {
                     <DemoTag>加载失败</DemoTag> 自动回退到图标 / 文字
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-                    <Avatar src="/broken-avatar.png" icon={<UserIcon />} />
+                    <Avatar src="/broken-avatar.png" icon={<MapIcon />} />
                     <Avatar src="/broken-avatar.png">岛</Avatar>
                 </div>
             </section>
 
             <section style={sectionStyle}>
                 <div style={{ ...sectionTitleStyle, marginBottom: 20 }}>
-                    <DemoTag>图标头像</DemoTag> 20 个 naive-icons 图标作为 children
+                    <DemoTag>图标头像</DemoTag> naive-icons 图标作为 children
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                     {ICON_AVATARS.map((Icon, i) => (
@@ -212,7 +212,7 @@ export default function AvatarDemo() {
 
 {/* 图标头像：naive-icons 图标组件直接作为 children */}
 <Avatar>
-    <FishIcon />
+    <ChargerIcon />
 </Avatar>
 
 {/* 头像组：默认叠加，超出折叠为 +N */}

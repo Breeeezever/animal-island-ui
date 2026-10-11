@@ -246,7 +246,7 @@ SkeletonAvatarProps { size?: 'small'|'middle'|'large'; shape?: 'circle'|'square'
 
 源码：`src/components/BackTop/BackTop.tsx` + `back-top.module.less`。
 
-固定右下角的返回顶部按钮，默认使用原创贴纸风上箭头 SVG（内联 data URI：暖棕 `#c9a06c` 描边 + 奶油 `#fffdf4` 糖霜层 + 青绿 `#19c8b9` 主体带浅青 `#7fe0d4` 高光），点击后 easeInOutQuad 平滑滚动到顶部。
+固定右下角的返回顶部按钮，使用 `naive-icons` 的 `RocketIcon`（48×48 viewBox：奶油 `#FAEDCD` 机身、青绿 `#2A9D8F` 舷窗、`#E76F51` 火焰与尾翼、墨色 `#2A2A2A` 描边），以 `size={64}` 渲染；点击后 easeInOutQuad 平滑滚动到顶部。该图标是纯装饰性的，带 `aria-hidden`，可读名称由按钮自身的 `aria-label` 提供。
 
 **props**：
 ```ts
@@ -277,7 +277,7 @@ opacity: 1;
 visibility: visible;
 transform: translateY(0);
 
-// icon (240×240 viewBox 贴纸箭头)
+// icon (naive-icons RocketIcon,48×48 viewBox,按 size 64 渲染)
 .img {
     width: 64px;
     height: 64px;

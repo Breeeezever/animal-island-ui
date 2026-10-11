@@ -132,9 +132,13 @@ describe('Drawer', () => {
         await waitFor(() => {
             expect(content.style.transform).toBe('scale(0.94)');
         });
-        expect(content.style.filter).toBe('blur(1px)');
         expect(content.style.borderRadius).toBe('14px');
         expect(content.style.overflow).toBe('hidden');
+        // 性能回归：不得给背景加 filter。它是非合成器属性，会强制整屏子树重栅格化，
+        // 表现为「首次打开卡、之后顺」。景深由 scale + 圆角 + 遮罩压暗承担。
+        expect(content.style.filter).toBe('');
+        // 动画开始前先提升为合成层，避开首帧的合成往返
+        expect(content.style.willChange).toBe('transform');
         // 回归：portal 包裹器自身不能被下沉（否则 transform 会破坏内部 fixed 面板定位）
         const portalWrapper = document.querySelector('[data-animal-drawer-portal]') as HTMLElement;
         expect(portalWrapper).toBeTruthy();
@@ -176,6 +180,10 @@ describe('Drawer', () => {
         expect(content.style.filter).toBe('');
         expect(content.style.borderRadius).toBe('');
         expect(content.style.overflow).toBe('');
+        // will-change 与 transition 一同在下一帧恢复
+        await waitFor(() => {
+            expect(content.style.willChange).toBe('');
+        });
         document.body.removeChild(content);
     });
 

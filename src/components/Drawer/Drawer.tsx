@@ -142,12 +142,17 @@ export const Drawer: React.FC<DrawerProps> = ({
         return undefined;
     }, [open]);
 
-    // 背景下沉景深效果：对 body 直接子元素中非 fixed 的内容施加 transform + filter + borderRadius + overflow
+    // 背景下沉景深效果：对 body 直接子元素中非 fixed 的内容施加 transform + borderRadius + overflow
     // 数值与时序对齐 index.html "下沉景深抽屉" 参考：
     //   transform: scale(0.94)
-    //   filter: blur(1px)
     //   border-radius: 14px / overflow: hidden
-    //   transition: transform/filter/border-radius 0.36s cubic-bezier(0.2, 0, 0.2, 1) / ease
+    //   transition: transform/border-radius 0.36s cubic-bezier(0.2, 0, 0.2, 1) / ease
+    //
+    // 性能：这里**不能**再用 `filter: blur(1px)`。filter 是非合成器属性，会给每个背景元素
+    // 新建合成层并对整屏面积做逐像素高斯模糊；首次打开时这些层还不存在，必须整棵子树重新
+    // 光栅化 —— 表现就是「第一次打开卡，之后顺」。景深读数由 scale + 圆角 + 遮罩压暗共同
+    // 承担，去掉 1px 模糊几乎看不出差别。
+    // 另外用 will-change 在动画开始前就完成分层，避开首帧的合成往返。
     useEffect(() => {
         if (!open || !pushBackground) return;
 
@@ -157,13 +162,17 @@ export const Drawer: React.FC<DrawerProps> = ({
             restoreTransitionRafRef.current = null;
         }
 
+        if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+
         const pushed: Array<{
             el: HTMLElement;
             transform: string;
-            filter: string;
             borderRadius: string;
             overflow: string;
             transition: string;
+            willChange: string;
         }> = [];
 
         const candidates = Array.from(document.body.children).filter((el): el is HTMLElement => {
@@ -184,19 +193,18 @@ export const Drawer: React.FC<DrawerProps> = ({
             pushed.push({
                 el,
                 transform: el.style.transform,
-                filter: el.style.filter,
                 borderRadius: el.style.borderRadius,
                 overflow: el.style.overflow,
                 transition: el.style.transition,
+                willChange: el.style.willChange,
             });
-            el.style.transition =
-                'transform 0.36s cubic-bezier(0.2, 0, 0.2, 1), filter 0.36s ease, border-radius 0.36s ease';
+            el.style.transition = 'transform 0.36s cubic-bezier(0.2, 0, 0.2, 1), border-radius 0.36s ease';
+            el.style.willChange = 'transform';
         });
 
         const rafId = requestAnimationFrame(() => {
             pushed.forEach(({ el }) => {
                 el.style.transform = 'scale(0.94)';
-                el.style.filter = 'blur(1px)';
                 el.style.borderRadius = '14px';
                 el.style.overflow = 'hidden';
             });
@@ -209,17 +217,17 @@ export const Drawer: React.FC<DrawerProps> = ({
                 cancelAnimationFrame(restoreTransitionRafRef.current);
                 restoreTransitionRafRef.current = null;
             }
-            // 先恢复 transform/filter/borderRadius/overflow，但保留我们设的 transition，让背景能平滑恢复
-            pushed.forEach(({ el, transform, filter, borderRadius, overflow }) => {
+            // 先恢复 transform/borderRadius/overflow，但保留我们设的 transition，让背景能平滑恢复
+            pushed.forEach(({ el, transform, borderRadius, overflow }) => {
                 el.style.transform = transform;
-                el.style.filter = filter;
                 el.style.borderRadius = borderRadius;
                 el.style.overflow = overflow;
             });
             // 下一帧再恢复原始 transition，避免和上面的样式写入被合批导致 transition 失效
             restoreTransitionRafRef.current = requestAnimationFrame(() => {
-                pushed.forEach(({ el, transition }) => {
+                pushed.forEach(({ el, transition, willChange }) => {
                     el.style.transition = transition;
+                    el.style.willChange = willChange;
                 });
                 restoreTransitionRafRef.current = null;
             });
