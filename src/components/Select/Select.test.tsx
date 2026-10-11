@@ -343,6 +343,20 @@ describe('Select', () => {
             expect(onChange).toHaveBeenCalledWith('');
             expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
         });
+
+        it('清除后焦点落到 trigger：清除按钮随值清空而卸载，键盘用户不该掉焦点', async () => {
+            const user = userEvent.setup();
+            const ClearHost = () => {
+                const [v, setV] = useState('b');
+                return <Select options={options} value={v} onChange={setV} allowClear />;
+            };
+            render(<ClearHost />);
+            screen.getByRole('button', { name: '清除' }).focus();
+            await user.keyboard('{Enter}');
+            // 值已清空 → 按钮卸载
+            expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
+            expect(document.querySelector(`.${styles.trigger}`)).toHaveFocus();
+        });
     });
 
     describe('showSearch', () => {
@@ -392,7 +406,7 @@ describe('Select', () => {
 
         const getInput = () => screen.getByRole('combobox') as HTMLInputElement;
 
-        // 用键盘展开：userEvent.click 是开关语义，点第二次会把已展开的下拉收起
+        // 用键盘展开，避免 userEvent.click 的开关语义干扰（点输入框不收起的用例单独覆盖）
         const openSearch = async () => {
             const user = userEvent.setup();
             getInput().focus();
@@ -401,7 +415,8 @@ describe('Select', () => {
             return user;
         };
 
-        // userEvent.type 也会先 click 一次，同样会把下拉收起，所以统一跳过 click
+        // 跳过 click：真实流程是「先展开、再打字」，多出来的这次 click 会把展开时选中的文本塌缩成光标，
+        // 从而让「直接输入即可替换 label」变成追加。点击输入框本身的行为由专门的用例覆盖。
         const typeSearch = (user: ReturnType<typeof userEvent.setup>, text: string) =>
             user.type(getInput(), text, { skipClick: true });
 
@@ -565,6 +580,76 @@ describe('Select', () => {
             expect(getInput()).toBeDisabled();
             await user.click(getInput());
             expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        });
+
+        it('下拉已展开时点击输入框内部不会收起（移动光标不该丢搜索词）', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            await typeSearch(user, 'ban');
+            await user.click(getInput());
+            expect(screen.getByRole('listbox')).toBeInTheDocument();
+            expect(getInput()).toHaveValue('ban');
+        });
+
+        it('把查询删空后输入框保持为空、不回显 label，并重新展示全部选项', async () => {
+            render(<SearchHost initial="a" />);
+            const user = await openSearch();
+            const input = getInput();
+            await typeSearch(user, 'ban');
+            expect(visibleOptions()).toHaveLength(1);
+            await user.clear(input);
+            expect(input).toHaveValue('');
+            expect(visibleOptions()).toHaveLength(3);
+        });
+
+        it('收起状态下直接输入即可打开并开始搜索', async () => {
+            render(<SearchHost />);
+            const user = userEvent.setup();
+            const input = getInput();
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+            input.focus();
+            await user.type(input, 'ban', { skipClick: true });
+            await flushRaf();
+            expect(input).toHaveValue('ban');
+            expect(screen.getByRole('option')).toHaveTextContent('Banana');
+        });
+
+        it('收起时把被重置掉的非空搜索词回调为 onSearch("")', async () => {
+            const onSearch = vi.fn();
+            render(<SearchHost onSearch={onSearch} />);
+            const user = await openSearch();
+            await typeSearch(user, 'ban');
+            await user.click(screen.getByRole('option'));
+            expect(onSearch).toHaveBeenLastCalledWith('');
+        });
+
+        it('查询本来就是空时收起不会多调一次 onSearch', async () => {
+            const onSearch = vi.fn();
+            const user = userEvent.setup();
+            render(
+                <div>
+                    <SearchHost onSearch={onSearch} />
+                    <button data-testid="outside">outside</button>
+                </div>
+            );
+            getInput().focus();
+            await user.keyboard('{ArrowDown}');
+            await flushRaf();
+            await user.click(screen.getByTestId('outside'));
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+            expect(onSearch).not.toHaveBeenCalled();
+        });
+
+        it('清除后焦点落到搜索框', async () => {
+            const user = userEvent.setup();
+            const ClearSearchHost = () => {
+                const [v, setV] = useState('b');
+                return <Select options={options} value={v} onChange={setV} showSearch allowClear />;
+            };
+            render(<ClearSearchHost />);
+            screen.getByRole('button', { name: '清除' }).focus();
+            await user.keyboard('{Enter}');
+            expect(getInput()).toHaveFocus();
         });
     });
 });

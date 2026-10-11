@@ -54,19 +54,22 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
     const [open, setOpen] = useState(false);
     const [activeKey, setActiveKey] = useState<string | null>(null);
-    const [searchValue, setSearchValue] = useState('');
+    // null = 没有在搜索（输入框回显选中项），string = 用户正在搜索（空串就是要显示空查询）
+    const [searchValue, setSearchValue] = useState<string | null>(null);
     const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
     const [mounted, setMounted] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
     const currentLabel = options.find((o) => o.key === value)?.label || placeholder;
+    // 输入框在非搜索状态下的回显：有选中值显示 label，否则留空让 placeholder 生效
+    const labelForInput = value ? currentLabel : '';
 
     const idPrefix = `animal-select-${useId().replace(/:/g, '')}`;
     const listboxId = `${idPrefix}-listbox`;
     const optionId = (k: string) => `${idPrefix}-option-${k}`;
 
-    // 关键字过滤；搜索词为空时展示全部选项
+    // 关键字过滤；未搜索或搜索词为空时展示全部选项
     const filteredOptions = useMemo(() => {
         if (!showSearch || !filterOption || !searchValue) return options;
         const matcher =
@@ -80,8 +83,10 @@ export const Select: React.FC<SelectProps> = ({
     const closeDropdown = useCallback(() => {
         setOpen(false);
         setMounted(false);
-        setSearchValue('');
-    }, []);
+        // 收起时把被重置掉的查询告知消费者，避免外部按 onSearch 维护的结果集留在旧值上
+        if (searchValue) onSearch?.('');
+        setSearchValue(null);
+    }, [searchValue, onSearch]);
 
     const focusTrigger = useCallback(() => {
         if (showSearch) searchRef.current?.focus();
@@ -154,13 +159,14 @@ export const Select: React.FC<SelectProps> = ({
         }
     }, [open, options.length]);
 
-    // 搜索模式下展开时把焦点交给输入框，并选中已有文本，直接输入即可替换（与 antd 一致）
+    // 搜索模式下展开时把焦点交给输入框；只有还在回显 label（尚未开始搜索）时才全选文本，
+    // 否则「闭合状态下直接输入」的第一个字会被后面的字替换掉
     useEffect(() => {
-        if (open && showSearch) {
-            searchRef.current?.focus();
-            searchRef.current?.select();
-        }
-    }, [open, showSearch]);
+        if (!open || !showSearch) return;
+        const input = searchRef.current;
+        input?.focus();
+        if (searchValue === null && value) input?.select();
+    }, [open, showSearch, searchValue, value]);
 
     // 收起时清空高亮；展开或过滤结果变化时，把高亮落到当前选中项或第一个可见项
     useEffect(() => {
@@ -212,7 +218,7 @@ export const Select: React.FC<SelectProps> = ({
             e.preventDefault();
             // 有搜索词时先清空搜索词，再按一次才关闭
             if (showSearch && searchValue) {
-                setSearchValue('');
+                setSearchValue(null);
                 onSearch?.('');
                 return;
             }
@@ -257,7 +263,13 @@ export const Select: React.FC<SelectProps> = ({
             <div
                 ref={triggerRef}
                 className={`${styles.trigger} ${open ? styles.open : ''}`}
-                onClick={() => !disabled && (open ? closeDropdown() : setOpen(true))}
+                onClick={(e) => {
+                    if (disabled) return;
+                    // 点搜索框内部只是为了移动光标，不应该把已展开的下拉收起来
+                    if (e.target === searchRef.current && open) return;
+                    if (open) closeDropdown();
+                    else setOpen(true);
+                }}
                 role={showSearch ? undefined : 'combobox'}
                 tabIndex={showSearch || disabled ? undefined : 0}
                 aria-disabled={showSearch ? undefined : disabled || undefined}
@@ -271,14 +283,20 @@ export const Select: React.FC<SelectProps> = ({
                         aria-autocomplete="list"
                         aria-disabled={disabled || undefined}
                         {...comboboxA11y}
-                        value={open && searchValue ? searchValue : value ? currentLabel : ''}
+                        value={open ? (searchValue ?? labelForInput) : labelForInput}
                         placeholder={placeholder}
                         disabled={disabled}
-                        readOnly={!open}
                         autoComplete="off"
+                        onFocus={() => {
+                            // 收起状态下聚焦时选中已有文本，直接输入即可替换而不是追加到 label 后面
+                            if (!open && value) searchRef.current?.select();
+                        }}
                         onChange={(e) => {
-                            setSearchValue(e.target.value);
-                            onSearch?.(e.target.value);
+                            const next = e.target.value;
+                            setSearchValue(next);
+                            onSearch?.(next);
+                            // 闭合时直接输入的第一个字符即开始搜索
+                            if (!open) setOpen(true);
                         }}
                     />
                 ) : (
@@ -293,6 +311,8 @@ export const Select: React.FC<SelectProps> = ({
                             e.stopPropagation();
                             onChange('');
                             onClear?.();
+                            // 值清空后按钮自身会卸载，把焦点交给 trigger 免得键盘用户掉焦点
+                            focusTrigger();
                         }}
                         onMouseDown={(e) => e.preventDefault()}
                     >

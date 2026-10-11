@@ -141,7 +141,8 @@ const [lang, setLang] = useState('zh');
 
 - **Controlled only** — `value` / `onChange` required, no `defaultValue`. Dropdown auto-flips (top/bottom, left/right); click-outside closes. No `className` / `style` / `renderOption`; style via the descendant `.wrapper`.
 - `allowClear` clears through `onChange('')` and then calls `onClear`. `optionFilterProp` **defaults to `'label'`**, unlike antd's `value` default, so `{ key: 'zh', label: '简体中文' }` is found by typing the label; pass `optionFilterProp="key"` for the antd behaviour.
-- With `showSearch` the trigger's `<input>` carries `role="combobox"` (ARIA 1.2) and typing opens/filters the listbox; without it the trigger `<div>` keeps that role.
+- With `showSearch` the trigger's `<input>` carries `role="combobox"` (ARIA 1.2) and typing opens/filters the listbox; without it the trigger `<div>` keeps that role. Clicking inside the input while open keeps the listbox open, so a caret reposition does not discard the query.
+- `onSearch` fires on every query change, and once more with `''` when closing discards a non-empty query — a consumer that drives `options` from `onSearch` cannot be left holding a stale result set. An empty query filters nothing, so all options show.
 - **Not supported:** no `multiple` / `tags` / `loading` / `optionLabelProp` / `filterSort` / `searchValue` / custom `clearIcon`.
 
 ## Rate
