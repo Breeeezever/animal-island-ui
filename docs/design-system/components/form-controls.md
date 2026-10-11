@@ -431,41 +431,114 @@ gap: var(--rate-gap); /* 4 / 6 / 8px by size */
 
 ## Select
 
-Controlled dropdown selector; the panel opens on hover/click, and options support ↑/↓ keyboard navigation, Enter to confirm and Esc to cancel.
+Controlled dropdown selector; click the trigger to open, and options support ↑/↓ keyboard navigation, Enter to confirm and Esc to cancel.
 
 ```css
 .select {
     position: relative;
     display: inline-block;
-    min-width: 120px;
+    min-width: 140px;
 }
 .selectTrigger {
-    /* border 2px solid #e8dcc8, radius 12px */
-    /* background #fff, hover switches border-color to #d4c4a8 and background to #fffdf7 */
-}
-.selectDropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    max-height: 240px;
-    overflow-y: auto;
-    background: #fffcef;
-    border: 1.5px solid @border-color-light;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 13px;
+    background: #fff;
+    border: 2px solid #e8dcc8;
     border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(61, 52, 40, 0.12);
-    z-index: 1000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* hover: border-color #d4c4a8, background #fffdf7 */
+}
+.selectValue {
+    flex: 1;
+    font-size: 14px;
+    color: #725d42;
+    font-weight: 600;
+    text-align: left;
+}
+.selectPlaceholder {
+    flex: 1;
+    font-size: 14px;
+    color: #a09080;
+    text-align: left;
+}
+.selectArrow {
+    color: #a09080;
+    transition: transform 0.2s ease;
+    /* .selectTrigger.isOpen: rotate(180deg), color #19c8b9 */
+}
+
+/* showSearch — the input takes the label's place inside the trigger */
+.selectSearchInput {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: #725d42;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    outline: none;
+    /* ::placeholder: #a09080, weight 400 */
+    /* :focus-visible: outline 2px solid #ffcc00, outline-offset 2px */
+}
+
+/* allowClear — same spec as the Input clear button */
+.selectClear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    color: #c4b89e;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    transition: all var(--animal-motion-duration-fast) var(--animal-motion-ease);
+    /* hover: color #725d42, background rgba(114, 93, 66, 0.1) */
+    /* :focus-visible: outline 2px solid #19c8b9 */
+}
+
+.selectDropdown {
+    position: absolute; /* offsets are computed in JS and flip against the viewport */
+    padding: 12px 0;
+    background: #ffeea0;
+    border-radius: 28px;
+    z-index: 100;
+    animation: dropdownFadeIn 0.2s ease forwards;
 }
 .selectOption {
-    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 30px 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #725d42;
+    white-space: nowrap;
     cursor: pointer;
-    color: @text-color-body;
+    /* hover / active: weight 700 */
+    /* hover::before: 10px #f5a623 triangle marker sliding in from the left */
 }
-.selectOption.isActive { background: @primary-color-bg; color: @primary-color; }
-.selectOption.isSelected { font-weight: 600; }
+.selectOptionPillBar {
+    /* selected marker: height 14px, margin 0 20px, background #ffcc00, opacity 0.3, radius 7px */
+}
+.selectNotFound {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #a09080;
+    text-align: center;
+    white-space: nowrap;
+}
 ```
 
-> Full interaction behavior: roving keyboard focus, scroll-into-view for the selected option, and click-outside to close.
+> Full interaction behavior: roving keyboard focus, viewport-aware dropdown flipping, and click-outside to close. With `showSearch` the trigger's `<input>` carries `role="combobox"` (ARIA 1.2) instead of the trigger `<div>`, and an empty result set renders as a disabled `role="option"` so the `listbox` always has a valid child.
 
 ## DatePicker
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Select, type SelectOption } from './Select';
 import styles from './select.module.less';
 
@@ -290,6 +290,281 @@ describe('Select', () => {
             await flushRaf();
             // a11y 契约：aria-label 同时透传到 listbox，屏幕阅读器可读出名字
             expect(screen.getByRole('listbox')).toHaveAccessibleName('水果');
+        });
+    });
+
+    describe('allowClear', () => {
+        it('有值时渲染清除按钮，点击后触发 onChange("") 与 onClear', async () => {
+            const user = userEvent.setup();
+            const calls: string[] = [];
+            render(
+                <Select
+                    options={options}
+                    value="b"
+                    onChange={() => calls.push('change')}
+                    onClear={() => calls.push('clear')}
+                    allowClear
+                />
+            );
+            await user.click(screen.getByRole('button', { name: '清除' }));
+            expect(calls).toEqual(['change', 'clear']);
+        });
+
+        it('allowClear 默认关闭', () => {
+            render(<Select options={options} value="b" onChange={() => {}} />);
+            expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
+        });
+
+        it('值为空或 disabled 时不渲染清除按钮', () => {
+            const { rerender } = render(<Select options={options} value="" onChange={() => {}} allowClear />);
+            expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
+            rerender(<Select options={options} value="b" onChange={() => {}} allowClear disabled />);
+            expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
+        });
+
+        it('clearAriaLabel 可自定义', () => {
+            render(<Select options={options} value="b" onChange={() => {}} allowClear clearAriaLabel="Clear fruit" />);
+            expect(screen.getByRole('button', { name: 'Clear fruit' })).toBeInTheDocument();
+        });
+
+        it('点击清除不会展开下拉', async () => {
+            const user = userEvent.setup();
+            render(<Select options={options} value="b" onChange={() => {}} allowClear />);
+            await user.click(screen.getByRole('button', { name: '清除' }));
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        });
+
+        it('清除按钮可用键盘 Enter 触发（不被外层按键处理抢走）', async () => {
+            const user = userEvent.setup();
+            const onChange = vi.fn();
+            render(<Select options={options} value="b" onChange={onChange} allowClear />);
+            screen.getByRole('button', { name: '清除' }).focus();
+            await user.keyboard('{Enter}');
+            expect(onChange).toHaveBeenCalledWith('');
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('showSearch', () => {
+        type SearchHostProps = {
+            onChange?: (k: string) => void;
+            onSearch?: (v: string) => void;
+            initial?: string;
+            disabled?: boolean;
+            allowClear?: boolean;
+            optionFilterProp?: 'key' | 'label';
+            filterOption?: boolean | ((inputValue: string, option: SelectOption) => boolean);
+            notFoundContent?: ReactNode;
+            items?: SelectOption[];
+            'aria-label'?: string;
+        };
+
+        const SearchHost = ({
+            onChange,
+            onSearch,
+            initial = '',
+            disabled,
+            items = options,
+            ...rest
+        }: SearchHostProps) => {
+            const [v, setV] = useState(initial);
+            return (
+                <Select
+                    options={items}
+                    value={v}
+                    disabled={disabled}
+                    showSearch
+                    onSearch={onSearch}
+                    onChange={(k) => {
+                        setV(k);
+                        onChange?.(k);
+                    }}
+                    {...rest}
+                />
+            );
+        };
+
+        const codedOptions: SelectOption[] = [
+            { key: 'zh', label: '简体中文' },
+            { key: 'en', label: 'English' },
+            { key: 'ja', label: '日本語' },
+        ];
+
+        const getInput = () => screen.getByRole('combobox') as HTMLInputElement;
+
+        // 用键盘展开：userEvent.click 是开关语义，点第二次会把已展开的下拉收起
+        const openSearch = async () => {
+            const user = userEvent.setup();
+            getInput().focus();
+            await user.keyboard('{ArrowDown}');
+            await flushRaf();
+            return user;
+        };
+
+        // userEvent.type 也会先 click 一次，同样会把下拉收起，所以统一跳过 click
+        const typeSearch = (user: ReturnType<typeof userEvent.setup>, text: string) =>
+            user.type(getInput(), text, { skipClick: true });
+
+        const visibleOptions = () => screen.queryAllByRole('option').map((el) => el.textContent);
+
+        it('role=combobox 落在 input 上，trigger 不再是 combobox', async () => {
+            render(<SearchHost aria-label="水果" />);
+            const input = getInput();
+            expect(input.tagName).toBe('INPUT');
+            expect(input).toHaveAttribute('aria-haspopup', 'listbox');
+            expect(input).toHaveAttribute('aria-expanded', 'false');
+            expect(input).toHaveAccessibleName('水果');
+            expect(document.querySelector(`.${styles.trigger}`)).not.toHaveAttribute('role');
+            await openSearch();
+            expect(input).toHaveAttribute('aria-expanded', 'true');
+            expect(input.getAttribute('aria-controls')).toBe(screen.getByRole('listbox').id);
+        });
+
+        it('展开时输入框获得焦点', async () => {
+            render(<SearchHost />);
+            await openSearch();
+            expect(getInput()).toHaveFocus();
+        });
+
+        it('默认按 label 做大小写不敏感的子串匹配', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            await typeSearch(user, 'an');
+            expect(visibleOptions()).toHaveLength(1);
+            expect(screen.getByRole('option')).toHaveTextContent('Banana');
+        });
+
+        it('匹配大小写不敏感', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            await typeSearch(user, 'CHERRY');
+            expect(visibleOptions()).toHaveLength(1);
+            expect(screen.getByRole('option')).toHaveTextContent('Cherry');
+        });
+
+        it('optionFilterProp="key" 时改为按 key 过滤', async () => {
+            render(<SearchHost items={codedOptions} optionFilterProp="key" />);
+            const user = await openSearch();
+            await typeSearch(user, 'zh');
+            expect(visibleOptions()).toHaveLength(1);
+            expect(screen.getByRole('option')).toHaveTextContent('简体中文');
+        });
+
+        it('optionFilterProp 默认 label：key 命中而 label 不命中时应搜不到', async () => {
+            render(<SearchHost items={codedOptions} />);
+            const user = await openSearch();
+            await typeSearch(user, 'zh');
+            expect(screen.queryByRole('option', { name: '简体中文' })).not.toBeInTheDocument();
+            // 空态渲染成 aria-disabled 的 option，listbox 才能满足 aria-required-children
+            const empty = screen.getByRole('option');
+            expect(empty).toHaveTextContent('暂无数据');
+            expect(empty).toHaveAttribute('aria-disabled', 'true');
+        });
+
+        it('filterOption=false 时不过滤', async () => {
+            render(<SearchHost filterOption={false} />);
+            const user = await openSearch();
+            await typeSearch(user, 'zzz');
+            expect(visibleOptions()).toHaveLength(3);
+        });
+
+        it('filterOption 传函数时按自定义规则过滤', async () => {
+            render(<SearchHost filterOption={(inputValue, option) => option.key === inputValue} />);
+            const user = await openSearch();
+            await typeSearch(user, 'b');
+            expect(visibleOptions()).toHaveLength(1);
+            expect(screen.getByRole('option')).toHaveTextContent('Banana');
+        });
+
+        it('无匹配时展示 notFoundContent，默认"暂无数据"', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            await typeSearch(user, 'zzz');
+            expect(screen.getByText('暂无数据')).toBeInTheDocument();
+        });
+
+        it('notFoundContent 可自定义', async () => {
+            render(<SearchHost notFoundContent={<span>没有匹配项</span>} />);
+            const user = await openSearch();
+            await typeSearch(user, 'zzz');
+            expect(screen.getByText('没有匹配项')).toBeInTheDocument();
+        });
+
+        it('onSearch 每次输入都会回调', async () => {
+            const onSearch = vi.fn();
+            render(<SearchHost onSearch={onSearch} />);
+            const user = await openSearch();
+            await typeSearch(user, 'ba');
+            expect(onSearch).toHaveBeenLastCalledWith('ba');
+        });
+
+        it('键盘在过滤后的结果集内导航并选中', async () => {
+            const onChange = vi.fn();
+            render(<SearchHost onChange={onChange} />);
+            const user = await openSearch();
+            const input = getInput();
+            await typeSearch(user, 'a');
+            // 'a' 命中 Apple 与 Banana，Cherry 被过滤掉
+            const opts = screen.getAllByRole('option');
+            expect(opts).toHaveLength(2);
+            expect(input.getAttribute('aria-activedescendant')).toBe(opts[0].id);
+            await user.keyboard('{ArrowDown}');
+            expect(input.getAttribute('aria-activedescendant')).toBe(opts[1].id);
+            await user.keyboard('{Enter}');
+            expect(onChange).toHaveBeenCalledWith('b');
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        });
+
+        it('空格在搜索模式下是普通输入，不会确认选中', async () => {
+            const onChange = vi.fn();
+            const onSearch = vi.fn();
+            render(<SearchHost onChange={onChange} onSearch={onSearch} />);
+            const user = await openSearch();
+            const input = getInput();
+            await typeSearch(user, 'a b');
+            expect(input).toHaveValue('a b');
+            expect(onSearch).toHaveBeenLastCalledWith('a b');
+            expect(onChange).not.toHaveBeenCalled();
+        });
+
+        it('Esc 先清空搜索词，再按一次才关闭', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            await typeSearch(user, 'ban');
+            await user.keyboard('{Escape}');
+            expect(screen.getByRole('listbox')).toBeInTheDocument();
+            expect(visibleOptions()).toHaveLength(3);
+            await user.keyboard('{Escape}');
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        });
+
+        it('选中后关闭并重置搜索词', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            await typeSearch(user, 'ban');
+            await user.click(screen.getByRole('option'));
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+            // 收起后输入框回显选中项的 label，而不是残留搜索词
+            expect(getInput()).toHaveValue('Banana');
+        });
+
+        it('展开时会选中已有文本，直接输入即可替换', async () => {
+            render(<SearchHost initial="a" />);
+            const user = await openSearch();
+            const input = getInput();
+            expect(input).toHaveValue('Apple');
+            await typeSearch(user, 'c');
+            expect(input).toHaveValue('c');
+            expect(screen.getByRole('option')).toHaveTextContent('Cherry');
+        });
+
+        it('disabled 时不渲染清除按钮、输入框禁用且点击不展开', async () => {
+            const user = userEvent.setup();
+            render(<SearchHost initial="b" disabled allowClear />);
+            expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
+            expect(getInput()).toBeDisabled();
+            await user.click(getInput());
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
         });
     });
 });
