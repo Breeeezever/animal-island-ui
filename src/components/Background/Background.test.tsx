@@ -28,6 +28,11 @@ describe('Background', () => {
         expect(color.firstChild).toHaveClass(styles['bg-dots-pink']);
     });
 
+    it('支持 type=dots-gray（白色底浅灰波点）', () => {
+        const { container } = render(<Background type="dots-gray" />);
+        expect(container.firstChild).toHaveClass(styles['bg-dots-gray']);
+    });
+
     it('支持场景背景图 type=sweet-corner / coffee-break（注入 backgroundImage）', () => {
         const { container } = render(<Background type="sweet-corner" />);
         const root = container.firstChild as HTMLElement;

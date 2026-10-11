@@ -367,6 +367,22 @@ describe('Select', () => {
             expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
             expect(document.querySelector(`.${styles.trigger}`)).toHaveFocus();
         });
+
+        it('选中回显后鼠标移开，清除按钮仍然消失（焦点被交回 trigger，不应让它常驻）', async () => {
+            const user = userEvent.setup();
+            const Host = () => {
+                const [v, setV] = useState('');
+                return <Select options={options} value={v} onChange={setV} allowClear />;
+            };
+            render(<Host />);
+            await user.click(document.querySelector(`.${styles.trigger}`) as HTMLElement);
+            await flushRaf();
+            await user.click(screen.getAllByRole('option')[1]);
+            // 选中后 handleSelect 会把焦点交回 trigger，此刻悬停仍在 → 按钮可见
+            expect(screen.getByRole('button', { name: '清除' })).toBeInTheDocument();
+            fireEvent.mouseLeave(document.querySelector(`.${styles.wrapper}`) as HTMLElement);
+            expect(screen.queryByRole('button', { name: '清除' })).not.toBeInTheDocument();
+        });
     });
 
     describe('showSearch', () => {

@@ -161,8 +161,8 @@ export const Select: React.FC<SelectProps> = ({
         }
     }, [open, options.length]);
 
-    // 输入框里显示 label 时（刚展开，或选中后 label 回填到已聚焦的输入框）都要保持全选，
-    // 这样下一次输入一定是新查询，而不是编辑/追加到 label 上
+    // 输入框里显示 label 时（刚展开，或选中后 label 回填到已聚焦的输入框）只聚焦，不做全选，
+    // 让回显文字保持未选中状态（不做高亮）
     useEffect(() => {
         if (!showSearch) return;
         const input = searchRef.current;
@@ -173,9 +173,6 @@ export const Select: React.FC<SelectProps> = ({
         }
         if (open) {
             input.focus();
-            if (value) input.select();
-        } else if (value && document.activeElement === input) {
-            input.select();
         }
     }, [open, showSearch, searchValue, value]);
 
@@ -300,14 +297,18 @@ export const Select: React.FC<SelectProps> = ({
                         placeholder={placeholder}
                         disabled={disabled}
                         autoComplete="off"
-                        onFocus={() => {
-                            // 收起状态下聚焦时选中已有文本，直接输入即可替换而不是追加到 label 后面
-                            if (!open && value) searchRef.current?.select();
-                        }}
                         onChange={(e) => {
                             const next = e.target.value;
-                            setSearchValue(next);
-                            onSearch?.(next);
+                            // 输入框此刻显示的是选中的 label（尚无搜索词）时，输入应作为新的查询词，
+                            // 去掉 label 前缀而非在 label 后面追加
+                            const editingLabel =
+                                searchValue === null &&
+                                Boolean(value) &&
+                                labelForInput !== '' &&
+                                next.startsWith(labelForInput);
+                            const query = editingLabel ? next.slice(labelForInput.length) : next;
+                            setSearchValue(query);
+                            onSearch?.(query);
                             // 闭合时直接输入的第一个字符即开始搜索
                             if (!open) setOpen(true);
                         }}
