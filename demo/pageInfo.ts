@@ -6,7 +6,7 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     },
     input: {
         title: 'Input 输入框',
-        desc: '输入框组件 — 支持三种尺寸、clearable 清除、prefix / suffix 前后缀、error / warning 校验状态、disabled 禁用',
+        desc: '输入框组件 — 支持三种尺寸、allowClear 清除、prefix / suffix 前后缀、error / warning 校验状态、disabled 禁用',
     },
     switch: {
         title: 'Switch 开关',
