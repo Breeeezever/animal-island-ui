@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type ReactNode } from 'react';
 import { Select, type SelectOption } from './Select';
 import styles from './select.module.less';
+
+// 清除按钮仅悬停时显示：把指针悬停到 Select 外壳以触发显示
+const hoverSelect = () => {
+    fireEvent.mouseEnter(document.querySelector(`.${styles.wrapper}`) as HTMLElement);
+};
 
 const options: SelectOption[] = [
     { key: 'a', label: 'Apple' },
@@ -306,6 +311,7 @@ describe('Select', () => {
                     allowClear
                 />
             );
+            hoverSelect();
             await user.click(screen.getByRole('button', { name: '清除' }));
             expect(calls).toEqual(['change', 'clear']);
         });
@@ -324,12 +330,14 @@ describe('Select', () => {
 
         it('clearAriaLabel 可自定义', () => {
             render(<Select options={options} value="b" onChange={() => {}} allowClear clearAriaLabel="Clear fruit" />);
+            hoverSelect();
             expect(screen.getByRole('button', { name: 'Clear fruit' })).toBeInTheDocument();
         });
 
         it('点击清除不会展开下拉', async () => {
             const user = userEvent.setup();
             render(<Select options={options} value="b" onChange={() => {}} allowClear />);
+            hoverSelect();
             await user.click(screen.getByRole('button', { name: '清除' }));
             expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
         });
@@ -338,6 +346,7 @@ describe('Select', () => {
             const user = userEvent.setup();
             const onChange = vi.fn();
             render(<Select options={options} value="b" onChange={onChange} allowClear />);
+            hoverSelect();
             screen.getByRole('button', { name: '清除' }).focus();
             await user.keyboard('{Enter}');
             expect(onChange).toHaveBeenCalledWith('');
@@ -351,6 +360,7 @@ describe('Select', () => {
                 return <Select options={options} value={v} onChange={setV} allowClear />;
             };
             render(<ClearHost />);
+            hoverSelect();
             screen.getByRole('button', { name: '清除' }).focus();
             await user.keyboard('{Enter}');
             // 值已清空 → 按钮卸载
@@ -661,6 +671,7 @@ describe('Select', () => {
                 return <Select options={options} value={v} onChange={setV} showSearch allowClear />;
             };
             render(<ClearSearchHost />);
+            hoverSelect();
             screen.getByRole('button', { name: '清除' }).focus();
             await user.keyboard('{Enter}');
             expect(getInput()).toHaveFocus();

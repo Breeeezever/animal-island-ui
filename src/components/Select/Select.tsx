@@ -58,6 +58,8 @@ export const Select: React.FC<SelectProps> = ({
     const [searchValue, setSearchValue] = useState<string | null>(null);
     const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
     const [mounted, setMounted] = useState(false);
+    // 悬停状态：清除按钮仅在悬停（含聚焦触发的悬停）时显示
+    const [hovered, setHovered] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
@@ -252,7 +254,7 @@ export const Select: React.FC<SelectProps> = ({
         }
     };
 
-    const showClear = allowClear && Boolean(value) && !disabled;
+    const showClear = allowClear && Boolean(value) && !disabled && hovered;
 
     const comboboxA11y: React.AriaAttributes = {
         'aria-haspopup': 'listbox',
@@ -268,6 +270,8 @@ export const Select: React.FC<SelectProps> = ({
             ref={wrapperRef}
             className={`${styles.wrapper} ${disabled ? styles.disabled : ''}`}
             onKeyDown={handleKeyDown}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
             <div
                 ref={triggerRef}
