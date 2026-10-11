@@ -159,13 +159,22 @@ export const Select: React.FC<SelectProps> = ({
         }
     }, [open, options.length]);
 
-    // 搜索模式下展开时把焦点交给输入框；只有还在回显 label（尚未开始搜索）时才全选文本，
-    // 否则「闭合状态下直接输入」的第一个字会被后面的字替换掉
+    // 输入框里显示 label 时（刚展开，或选中后 label 回填到已聚焦的输入框）都要保持全选，
+    // 这样下一次输入一定是新查询，而不是编辑/追加到 label 上
     useEffect(() => {
-        if (!open || !showSearch) return;
+        if (!showSearch) return;
         const input = searchRef.current;
-        input?.focus();
-        if (searchValue === null && value) input?.select();
+        if (!input) return;
+        if (searchValue !== null) {
+            if (open) input.focus();
+            return;
+        }
+        if (open) {
+            input.focus();
+            if (value) input.select();
+        } else if (value && document.activeElement === input) {
+            input.select();
+        }
     }, [open, showSearch, searchValue, value]);
 
     // 收起时清空高亮；展开或过滤结果变化时，把高亮落到当前选中项或第一个可见项

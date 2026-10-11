@@ -640,6 +640,20 @@ describe('Select', () => {
             expect(onSearch).not.toHaveBeenCalled();
         });
 
+        it('搜索选中后继续输入是新的查询，不会把 label 编辑进去', async () => {
+            render(<SearchHost />);
+            const user = await openSearch();
+            const input = getInput();
+            await typeSearch(user, 'ban');
+            await user.keyboard('{Enter}');
+            expect(input).toHaveValue('Banana');
+            // 此时输入框仍然聚焦，直接继续输入应当开始新查询
+            await typeSearch(user, 'c');
+            await flushRaf();
+            expect(input).toHaveValue('c');
+            expect(screen.getByRole('option')).toHaveTextContent('Cherry');
+        });
+
         it('清除后焦点落到搜索框', async () => {
             const user = userEvent.setup();
             const ClearSearchHost = () => {
