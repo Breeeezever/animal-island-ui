@@ -5,10 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-10-11
+
+### Added
+
+- `Background` 新增 `dots-gray` 变体：白底浅灰波点，补齐 dots-* 系列的第 13 种底色
+
+### Changed
+
+- `Background` 与 `Card` 的波点纹理统一收细：dots-* / pattern-* 的 `radial-gradient` 半径 1.5px → 1.4px，部分底色的波点不透明度上调（0.12 → 0.18、0.18 → 0.26），让波点在浅色底上更清晰
+- 文档与 skill 参考中移除对 antd 的引用，改为直接陈述本库自身的设计理由
+
+### Fixed
+
+- `Select` 在 `showSearch` 下选中回显后再次打字，输入会**追加**到刚选中的 label 上（选完 Banana 打个 `c` 得到 `Bananac`，并把结果全过滤掉）。此前依赖「聚焦即全选回显 label，输入自然替换」这条隐式约定；现改为聚焦时只聚焦、不全选（回显文字保持未选中、不做高亮），并在输入时检测「当前无搜索词且输入以回显 label 开头」，剥掉 label 前缀把余下部分作为新查询词
+- `Select` 的清除按钮补一条回归测试：选中回显后鼠标移开，按钮必须消失（焦点虽被交回 trigger，但不应让它常驻）
+
 ## [2.2.0] - 2026-10-11
 
 ### Added
 
+- `CountUp` 分数计数器组件：rAF 时间戳时钟驱动 `start` → `end`（无 `setInterval` 累积漂移），五条内置缓动（`linear` / `easeInCubic` / `easeOutCubic` / `easeInOutCubic` / `easeOutExpo`）加自定义曲线，未知曲线名回退到 `easeOutCubic` 而不崩；`isCounting` 播放/暂停/续播、`reset()`、`onComplete` 返回 `{ shouldRepeat: true }` 可在 `delay` 秒后自动重播，`duration={0}` 与无 rAF 环境直接落到终值；`decimalPlaces` / `decimalSeparator` / `thousandsSeparator` 或 `formatter` 完全接管格式化，`prefix` / `suffix` 支持任意 ReactNode；可选庆祝动效（两段式底板弹跳 + 两圈冲击波 + 四枚纯 CSS `clip-path` 星芒，`celebrate.text` 额外弹出贴纸并在 900ms 后隐去，默认关闭，庆祝文案由调用方提供）；根节点 `role="status"`、跳动数字块 `aria-hidden`，另有视觉隐藏 span 只播报一次最终分数。视觉复用 `Countdown` 的两种外壳、三档尺寸与奶油渐变数字底板
+- `Select` 新增 `allowClear` 与 `showSearch`（prop 名与 `Input` / `DatePicker` / `TimePicker` / `Rate` 保持一致）：`allowClear` 的按钮只在有选中值时渲染，点击不弹开下拉，先触发 `onChange('')` 再触发 `onClear`；`showSearch` 的搜索框就在 trigger 内，开启后 trigger 的 `<input>` 按 ARIA 1.2 承担 `role="combobox"`，非搜索模式的 trigger `<div>` 逐字节不变；`optionFilterProp` 默认为 `'label'`（本库 option 的 `value` 是标识符，按它默认匹配会导致 label 搜不到）
 - `CodeBlock` 新增 Shell 命令高亮：行首为 `npm` / `yarn` / `pnpm` / `npx` / `node` / `git` / `cd` 等命令时按 Shell 着色（命令名、子命令、flag、注释各自取色，注释为斜体淡色），此前一律按 JSX/TS 解析；为此把 token 渲染逻辑从 `highlightJSX` 中抽为 `renderTokens`，token 增加可选的斜体标记
 
 ### Changed
@@ -16,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `naive-icons` 升级至 `1.6.0`（导出数 125 → 171，**无破坏性变更，旧图标全部保留**）：新增 38 个图标（`AlertCircleIcon`、`AlertTriangleIcon`、`BadgeCheckIcon`、`FilterIcon`、`GridIcon`、`InboxIcon`、`InfoIcon`、`KeyboardIcon`、`ListIcon`、`ShieldIcon`、`SlidersIcon`、`SortIcon`、`VolumeIcon`、`XCircleIcon`、`ZoomInIcon` 等），并新增 `IconProps` / `IconName` / `IconComponent` / `PaletteColor` 类型，以及 `NAIVE_PALETTE` 调色板与 `normalizeIconProps` / `resolveStrokeWidth` / `scaledStroke` 工具导出
 - `Select` 的 `allowClear` 清除按钮改为**仅在悬停时显示**，不再常驻于已选值旁
 - npm 11.17 默认拒绝执行依赖的安装脚本，`package.json` 新增 `allowScripts` 放行 `esbuild` 与 `fsevents`；此前 `fsevents` 的原生模块一直被静默跳过，`vite dev` 的文件监听退化为轮询
+- `vitest` / `@vitest/coverage-v8` 4.1.8 → 4.1.11，`npm audit` 修复使已知漏洞 23 → 10（剩余 10 个分别源自 `gh-pages` 与 `vite-plugin-dts`，两者均已是 registry 最新版且都是 devDependency，对消费者零影响）
 
 ### Fixed
 
@@ -23,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Drawer` **首次打开卡顿**：背景下沉景深原先对 `document.body` 下每个非 fixed 子元素施加 `filter: blur(1px)`。`filter` 是非合成器属性，会为每个元素新建合成层并对整个视口做逐像素高斯模糊，各层首次打开时需从零光栅化 —— 症状正是「第一次卡、之后顺」。景深现由 `scale(0.94)` + 圆角 + 遮罩压暗承担，并在过渡开始前用 `will-change` 完成分层
 - `Modal` 与 `Drawer` 补齐 `prefers-reduced-motion`：`Modal` 关闭面板 `scale(0.92) → scale(1)` 的缩放入场，`Drawer` 同时关闭背景下沉位移与面板自身的 `translateX/Y(±100%) → none` 滑入 —— 两者均为位移类动效。关闭后面板直接落位，不会停在中间帧或不可见。两者均保留遮罩的纯 opacity 淡入 —— opacity 不属于位移动效
 - `Loading` 在 `prefers-reduced-motion: reduce` 下只剩一块黑屏：雪花唯一的可见性来源就是那段动画，`.flake` 的静止位置在视口上方 `top: -30px`，而 reduced-motion 分支写的是 `animation: none`，50 片雪花因此整体冻在视口外。改用 `animation-play-state: paused` —— 雪花本就带负延迟，暂停会将其冻结在下落途中的随机高度，得到一张铺满视口的静态雪景
+- `Select` 的查询、光标与焦点（评审中发现并逐条复现的 5 个问题）：点击搜索框内部不再冒泡到 trigger 的 click 而收起下拉（此前移动光标就会把查询丢掉）；查询改用 `string | null`，空字符串不再与「未搜索」混淆（此前删空查询会重新显示已选 label，下一个字符即在编辑它）；`readOnly` 关闭态下打字现在会打开并过滤，而非与文档描述矛盾地什么都不做；全选 label 限定在输入框仍显示 label 时才执行（此前往关闭态 Select 打 `ban` 会得到 `n`）；清空后焦点移到搜索框或 trigger，不再掉到 body
+- 选中后关闭下拉、焦点仍在输入框时再次打字，现在会开始一次**新查询**，而不是追加到刚选中的 label 上（此前选完 Banana 打个 `c` 会得到 `Bananac` 并把结果全过滤掉）
 
 ## [2.1.1] - 2026-10-03
 
