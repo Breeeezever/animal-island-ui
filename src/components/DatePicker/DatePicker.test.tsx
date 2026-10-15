@@ -25,6 +25,16 @@ describe('DatePicker', () => {
             expect(screen.getByText('请选择日期')).toBeInTheDocument();
         });
 
+        it('格式合法但不存在的日期（2026-02-30）回退到占位文本，不做进位', () => {
+            render(<DatePicker value="2026-02-30" />);
+            expect(screen.getByText('请选择日期')).toBeInTheDocument();
+        });
+
+        it('format 支持核心 dayjs token（含 ddd 与时间 token）', () => {
+            render(<DatePicker value="2026-08-10" format="ddd, YYYY/MM/DD HH:mm" />);
+            expect(screen.getByText('Mon, 2026/08/10 00:00')).toBeInTheDocument();
+        });
+
         it('应用 size / status 类', () => {
             render(<DatePicker size="large" status="error" />);
             const trigger = screen.getByRole('combobox');
@@ -224,6 +234,15 @@ describe('DatePicker', () => {
                 name: `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`,
             })[0];
             expect(todayCell).toHaveClass(styles.dayCellToday);
+        });
+
+        it('月初为周日时网格从当月 1 日起步，不误补上月日期', async () => {
+            const user = setup();
+            // 2026-02-01 是周日
+            render(<DatePicker value="2026-02-15" />);
+            await user.click(screen.getByRole('combobox'));
+            expect(screen.getAllByRole('button', { name: '2026年2月1日' }).length).toBeGreaterThan(0);
+            expect(screen.queryByRole('button', { name: '2026年1月31日' })).not.toBeInTheDocument();
         });
     });
 
