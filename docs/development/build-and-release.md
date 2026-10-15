@@ -38,9 +38,11 @@ build logic without preserving the following breaks consumer tree-shaking:
   `naive-icons` (the icon set) and `dayjs` (the date layer, per
   [ADR 0005](../adr/0005-dayjs-as-the-date-layer.md)). Everything else third-party is a
   peerDependency or a devDependency. `dayjs` stays **out** of the `external` list, so it is
-  emitted once under `dist/**/node_modules/dayjs/` and shared by every date component,
-  while `preserveModules` still drops it for consumers who import none. Do not add further
-  runtime dependencies.
+  emitted once under `dist/**/node_modules/dayjs/` and shared by the date components of
+  this package — consumers get it without a separate install, though a host application
+  importing its own `dayjs` can still end up with an independent instance that shares
+  neither locale nor plugins. `preserveModules` still drops it for consumers who import
+  none. Do not add further runtime dependencies.
 
 `prepublishOnly` runs `npm run build`, so a publish always ships a fresh artifact.
 

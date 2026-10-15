@@ -30,9 +30,9 @@ describe('DatePicker', () => {
             expect(screen.getByText('请选择日期')).toBeInTheDocument();
         });
 
-        it('format 支持任意 dayjs token，未包含的字段不出现', () => {
-            render(<DatePicker value="2026-08-10" format="YYYY/MM/DD HH:mm" />);
-            expect(screen.getByText('2026/08/10 00:00')).toBeInTheDocument();
+        it('format 支持核心 dayjs token（含 ddd 与时间 token）', () => {
+            render(<DatePicker value="2026-08-10" format="ddd, YYYY/MM/DD HH:mm" />);
+            expect(screen.getByText('Mon, 2026/08/10 00:00')).toBeInTheDocument();
         });
 
         it('应用 size / status 类', () => {

@@ -34,7 +34,7 @@ export interface DatePickerProps {
     size?: DatePickerSize;
     /** 校验状态 */
     status?: DatePickerStatus;
-    /** 展示格式，占位符遵循 dayjs 的 token（YYYY / MM / DD / M / D 等），默认 YYYY-MM-DD */
+    /** 展示格式，占位符支持 dayjs 核心 token（YYYY / MM / DD / M / D / HH / mm / ss / ddd 等），默认 YYYY-MM-DD */
     format?: string;
     /** 禁用日期判断函数，返回 true 的日期不可选 */
     disabledDate?: (date: Date) => boolean;

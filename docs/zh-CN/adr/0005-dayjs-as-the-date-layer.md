@@ -24,9 +24,9 @@ ADR 0001 给出的退路是「内置一份实现进 `src/`」，但这对日期�
 }
 ```
 
-- **内联打包，而非 external。** 与 peer 包不同，`dayjs` 有意不进入 `vite.config.ts` 的 `external` 列表。它被产出为 `dist/es/node_modules/dayjs/dayjs.min.js`（以及 CJS 版本）一份文件，由所有引入它的组件共享 —— 消费者无需额外安装、也不会出现第二份副本。同时 `preserveModules` 仍能让未引入任何日期组件的消费者完全摇掉它。
+- **内联打包，而非 external。** 与 peer 包不同，`dayjs` 有意不进入 `vite.config.ts` 的 `external` 列表。它被产出为 `dist/es/node_modules/dayjs/dayjs.min.js`（以及 CJS 版本）一份文件，由本包内所有引入它的组件共享 —— 消费者无需额外安装。但这**不**保证全进程只有一份实例：宿主应用若自己 import 了 `dayjs`，可能加载出互相独立的副本，二者不共享 locale 状态与插件注册。同时 `preserveModules` 仍能让未引入任何日期组件的消费者完全摇掉它。
 - **插件在用到的模块里注册。** `dayjs.extend(customParseFormat)` 写在需要它的模块顶部。严格解析 `value` / `defaultValue` 必须依赖 `customParseFormat`：正是它让 `2026-02-30` 这类不存在的日期被判定为非法，而不是被静默进位成 3 月 2 日。
-- **不碰 locale。** 本库永不会调用 `dayjs.locale(...)`。locale 是进程级状态，归宿主应用所有；在组件内部改动它，会连带改变消费者自己的 dayjs 代码行为。
+- **不碰 locale。** 本库永不会调用 `dayjs.locale(...)`。locale 注册表是本包内联实例的可变状态，且与宿主应用独立引入的 `dayjs` 互不相通；不去改它，才能让内联实例的行为保持确定。
 - **墙上时钟的值不掺和进来。** `TimePicker` 持有的是 `{ h, m, s }` 挂钟值，`Time` 渲染的是当前挂钟。二者都不做日期运算，也都不引入 dayjs —— 给一个纯时间附上一个日历日期，只会制造夏令时 bug，而不是消除它们。
 
 未来若还要新增运行时依赖，仍需单独开一份记录。本次决策刻意收窄：它只为日期库开口子，不等于整体放宽规则。
@@ -36,8 +36,8 @@ ADR 0001 给出的退路是「内置一份实现进 `src/`」，但这对日期�
 - 零传递依赖的性质得以保持：`dayjs` 自身不声明任何依赖，安装本库依然只多一个包。
 - 对引入 `DatePicker`、`Countdown` 或未来日期组件的消费者，包体增大约 3 kB（gzip）；不引入这些组件的消费者则毫无增加。
 - 日期行为变得一致且可评审 —— 一套库的语义，取代四份私有实现 —— 日历组件也能建立在一个已经懂周、月与 locale 的基础之上。
-- `dayjs` 的 locale 注册表是与宿主应用共享的可变模块状态。永远不调用 `dayjs.locale()` 是这份共享安全的前提；未来若有组件需要 locale，必须以 prop 传入并通过局部实例格式化，而不是改全局。
-- `DatePicker` 的日期格式化改为遵循 dayjs 的 token。此前记录的占位符子集（`YYYY` / `MM` / `DD` / `M` / `D`）渲染结果完全一致；而 `HH:mm` 这类额外 token 现在会真实插值，不再是原样输出。
+- `dayjs` 的 locale 注册表是**内联实例内部**的可变状态，不与宿主应用独立引入的 `dayjs` 共享。本库永不调用 `dayjs.locale()`，这既让内联实例保持确定（默认 `en`），也意味着宿主应用调用 `dayjs.locale(...)` **不会**改变 `DatePicker` 里依赖 locale 的输出（如 `ddd`）。未来若有组件需要 locale，必须以 prop 传入并通过局部实例格式化，而不是去碰全局状态。
+- `DatePicker` 的日期格式化遵循 dayjs 的**核心** token。此前记录的占位符子集（`YYYY` / `MM` / `DD` / `M` / `D`）渲染结果完全一致；`HH` / `mm` / `ss` / `ddd` 这类核心 token 现在会真实插值，不再是原样输出。由插件提供的 token 是例外：它们既不会展开、也不会报错 —— 在注册 `advancedFormat` 之前，`Q` 渲染成字母 `Q`、`Do` 渲染成 `10o`；没有 `localizedFormat` 时 `L` / `LT` 也保持字面量。因此文档里的 token 集合绝不能写成「任意 dayjs token」。
 
 ## 相关记录
 

@@ -43,9 +43,11 @@ do date arithmetic, parsing, formatting and comparison in `src/`:
 - **Bundled, not external.** Unlike the peer packages, `dayjs` is deliberately left out
   of the `external` list in `vite.config.ts`. It is emitted once as
   `dist/es/node_modules/dayjs/dayjs.min.js` (+ its CJS twin) and shared by every
-  component that imports it, so a consumer gets the date layer with no install step and
-  no second copy. `preserveModules` still drops it entirely for consumers who import no
-  date component.
+  component in this package that imports it, so a consumer gets the date layer with no
+  separate install step. This does **not** guarantee a single instance process-wide: a
+  host application that imports its own `dayjs` can load an independent copy, and the
+  two do not share locale state or plugin registration. `preserveModules` still drops
+  the bundled copy entirely for consumers who import no date component.
 - **Plugins are registered where they are used.** `dayjs.extend(customParseFormat)` sits
   at the top of the module that needs it. `customParseFormat` is required to parse
   `value` / `defaultValue` in strict mode, which is what turns an impossible date such as
@@ -70,12 +72,20 @@ narrow: it licenses a date library, not a general loosening of the rule.
 - Date behaviour becomes consistent and reviewable — one library's semantics instead of
   four private implementations — and the calendar component can be built on a base that
   already understands weeks, months and locales.
-- `dayjs`'s locale registry is mutable module state shared with the host application.
-  Never calling `dayjs.locale()` is what keeps that sharing safe; a future component that
-  needs a locale must take it as a prop and format through a local instance instead.
-- Date formatting in `DatePicker` now follows dayjs tokens. The previously documented
-  subset (`YYYY` / `MM` / `DD` / `M` / `D`) still renders identically; additional tokens
-  such as `HH:mm` now interpolate instead of passing through as literal text.
+- `dayjs`'s locale registry is mutable state **inside the bundled module instance**; it
+  is not shared with a host application's independently imported `dayjs`. The library
+  never calls `dayjs.locale()`, which keeps the bundled instance deterministic (its
+  default `en`) — and means a host-level `dayjs.locale(...)` call does not change
+  locale-sensitive `DatePicker` output such as `ddd`. A future component that needs a
+  locale must take it as a prop and format through a local instance instead of reaching
+  for global state.
+- Date formatting in `DatePicker` follows **core** dayjs tokens. The previously documented
+  subset (`YYYY` / `MM` / `DD` / `M` / `D`) still renders identically; further core tokens
+  such as `HH` / `mm` / `ss` / `ddd` now interpolate instead of passing through as literal
+  text. Plugin-owned tokens are the exception: they do not expand, and they do not fail
+  loudly either — `Q` renders as the letter `Q` and `Do` as `10o` until `advancedFormat`
+  is registered, and `L` / `LT` stay literal without `localizedFormat`. The documented
+  token set must therefore not be described as "any dayjs token".
 
 ## Related
 
