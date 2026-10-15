@@ -6,7 +6,7 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     },
     input: {
         title: 'Input 输入框',
-        desc: '输入框组件 — 支持三种尺寸、clearable 清除、prefix / suffix 前后缀、error / warning 校验状态、disabled 禁用',
+        desc: '输入框组件 — 支持三种尺寸、allowClear 清除、prefix / suffix 前后缀、error / warning 校验状态、disabled 禁用',
     },
     switch: {
         title: 'Switch 开关',
@@ -54,7 +54,7 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     },
     select: {
         title: 'Select 选择器',
-        desc: '下拉选择器组件 — 支持自定义选项列表，高亮当前选中项',
+        desc: '下拉选择器组件 — 支持自定义选项列表、allowClear 清空、showSearch 关键字过滤、键盘导航',
     },
     'date-picker': {
         title: 'DatePicker 日期选择',
@@ -147,6 +147,10 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     countdown: {
         title: 'Countdown 倒计时',
         desc: '倒计时组件 — 接收结束时间，支持天/时/分/秒格式、三种尺寸、两种风格与归零回调',
+    },
+    countup: {
+        title: 'CountUp 数字滚动',
+        desc: '计分动效组件 — 从 start 滚到 end，支持缓动曲线、千分位 / 小数位格式化、暂停继续，以及结束时的庆祝动效（可附任意文案贴纸）',
     },
     time: {
         title: 'Time 时钟',

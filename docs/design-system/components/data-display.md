@@ -1,6 +1,6 @@
 # Data display — pixel spec
 
-Exact values for the components that present content: Table, Pagination, CodeBlock, Tag, Badge, Image and Avatar.
+Exact values for the components that present content: Table, Pagination, CodeBlock, Tag, Badge, Image, Avatar and CountUp.
 
 ## Table (dashed row rules, solid hover)
 
@@ -164,13 +164,13 @@ Source: `src/components/Pagination/pagination.module.less`. **Ghost-cell pager s
 > - The size changer is a self-contained popover (click outside / Escape closes) rather than reusing `Select`, so the pager has no dependency on the form components.
 > - a11y: root is `<nav aria-label="分页">`; the active page carries `aria-current="page"`; prev/next have `aria-label` and use native `disabled`; the jumper input has an `aria-label`.
 
-## CodeBlock (dark theme, JSX/TS tokenizer)
+## CodeBlock (dark theme, JSX/TS + shell tokenizer)
 
 Props:
 
-| name        | type            | default | description                                                                     |
-| ----------- | --------------- | ------- | ------------------------------------------------------------------------------- |
-| `code`      | `string`        | —       | **required**; raw source string, tokenized and highlighted internally as JSX/TS |
+| name        | type            | default | description                                                                                    |
+| ----------- | --------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `code`      | `string`        | —       | **required**; raw source string. JSX/TS code is tokenized and highlighted; lines starting with a shell command (`npm/yarn/pnpm/npx/node/git/...`) are highlighted as shell instead |
 | `style`     | `CSSProperties` | —       | merged over the default dark theme                                              |
 | `className` | `string`        | —       | custom class name                                                               |
 | `copyable`  | `boolean`       | `true`  | shows the copy button                                                           |
@@ -210,7 +210,7 @@ When the copy button is visible and the consumer has not supplied custom `paddin
 | operator  | `#d4b896` | `{}[]();,` and `+-\*/=<>&\|^~?:` etc.                                     |
 | default   | `#e8d5bc` | everything else                                                           |
 
-The top-right copy button uses the Clipboard API and reports `已复制` or `复制失败`; set `copyable={false}` to hide it. There is no `language` prop, line numbers or soft wrapping; non-JS/TS code is coloured by the generic rules and may render inaccurately.
+The top-right copy button uses the Clipboard API and reports `已复制` or `复制失败`; set `copyable={false}` to hide it. There is no `language` prop, line numbers or soft wrapping. When the first line starts with a shell command (`npm/yarn/pnpm/npx/node/git/cd/ls/...`), the block switches to shell highlighting: command names in the `jsx` colour, known subcommands (`install/add/build/git commit/...`) in `string`, flags (`-x` / `--flag`) in `operator`, `//` comments in italic `comment`; package/argument names stay in the default colour. Other non-JS/TS code is coloured by the generic rules and may render inaccurately.
 
 ## Tag (pill, 12-colour palette)
 
@@ -447,11 +447,11 @@ The rule measures the **displayed text**, so numbers go through `String(value)` 
 ```
 
 > **Key design decisions**:
-> - The indicator is a `<sup>` (same element antd uses); `position: absolute` + `translate(50%, -50%)` pins it exactly on the wrapped element's top-right corner, and `transform-origin: 100% 0` makes the pop grow out of that corner.
+> - The indicator is a `<sup>` element; `position: absolute` + `translate(50%, -50%)` pins it exactly on the wrapped element's top-right corner, and `transform-origin: 100% 0` makes the pop grow out of that corner.
 > - The 2px cream ring (`--animal-bg-color`) reuses Avatar's sticker ring, so a badge overlapping an image or icon separates cleanly instead of floating on the artwork. A standalone badge covers nothing, so it drops ring, shadow and offset.
 > - Capping applies to numbers and numeric strings only (`100` → `99+`); a ReactNode `count` (e.g. a naive-icons glyph) renders verbatim. The true value stays in the native `title` even when the visible text is capped — pass `title` explicitly to override it.
 > - Visibility: hidden when `count` is empty (`null`, `undefined` or a blank string), when the value is `0` / `"0"` without `showZero`, and for `dot` when the value is zero; `dot` without a `count` still shows. `size` only affects the numeric pill — the dot box wins over it.
-> - `color` is the shared island palette rather than antd's free-form CSS colour, so a badge cannot drift outside the Card / Tag colour language.
+> - `color` is drawn from the shared island palette rather than a free-form CSS colour, so a badge cannot drift outside the Card / Tag colour language.
 
 ## Image (mat frame)
 
@@ -619,3 +619,111 @@ Source: `src/components/Avatar/avatar.module.less`. A `<span>` that shows either
 
 **Avatar.Group** — `display: inline-flex` on a `.group` wrapper; avatars overlap via `margin-left: calc(-1 * var(--avatar-group-gap))` with the gap variable set inline from the `gap` prop (default 8px). Each avatar keeps a 2px `--animal-bg-color` ring so the overlap reads as deliberate stacking, not clipping. `maxCount` slices children and renders a `+N` pill (`styles.avatar` + `placeholder`, style overridable via `maxStyle`); group-level `size`/`shape` are cloned into children that don't set their own. `Avatar.Group` also works as a static property on `Avatar` (convenience alias).
 
+
+## CountUp (score counter, digit plate + optional celebration)
+
+Source: `src/components/CountUp/CountUp.tsx` + `count-up.module.less`.
+
+A declarative count-up readout for score screens: animate `start` → `end` over `duration` seconds. The `requestAnimationFrame` timestamp is the clock (no `setInterval` drift), `isCounting` plays / pauses / resumes without losing elapsed progress, and the digit plate reuses Countdown's cream-gradient tile so a score screen and a deadline screen read as one family. No timer library: the easing curves and number formatting are local.
+
+**props**:
+```ts
+type CountUpSize = 'small' | 'middle' | 'large';
+type CountUpVariant = 'default' | 'island';
+type CountUpEasing = 'linear' | 'easeInCubic' | 'easeOutCubic' | 'easeInOutCubic' | 'easeOutExpo'
+    | ((progress: number) => number);
+type CountUpChildren = (state: { value: number; reset: (newStartAt?: number) => void }) => React.ReactNode;
+
+interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefix' | 'children'> {
+    start?: number;                  // default 0
+    end: number;                     // REQUIRED — the score
+    duration?: number;               // seconds, default 2; 0 jumps straight to end
+    isCounting?: boolean;            // default false; false pauses and keeps the current value
+    decimalPlaces?: number;          // default max(decimals(start), decimals(end))
+    decimalSeparator?: string;       // default '.'
+    thousandsSeparator?: string;     // default '' (no grouping)
+    easing?: CountUpEasing;          // default 'easeOutCubic'
+    formatter?: (value: number) => React.ReactNode;   // highest priority
+    updateInterval?: number;         // seconds between value updates, default 0 = every frame
+    prefix?: React.ReactNode;
+    suffix?: React.ReactNode;
+    size?: CountUpSize;              // default 'middle'
+    variant?: CountUpVariant;        // default 'default'
+    bordered?: boolean;              // default false — draws the 1.5px plate border
+    celebrate?: boolean | { text?: React.ReactNode };   // default false
+    onUpdate?: (value: number) => void;
+    onComplete?: (elapsedTime: number) => void | { shouldRepeat?: boolean; delay?: number; newStartAt?: number };
+    children?: CountUpChildren;      // render prop, replaces the number content
+}
+```
+
+**Shell and plate (exact values):**
+```css
+.count-up {                          /* same panel language as Countdown */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--animal-spacing-sm, 8px);
+    color: var(--animal-text-color, #794f27);
+    font-family: var(--animal-font-family, 'Nunito', 'Noto Sans SC');
+    font-weight: 700;
+    border-radius: 20px;
+}
+.default { padding: 12px 18px; background: var(--animal-bg-color, #fff); box-shadow: var(--animal-shadow-sm, ...); }
+.island  { padding: 13px 20px; background: rgb(247, 243, 223); border: 2px dashed #d4c4a8; }
+
+.plate {                             /* identical tile to Countdown's .unit */
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff 0%, #f8f8f0 100%);
+}
+.island .plate    { background: linear-gradient(180deg, #fffdf4 0%, #f8f8f0 100%); }
+.bordered .plate  { border: 1.5px solid #d4c9b4; }   /* island: #d4c4a8 */
+
+.number {                            /* 20 / 26 / 34px per size — same as Countdown digits */
+    color: #8b7355;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+.affix { color: #a89878; font-weight: 800; font-size: 0.62em; }   /* prefix / suffix */
+```
+
+**Celebration (opt-in, exact values):**
+```css
+/* the plate itself bounces twice */
+.celebrating .plate { animation: animal-countup-pop 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }
+/* 1 → 1.14(-2deg) → 0.98 → 1.08(1.6deg) → 0.99 → 1 */
+
+/* two shockwave rings, 0.12s apart */
+.ring { position: absolute; inset: 0; border: 2px solid rgba(247, 205, 103, 0.85); border-radius: 14px;
+        animation: animal-countup-ring 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }   /* scale 1→1.5, opacity .9→0 */
+.ring:nth-child(2) { border-color: rgba(255, 204, 0, 0.7); animation-delay: 0.12s; }
+
+/* four CSS four-point sparkles flying out of the plate corners */
+.sparkle { position: absolute; width: 10px; height: 10px; background: #f7cd67;
+           clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+           animation: animal-countup-sparkle 0.72s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.sparkle:nth-child(odd)  { --cu-x: -16px; }   /* corner offsets are per-nth-child; delays 0 / .06 / .12 / .18s */
+.sparkle:nth-child(even) { --cu-x: 16px; }
+
+/* sticker, above the plate — only rendered when celebrate.text is set */
+.badgeWrap { position: absolute; left: 50%; bottom: 100%; margin-bottom: 6px; transform: translateX(-50%); }
+.badge { padding: 2px 10px; color: #725d42; font-weight: 800; font-size: 12/13/15px per size; letter-spacing: 0.04em;
+         background: linear-gradient(180deg, #ffe08a 0%, #f7cd67 100%);
+         border: 1.5px solid #e0b800; border-radius: 50px; box-shadow: 0 2px 6px rgba(61, 52, 40, 0.18);
+         animation: animal-countup-badge 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }   /* 0.4 → 1.12(3deg) → 1 */
+```
+
+**Key interaction details:**
+
+- The celebration is a **status effect, not information**: the whole layer (rings, sparkles, sticker) is `aria-hidden` and `pointer-events: none`, and it sits above the plate only while `.celebrating` is set. It is unmounted 900ms after `onComplete` so the next completion replays the CSS animations from scratch.
+- **The sticker is where the copy goes**: `celebrate` runs the two-beat bounce, rings and sparkles; `celebrate={{ text: '…' }}` also renders the warm-yellow sticker with whatever copy is passed (`完美！`, `当当！`, `+100`, …).
+- The sticker is the only warm-yellow element and the only thing that overflows the shell — it hangs off `bottom: 100%`, so a parent with `overflow: hidden` clips it. It is a pill (`50px`) instead of a rectangle; the sparkles are pure CSS `clip-path` stars, so no emoji, Unicode glyph or inline SVG is introduced (`design-rules.md` rules 15/16).
+- `duration` is measured against the rAF timestamp and pauses with `isCounting`; resuming continues from the stored elapsed time instead of restarting. `duration={0}` and any environment without `requestAnimationFrame` settle immediately on the value (`0` → `end`, no rAF → static `start`).
+- `start` / `end` / `duration` changes restart the animation from `start`; a completed component restarts when `isCounting` goes `false → true`, so the `key`-based replay recipe of the reference library is only needed when the value alone must trigger a re-run. Moving `start` and `end` together therefore **continues from the previous total instead of recounting** — the accumulation pattern (`start={Math.max(0, total - 15)} end={total}` for a +15 pickup).
+- **Formatting** mirrors `use-count-up`: `decimalPlaces <= 0` renders `Math.round(value)` (then thousands grouping); otherwise `toFixed(places)` is split on `.` and rejoined with `decimalSeparator`; `formatter` wins over all of it. With `updateInterval > 0` the *elapsed time* is quantized (`floor(elapsed / interval) * interval`) before easing, so updates land exactly one interval apart.
+- a11y: the root is `role="status"`; the animated digits are `aria-hidden` and a visually-hidden span carries the **default-formatted** number (never a `formatter` node). It stays empty while counting and is filled once the value settles — a per-frame live region would be unusable, so only the final score is announced. `prefix` / `suffix` are decorative and excluded from that text. The whole digit plate is `aria-hidden`, so a `children` render prop must stay presentational: a focusable element placed inside it would sit in an `aria-hidden` subtree (an axe `aria-hidden-focus` violation). The demo therefore parks the `reset` function it receives in a ref and renders the replay button **outside** the component.
+- `prefers-reduced-motion: reduce` drops the pop and hides the rings + sparkles; a sticker, when used, keeps a plain 0.25s opacity fade so completion is still signalled visually.

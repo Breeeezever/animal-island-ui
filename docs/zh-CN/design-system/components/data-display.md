@@ -1,6 +1,6 @@
 # Data display — 精确样式规范
 
-承载内容展示的组件：Table、Pagination、CodeBlock、Tag、Badge、Image、Avatar 的精确取值
+承载内容展示的组件：Table、Pagination、CodeBlock、Tag、Badge、Image、Avatar、CountUp 的精确取值
 
 ## Table（虚线行分隔，纯色 hover）
 
@@ -164,13 +164,13 @@ padding: 10px 16px 8px;
 > - 每页条数切换器为自包含弹层（点击外部 / Escape 关闭），不复用 `Select`，分页器因此不依赖表单组件。
 > - a11y：根节点为 `<nav aria-label="分页">`；当前页带 `aria-current="page"`；前后翻页按钮带 `aria-label` 并使用原生 `disabled`；跳转输入框带 `aria-label`。
 
-## CodeBlock（深色主题，JSX/TS 分词）
+## CodeBlock（深色主题，JSX/TS + shell 分词）
 
 Props：
 
-| name        | type            | default | 说明                                                 |
-| ----------- | --------------- | ------- | ---------------------------------------------------- |
-| `code`      | `string`        | —       | **必填**；原始源码字符串，内部自动按 JSX/TS 分词高亮 |
+| name        | type            | default | 说明                                                                     |
+| ----------- | --------------- | ------- | ------------------------------------------------------------------------ |
+| `code`      | `string`        | —       | **必填**；原始源码字符串。JSX/TS 代码自动分词高亮；以 shell 命令（`npm/yarn/pnpm/npx/node/git/...`）开头的行则按 shell 高亮 |
 | `style`     | `CSSProperties` | —       | 会合并覆盖默认深色主题                               |
 | `className` | `string`        | —       | 自定义类名                                           |
 | `copyable`  | `boolean`       | `true`  | 是否显示复制按钮                                     |
@@ -210,7 +210,7 @@ tab-size: 4;
 | operator  | `#d4b896` | `{}[]();,` 和 `+-\*/=<>&\|^~?:` 等                                 |
 | default   | `#e8d5bc` | 其余文本                                                           |
 
-右上角复制按钮使用 Clipboard API，并显示“已复制”或“复制失败”反馈；传入 `copyable={false}` 可隐藏。不支持 `language` prop、行号或折行；非 JS/TS 代码会按通用规则着色，显示可能不准确。
+右上角复制按钮使用 Clipboard API，并显示“已复制”或“复制失败”反馈；传入 `copyable={false}` 可隐藏。不支持 `language` prop、行号或折行。当首行以 shell 命令（`npm/yarn/pnpm/npx/node/git/cd/ls/...`）开头时，代码块自动切换为 shell 高亮：命令名用 `jsx` 色，已知子命令（`install/add/build/git commit/...`）用 `string` 色，flag（`-x` / `--flag`）用 `operator` 色，`//` 注释为斜体 `comment` 色；包名/参数保持默认色。其他非 JS/TS 代码会按通用规则着色，显示可能不准确。
 
 ## Tag（胶囊标签，12 色调色板）
 
@@ -447,11 +447,11 @@ tab-size: 4;
 ```
 
 > **关键设计决策**：
-> - 角标是 `<sup>`（与 antd 同款元素）；`position: absolute` + `translate(50%, -50%)` 让它精确钉在被包裹元素的右上角，`transform-origin: 100% 0` 让弹出动画从该角生长。
+> - 角标是 `<sup>` 元素；`position: absolute` + `translate(50%, -50%)` 让它精确钉在被包裹元素的右上角，`transform-origin: 100% 0` 让弹出动画从该角生长。
 > - 2px 奶油描边（`--animal-bg-color`）复用 Avatar 的贴纸描边，角标压在图片 / 图标上时能干净分离，而不是浮在画面上。独立使用时没有需要分离的目标，因此去掉描边、投影与位移。
 > - 封顶只对数字与数字字符串生效（`100` → `99+`）；ReactNode 类型的 `count`（如 naive-icons 图标）原样展示。可见文字被封顶时，真实数值仍保留在原生 `title` 中 —— 显式传入 `title` 可覆盖它。
 > - 显隐规则：`count` 为空（`null`、`undefined` 或空 / 纯空白字符串）、数值为 `0` / `"0"` 且未开启 `showZero` 时隐藏；`dot` 且数值为 0 时同样隐藏，但 `dot` 未传 `count` 仍会展示。`size` 只作用于数字胶囊 —— 小圆点的盒子尺寸优先。
-> - `color` 使用共享的海岛调色板而非 antd 的自由 CSS 颜色，角标不会脱离 Card / Tag 的色彩语言。
+> - `color` 使用共享的海岛调色板而非自由的 CSS 颜色，角标不会脱离 Card / Tag 的色彩语言。
 
 ## Image（衬板相框）
 
@@ -618,3 +618,110 @@ stampYear?: string; // 发行年份，如「2026」 — 右上角照片上
 **图片加载** —— `<img>` 铺满（`object-fit: cover`，无内边距）。`error` 时重渲染为占位（图标，缺省 naive-icons `UserIcon`，或 `children`），除非 `onError` 返回 `false`。`src` 变化重置加载状态。img 带 `alt`（缺省 `alt=""` 为装饰性图片）；纯默认图标暴露 `role="img"` + `aria-label="avatar"`。
 
 **Avatar.Group** —— `.group` 外壳 `display: inline-flex`；头像通过 `margin-left: calc(-1 * var(--avatar-group-gap))` 相互叠加，gap 变量由 `gap` prop（默认 8px）内联设置。每个头像保留 2px `--animal-bg-color` 描边，让叠加读作「刻意堆叠」而非「裁切」。`maxCount` 裁切子级并渲染 `+N` 胶囊（`styles.avatar` + `placeholder`，可用 `maxStyle` 覆盖样式）；组级 `size` / `shape` 会克隆注入到未显式指定的子 Avatar。`Avatar.Group` 也可经 `Avatar` 静态属性访问（便捷别名）。
+
+## CountUp（计分数字滚动，数字块 + 可选庆祝动效）
+
+源码：`src/components/CountUp/CountUp.tsx` + `count-up.module.less`。
+
+声明式的计分滚动读数：在 `duration` 秒内把 `start` 滚到 `end`。时钟取自 `requestAnimationFrame` 的时间戳（没有 `setInterval` 的累积漂移），`isCounting` 可播放 / 暂停 / 继续且不丢失已用时长，数字块复用 Countdown 的奶油渐变底 —— 结算页和倒计时页因此读起来是同一家族。缓动曲线与数字格式化全部本地实现，没有计时器库。
+
+**props**：
+```ts
+type CountUpSize = 'small' | 'middle' | 'large';
+type CountUpVariant = 'default' | 'island';
+type CountUpEasing = 'linear' | 'easeInCubic' | 'easeOutCubic' | 'easeInOutCubic' | 'easeOutExpo'
+    | ((progress: number) => number);
+type CountUpChildren = (state: { value: number; reset: (newStartAt?: number) => void }) => React.ReactNode;
+
+interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefix' | 'children'> {
+    start?: number;                  // 默认 0
+    end: number;                     // 必填 —— 总分
+    duration?: number;               // 秒，默认 2；0 表示直接到位
+    isCounting?: boolean;            // 默认 false；置 false 暂停并保留当前值
+    decimalPlaces?: number;          // 默认取 max(decimals(start), decimals(end))
+    decimalSeparator?: string;       // 默认 '.'
+    thousandsSeparator?: string;     // 默认 ''（不分组）
+    easing?: CountUpEasing;          // 默认 'easeOutCubic'
+    formatter?: (value: number) => React.ReactNode;   // 优先级最高
+    updateInterval?: number;         // 展示值刷新间隔（秒），默认 0 = 每帧
+    prefix?: React.ReactNode;
+    suffix?: React.ReactNode;
+    size?: CountUpSize;              // 默认 'middle'
+    variant?: CountUpVariant;        // 默认 'default'
+    bordered?: boolean;              // 默认 false —— 数字块 1.5px 描边
+    celebrate?: boolean | { text?: React.ReactNode };   // 默认 false
+    onUpdate?: (value: number) => void;
+    onComplete?: (elapsedTime: number) => void | { shouldRepeat?: boolean; delay?: number; newStartAt?: number };
+    children?: CountUpChildren;      // 渲染函数，替换数字内容
+}
+```
+
+**外壳与数字块（精确取值）**：
+```css
+.count-up {                          /* 与 Countdown 同一套面板语言 */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--animal-spacing-sm, 8px);
+    color: var(--animal-text-color, #794f27);
+    font-family: var(--animal-font-family, 'Nunito', 'Noto Sans SC');
+    font-weight: 700;
+    border-radius: 20px;
+}
+.default { padding: 12px 18px; background: var(--animal-bg-color, #fff); box-shadow: var(--animal-shadow-sm, ...); }
+.island  { padding: 13px 20px; background: rgb(247, 243, 223); border: 2px dashed #d4c4a8; }
+
+.plate {                             /* 与 Countdown 的 .unit 完全同款 */
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff 0%, #f8f8f0 100%);
+}
+.island .plate    { background: linear-gradient(180deg, #fffdf4 0%, #f8f8f0 100%); }
+.bordered .plate  { border: 1.5px solid #d4c9b4; }   /* island 变体：#d4c4a8 */
+
+.number {                            /* 按尺寸 20 / 26 / 34px —— 与 Countdown 数字一致 */
+    color: #8b7355;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+.affix { color: #a89878; font-weight: 800; font-size: 0.62em; }   /* prefix / suffix */
+```
+
+**庆祝动效（可选，精确取值）**：
+```css
+/* 数字块自己弹两下 */
+.celebrating .plate { animation: animal-countup-pop 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }
+/* 1 → 1.14(-2deg) → 0.98 → 1.08(1.6deg) → 0.99 → 1 */
+
+/* 两圈向外扩散的光环，错开 0.12s */
+.ring { position: absolute; inset: 0; border: 2px solid rgba(247, 205, 103, 0.85); border-radius: 14px;
+        animation: animal-countup-ring 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }   /* scale 1→1.5，opacity .9→0 */
+.ring:nth-child(2) { border-color: rgba(255, 204, 0, 0.7); animation-delay: 0.12s; }
+
+/* 四颗纯 CSS 四角星从数字块四角飞出 */
+.sparkle { position: absolute; width: 10px; height: 10px; background: #f7cd67;
+           clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+           animation: animal-countup-sparkle 0.72s cubic-bezier(0.4, 0, 0.2, 1) both; }
+/* 四角的位移量由 nth-child 提供 --cu-x / --cu-y；延迟 0 / .06 / .12 / .18s */
+
+/* 贴纸，浮在数字块上方 —— 只有传了 celebrate.text 才渲染 */
+.badgeWrap { position: absolute; left: 50%; bottom: 100%; margin-bottom: 6px; transform: translateX(-50%); }
+.badge { padding: 2px 10px; color: #725d42; font-weight: 800; 按尺寸 12/13/15px; letter-spacing: 0.04em;
+         background: linear-gradient(180deg, #ffe08a 0%, #f7cd67 100%);
+         border: 1.5px solid #e0b800; border-radius: 50px; box-shadow: 0 2px 6px rgba(61, 52, 40, 0.18);
+         animation: animal-countup-badge 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }   /* 0.4 → 1.12(3deg) → 1 */
+```
+
+**关键交互细节：**
+
+- 庆祝动效是**状态提示而非信息**：整层（光环、星芒、贴纸）都是 `aria-hidden` + `pointer-events: none`，只在 `.celebrating` 期间出现在数字块上方；`onComplete` 之后 900ms 卸载，让下一次结束能从零重播 CSS 动画。
+- **贴纸承载文案**：`celebrate` 走两拍弹跳、光环与星芒；`celebrate={{ text: '…' }}` 会额外渲染暖黄色贴纸，文案随意（`完美！`、`当当！`、`+100`……）。
+- 贴纸是唯一的暖黄色元素，也是唯一溢出外壳的部分 —— 它挂在 `bottom: 100%`，父级若 `overflow: hidden` 会裁掉它。徽标是 `50px` 胶囊而非矩形；星芒是纯 CSS `clip-path` 星形，因此没有引入 emoji、Unicode 字形或内联 SVG（`design-rules.md` 第 15/16 条）。
+- `duration` 以 rAF 时间戳计时，并随 `isCounting` 一起暂停；继续时从已存时长接着走，而不是从头开始。`duration={0}` 以及没有 `requestAnimationFrame` 的环境会立即落值（`0` 直接到 `end`；无 rAF 则静止在 `start`）。
+- `start` / `end` / `duration` 变化会从 `start` 重新播放；已结束的组件在 `isCounting` `false → true` 时重播，因此只有「必须由数值本身触发重播」的场景才需要参考库那套 `key` 用法。把 `start` 与 `end` 一起往后挪则**从上一个总数接着涨，而不是从 0 重数** —— 也就是累加模式（每次捡 +15 时写 `start={Math.max(0, total - 15)} end={total}`）。
+- **格式化**与 `use-count-up` 对齐：`decimalPlaces <= 0` 渲染 `Math.round(value)`（再做千分位分组）；否则 `toFixed(places)` 按 `.` 拆分后用 `decimalSeparator` 重新拼接；`formatter` 优先级高于以上全部。`updateInterval > 0` 时先量化**已用时长**（`floor(elapsed / interval) * interval`）再做缓动，因此刷新点严格落在间隔整数倍上。
+- 无障碍：根节点 `role="status"`；跳动中的数字 `aria-hidden`，由视觉隐藏的 span 承载**默认格式**的数值（永远不是 `formatter` 返回的节点）。它在计数期间保持为空、数值静止后写入 —— 每帧更新的 live region 无法使用，所以只播报最终得分。`prefix` / `suffix` 属装饰，不计入该文本。数字块整体 `aria-hidden`，因此 `children` 渲染函数只能放展示性内容：把可聚焦元素放进去会落在 `aria-hidden` 子树内（触发 axe 的 `aria-hidden-focus` 规则）。Demo 因此把渲染函数拿到的 `reset` 存进 ref，把重播按钮渲染在组件**外面**。
+- `prefers-reduced-motion: reduce` 下取消弹跳、隐藏光环与星芒；使用贴纸时保留 0.25s 纯淡入，结束状态依然有视觉信号。

@@ -167,7 +167,7 @@ interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {
 - **退出时序**：`active` → false 时落雪保持挂载并加 `exiting` 类（opacity → 0、`pointer-events: none`），`fadeDuration * 1000` 毫秒计时结束后卸载。淡出途中恢复 `active` 会取消计时器并立即回到不透明。
 - `delay` 在每次 `active` 切换为 `true` 时重新计时，加载快速结束时雪花屏不会闪烁。
 - a11y：根元素带 `role="status"`；落雪包裹层与暗角均 `aria-hidden`；无 `tip` 时用视觉隐藏的 `加载中` span 提供可读内容。
-- `prefers-reduced-motion: reduce` 停止飘落与进入动画；opacity 渐隐不属于位移运动，予以保留。
+- `prefers-reduced-motion: reduce` 暂停飘落与进入动画；opacity 渐隐不属于位移运动，予以保留。落雪是**暂停而非移除**——`animation: none` 会让 50 片雪花全部退回静止位置 `top: -30px`（视口上方），只剩一块夜空底；纯落雪无 `tip` 时没有任何可见元素，看起来就是黑屏。由于每片雪花本就带**负延迟**（从周期中段起步），暂停会把每片冻结在下落途中的随机高度，开启「减弱动态效果」的用户看到的是一张铺满视口的静态雪景。
 
 ## Skeleton（流光占位）
 
@@ -246,7 +246,7 @@ SkeletonAvatarProps { size?: 'small'|'middle'|'large'; shape?: 'circle'|'square'
 
 源码：`src/components/BackTop/BackTop.tsx` + `back-top.module.less`。
 
-固定右下角的返回顶部按钮，默认使用原创贴纸风上箭头 SVG（内联 data URI：暖棕 `#c9a06c` 描边 + 奶油 `#fffdf4` 糖霜层 + 青绿 `#19c8b9` 主体带浅青 `#7fe0d4` 高光），点击后 easeInOutQuad 平滑滚动到顶部。
+固定右下角的返回顶部按钮，使用 `naive-icons` 的 `RocketIcon`（48×48 viewBox：奶油 `#FAEDCD` 机身、青绿 `#2A9D8F` 舷窗、`#E76F51` 火焰与尾翼、墨色 `#2A2A2A` 描边），以 `size={64}` 渲染；点击后 easeInOutQuad 平滑滚动到顶部。该图标是纯装饰性的，带 `aria-hidden`，可读名称由按钮自身的 `aria-label` 提供。
 
 **props**：
 ```ts
@@ -277,7 +277,7 @@ opacity: 1;
 visibility: visible;
 transform: translateY(0);
 
-// icon (240×240 viewBox 贴纸箭头)
+// icon (naive-icons RocketIcon,48×48 viewBox,按 size 64 渲染)
 .img {
     width: 64px;
     height: 64px;

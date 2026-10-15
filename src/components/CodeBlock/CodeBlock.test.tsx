@@ -43,6 +43,25 @@ describe('CodeBlock', () => {
         expect(pre.textContent).toContain('MyComp');
     });
 
+    it('shell 安装命令按命令名/子命令着色', () => {
+        const { container } = render(<CodeBlock code={'npm install naive-icons\npnpm add naive-icons'} />);
+        const pre = container.querySelector('pre')!;
+        const colored = Array.from(pre.querySelectorAll('span[style*="color"]'));
+        // 命令名（npm/pnpm）与子命令（install/add）各自着色
+        expect(colored.length).toBeGreaterThanOrEqual(4);
+        expect(pre.textContent).toContain('npm install naive-icons');
+    });
+
+    it('shell 注释渲染为斜体淡色', () => {
+        const { container } = render(<CodeBlock code={'// 使用 npm 安装\nnpm install animal-island-ui'} />);
+        const pre = container.querySelector('pre')!;
+        const comment = Array.from(pre.querySelectorAll('span[style*="color"]')).find((s) =>
+            s.textContent?.includes('使用 npm 安装')
+        );
+        expect(comment).toBeTruthy();
+        expect(comment?.getAttribute('style')).toContain('italic');
+    });
+
     it('空 code 不挂掉', () => {
         const { container } = render(<CodeBlock code="" />);
         expect(container.querySelector('pre')).toBeInTheDocument();

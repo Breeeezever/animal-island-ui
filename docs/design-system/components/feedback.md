@@ -167,7 +167,7 @@ interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {
 - **Exit sequence**: `active` → false keeps the screen mounted with the `exiting` class (opacity → 0, `pointer-events: none`), and unmounts after a `fadeDuration * 1000` ms timer. Restoring `active` mid-fade cancels the timer and snaps back to fully opaque instantly.
 - `delay` re-arms on every `active` → `true` transition, so a fast load never flashes the screen.
 - a11y: the root carries `role="status"`; the snowfall wrapper and the vignette are `aria-hidden`; without `tip` a visually-hidden `加载中` span provides the accessible content.
-- `prefers-reduced-motion: reduce` stops the falling animation and the enter animation; the opacity fade is kept since it is not motion.
+- `prefers-reduced-motion: reduce` pauses the snowfall and the enter animation; the opacity fade is kept since it is not motion. The snowfall is **paused, not removed** — `animation: none` would drop all 50 flakes back to their static `top: -30px` above the viewport, leaving nothing but the night-sky backdrop. Because each flake already carries a *negative* `animation-delay`, pausing freezes every one at a random point along its fall, so reduced-motion users get a static snow scene filling the viewport rather than a black screen.
 
 ## Skeleton (shimmer placeholder)
 
@@ -246,7 +246,7 @@ SkeletonAvatarProps { size?: 'small'|'middle'|'large'; shape?: 'circle'|'square'
 
 Source: `src/components/BackTop/BackTop.tsx` + `back-top.module.less`.
 
-A fixed bottom-right back-to-top button, using an original sticker-style up-arrow SVG (inlined data URI: warm-brown `#c9a06c` outline + cream `#fffdf4` frosting layer + teal `#19c8b9` body with a light-teal `#7fe0d4` highlight); clicking it scrolls smoothly to the top with easeInOutQuad.
+A fixed bottom-right back-to-top button, rendering `RocketIcon` from `naive-icons` (48×48 viewBox: cream `#FAEDCD` fuselage, teal `#2A9D8F` porthole, `#E76F51` flame and fins, ink `#2A2A2A` stroke) at `size={64}`; clicking it scrolls smoothly to the top with easeInOutQuad. The icon is decorative and carries `aria-hidden` — the accessible name comes from the button's own `aria-label`.
 
 **props**:
 ```ts
@@ -277,7 +277,7 @@ opacity: 1;
 visibility: visible;
 transform: translateY(0);
 
-// icon (240×240 viewBox sticker arrow)
+// icon (naive-icons RocketIcon, 48×48 viewBox, rendered at size 64)
 .img {
     width: 64px;
     height: 64px;

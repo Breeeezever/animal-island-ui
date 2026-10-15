@@ -12,7 +12,7 @@ description: >
 # animal-island-ui style
 
 animal-island-ui is a React + TypeScript component library with an original
-cozy island-style design — 38 components, a single runtime dependency (`naive-icons`
+cozy island-style design — 39 components, a single runtime dependency (`naive-icons`
 for icons), MIT License.
 
 Source & canonical design definition: https://github.com/guokaigdg/animal-island-ui
@@ -74,6 +74,7 @@ values, defaults — copied from source):
 | Feedback | Progress, Skeleton, BackTop, Loading, Countdown, Time | [feedback.md](references/components/feedback.md) |
 | Notification | Notification (imperative API) | [Notification.md](references/components/Notification.md) |
 | Data display | Table, CodeBlock, Tag, Badge, Pagination | [data-display.md](references/components/data-display.md) |
+| Count-up score | CountUp | [CountUp.md](references/components/CountUp.md) |
 | Media | Image, Avatar, Carousel | [media.md](references/components/media.md) |
 | Decorative | Footer, Divider, Cursor, Typewriter, Background | [decorative.md](references/components/decorative.md) |
 
@@ -97,7 +98,8 @@ values, defaults — copied from source):
 9. Motion uses `cubic-bezier(0.4, 0, 0.2, 1)` over 0.15–0.35s.
 10. Icons come from the external `naive-icons` package (e.g. `import { FlowerIcon } from 'naive-icons'`)
     — never emoji, Unicode symbols (✓ ✕ →), hand-rolled SVG, or third-party icon libraries. Prefer
-    `naive-icons` icon components over emoji everywhere you can.
+    `naive-icons` icon components over emoji everywhere you can. `Cursor` is the single exception: its
+    artwork is hand-authored inline SVG because CSS `cursor` accepts image URLs only — leave it alone.
 11. Select is controlled-only (`options` + `value` + `onChange` all required). Controlled
     `Input`/`Switch`/`Checkbox`/`Radio`/`Rate` need `onChange` too.
 12. Prefer library components over raw HTML: no visible native `<button>`, `<input>`,

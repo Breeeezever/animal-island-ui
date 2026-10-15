@@ -75,6 +75,18 @@ const highlightJSX = (code: string): React.ReactNode[] => {
 
     tokens.sort((a, b) => a.start - b.start);
 
+    return renderTokens(code, tokens);
+};
+
+// 将 (start/end/color) token 列表合并为带颜色的 React 节点
+interface HighlightToken {
+    start: number;
+    end: number;
+    color: string;
+    italic?: boolean;
+}
+
+const renderTokens = (code: string, tokens: HighlightToken[]): React.ReactNode[] => {
     const result: React.ReactNode[] = [];
     let pos = 0;
 
@@ -90,7 +102,14 @@ const highlightJSX = (code: string): React.ReactNode[] => {
         }
 
         result.push(
-            <span key={`s${token.start}`} style={{ color: token.color }}>
+            <span
+                key={`s${token.start}`}
+                style={{
+                    color: token.color,
+                    fontStyle: token.italic ? 'italic' : undefined,
+                    fontWeight: token.italic ? 400 : undefined,
+                }}
+            >
                 {code.slice(token.start, token.end)}
             </span>
         );
@@ -107,6 +126,38 @@ const highlightJSX = (code: string): React.ReactNode[] => {
 
     return result;
 };
+
+// Shell 命令高亮：行首命令名（jsx 橙）、子命令（string 绿）、flag（operator 棕）、注释（斜体淡色），包名/参数保持默认色
+const highlightShell = (code: string): React.ReactNode[] => {
+    const tokens: HighlightToken[] = [];
+
+    const addPattern = (regex: RegExp, color: string, italic = false) => {
+        let match;
+        const re = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : regex.flags + 'g');
+        while ((match = re.exec(code)) !== null) {
+            tokens.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                color,
+                italic,
+            });
+        }
+    };
+
+    addPattern(/\/\/.*$/gm, COLORS.comment, true);
+    addPattern(/^\s*(npm|yarn|pnpm|npx|node|git|cd|ls|mkdir|rm|cp|mv)\b/gm, COLORS.jsx);
+    addPattern(
+        /(?<=\s)(install|add|remove|uninstall|run|start|dev|build|test|lint|publish|init|create|exec|global|link|upgrade|update|clone|commit|push|pull|checkout|branch|merge|rebase|status|log|diff)\b/g,
+        COLORS.string
+    );
+    addPattern(/(?<=\s)(-{1,2}[\w-]+)/g, COLORS.operator);
+
+    tokens.sort((a, b) => a.start - b.start);
+
+    return renderTokens(code, tokens);
+};
+
+const looksLikeShell = (code: string): boolean => /^\s*(npm|yarn|pnpm|npx|node|git|cd|ls|mkdir|rm|cp|mv)\b/m.test(code);
 
 export interface CodeBlockProps {
     /** 要高亮的 JSX / TypeScript 源码 */
@@ -189,7 +240,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ code, style, className, co
                 style={{ ...codeBlockStyle, ...(copyButtonSpacing ? { paddingRight: 96 } : null), ...preStyle }}
                 className={className}
             >
-                {highlightJSX(code)}
+                {looksLikeShell(code) ? highlightShell(code) : highlightJSX(code)}
             </pre>
             {copyable && (
                 <button

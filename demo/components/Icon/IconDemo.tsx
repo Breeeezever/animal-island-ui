@@ -19,7 +19,11 @@ type IconComponent = React.ForwardRefExoticComponent<
 
 /** naive-icons 所有图标组件，按导出顺序排列 */
 const ALL_ICONS: IconComponent[] = (Object.entries(Icons) as Array<[string, unknown]>)
-    .filter(([, value]) => typeof value === 'function' || (value !== null && typeof value === 'object'))
+    .filter(
+        ([, value]) =>
+            typeof (value as { displayName?: unknown } | null)?.displayName === 'string' &&
+            (typeof value === 'function' || (value !== null && typeof value === 'object'))
+    )
     .map(([, value]) => value as IconComponent);
 
 const ZH_NAMES: Record<string, string> = {
