@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import dayjs, { type Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import styles from './date-picker.module.less';
+
+// 严格解析插件：拒绝 2026-02-30 这类会被原生 Date 静默进位的非法日期
+dayjs.extend(customParseFormat);
 
 export type DatePickerSize = 'small' | 'middle' | 'large';
 
@@ -29,7 +34,7 @@ export interface DatePickerProps {
     size?: DatePickerSize;
     /** 校验状态 */
     status?: DatePickerStatus;
-    /** 展示格式，支持 YYYY / MM / DD / M / D 占位符，默认 YYYY-MM-DD */
+    /** 展示格式，占位符遵循 dayjs 的 token（YYYY / MM / DD / M / D 等），默认 YYYY-MM-DD */
     format?: string;
     /** 禁用日期判断函数，返回 true 的日期不可选 */
     disabledDate?: (date: Date) => boolean;
@@ -52,39 +57,28 @@ export interface DatePickerProps {
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
-const pad = (n: number) => `${n}`.padStart(2, '0');
+/** 日期网格固定补满 6 行 × 7 列 */
+const GRID_CELLS = 42;
 
-/** 将 YYYY-MM-DD 字符串解析为本地时间 Date，非法输入返回 null */
-const parseValue = (value: string | null | undefined): Date | null => {
+/** 解析 YYYY-MM-DD / YYYY-M-D / YYYY-MM，非法输入返回 null（严格模式，不回退到原生 Date 的进位行为） */
+const parseValue = (value: string | null | undefined): Dayjs | null => {
     if (!value) return null;
-    const match = /^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(value);
-    if (!match || Number(match[2]) > 12) return null;
-    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3] ?? 1));
-    return Number.isNaN(date.getTime()) ? null : date;
+    const parsed = dayjs(value, ['YYYY-MM-DD', 'YYYY-M-D', 'YYYY-MM'], true);
+    return parsed.isValid() ? parsed : null;
 };
 
-/** 将 Date 序列化为 YYYY-MM-DD */
-const toValue = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+/** 序列化为 YYYY-MM-DD */
+const toValue = (date: Dayjs) => date.format('YYYY-MM-DD');
 
-/** 将 Date 序列化为 YYYY-MM（月份选择模式的值） */
-const toMonthValue = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+/** 序列化为 YYYY-MM（月份选择模式的值） */
+const toMonthValue = (date: Dayjs) => date.format('YYYY-MM');
 
-/** 按模板格式化日期，支持 YYYY / MM / DD / M / D 占位符 */
-const formatDate = (date: Date, format: string) =>
-    format
-        .replace('YYYY', `${date.getFullYear()}`)
-        .replace('MM', pad(date.getMonth() + 1))
-        .replace('DD', pad(date.getDate()))
-        .replace('M', `${date.getMonth() + 1}`)
-        .replace('D', `${date.getDate()}`);
+const isSameDay = (a: Dayjs, b: Dayjs) => a.isSame(b, 'day');
 
-const isSameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-
-const isSameMonth = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+const isSameMonth = (a: Dayjs, b: Dayjs) => a.isSame(b, 'month');
 
 /** 解析范围值 [开始, 结束]，任一端非法或非数组均返回 null */
-const parseRange = (value: DatePickerValue): [Date, Date] | null => {
+const parseRange = (value: DatePickerValue): [Dayjs, Dayjs] | null => {
     if (!value || typeof value === 'string') return null;
     const start = parseValue(value[0]);
     const end = parseValue(value[1]);
@@ -118,17 +112,17 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const [innerValue, setInnerValue] = useState<DatePickerValue>(defaultValue ?? null);
     const [innerOpen, setInnerOpen] = useState(false);
     const [viewDate, setViewDate] = useState(
-        () => parseValue(typeof defaultValue === 'string' ? defaultValue : null) ?? new Date()
+        () => parseValue(typeof defaultValue === 'string' ? defaultValue : null) ?? dayjs()
     );
     const [mode, setMode] = useState<'date' | 'month' | 'year'>('date');
     const [focusedDate, setFocusedDate] = useState(
-        () => parseValue(typeof defaultValue === 'string' ? defaultValue : null) ?? new Date()
+        () => parseValue(typeof defaultValue === 'string' ? defaultValue : null) ?? dayjs()
     );
-    const [rangeStart, setRangeStart] = useState<Date | null>(null);
-    const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-    const [hoverDate, setHoverDate] = useState<Date | null>(null);
+    const [rangeStart, setRangeStart] = useState<Dayjs | null>(null);
+    const [rangeEnd, setRangeEnd] = useState<Dayjs | null>(null);
+    const [hoverDate, setHoverDate] = useState<Dayjs | null>(null);
     /** 单日期模式待选日期（点选后尚未确认） */
-    const [pendingDate, setPendingDate] = useState<Date | null>(null);
+    const [pendingDate, setPendingDate] = useState<Dayjs | null>(null);
     const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
     const [mounted, setMounted] = useState(false);
     const [closing, setClosing] = useState(false);
@@ -197,8 +191,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         setClosing(false);
         const current = valueRef.current;
         const base = range
-            ? (parseRange(current)?.[0] ?? new Date())
-            : (parseValue(typeof current === 'string' ? current : null) ?? new Date());
+            ? (parseRange(current)?.[0] ?? dayjs())
+            : (parseValue(typeof current === 'string' ? current : null) ?? dayjs());
         setViewDate(base);
         setFocusedDate(base);
         setMode(picker === 'month' && !range ? 'month' : 'date');
@@ -249,8 +243,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
     // 点选日期：仅更新待选值，点击「确定」后才提交并关闭
     const selectDate = useCallback(
-        (date: Date) => {
-            if (disabledDate?.(date)) return;
+        (date: Dayjs) => {
+            if (disabledDate?.(date.toDate())) return;
             if (!range) {
                 setPendingDate(date);
                 return;
@@ -260,7 +254,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 setRangeStart(date);
                 return;
             }
-            if (date < rangeStart) {
+            if (date.isBefore(rangeStart, 'day')) {
                 // 第二次点击早于开始日期：以它作为新的开始日期
                 setRangeStart(date);
                 return;
@@ -278,21 +272,21 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     };
 
     const shiftView = (yearDelta: number, monthDelta = 0) => {
-        setViewDate(new Date(viewDate.getFullYear() + yearDelta, viewDate.getMonth() + monthDelta, 1));
+        setViewDate(viewDate.date(1).add(yearDelta, 'year').add(monthDelta, 'month'));
     };
 
     const handleToday = () => {
-        const today = new Date();
+        const today = dayjs();
         if (!range) {
             // 单日期模式：跳转到今天所在月份，并把今天设为待选日期
-            setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
+            setViewDate(today.date(1));
             setFocusedDate(today);
             setMode(picker === 'month' ? 'month' : 'date');
             setPendingDate(today);
             return;
         }
         // 范围模式：「今天」仅负责把视图跳转到今天所在月份
-        setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
+        setViewDate(today.date(1));
         setFocusedDate(today);
         setRangeStart(null);
         setRangeEnd(null);
@@ -338,12 +332,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         if (key === 'Enter' || key === ' ') {
             e.preventDefault();
             if (mode === 'date') {
-                if (disabledDate?.(focusedDate)) return;
+                if (disabledDate?.(focusedDate.toDate())) return;
                 if (range) {
                     // 范围模式：回车依次确定开始日期与结束日期（待选）
                     if (!rangeStart) {
                         setRangeStart(focusedDate);
-                    } else if (focusedDate < rangeStart) {
+                    } else if (focusedDate.isBefore(rangeStart, 'day')) {
                         setRangeStart(focusedDate);
                     } else {
                         setRangeEnd(focusedDate);
@@ -354,14 +348,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             } else if (mode === 'month') {
                 if (picker === 'month' && !range) {
                     // 月份选择模式：回车设为待选月份
-                    setPendingDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1));
+                    setPendingDate(viewDate.date(1));
                 } else {
-                    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1));
-                    setFocusedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1));
+                    setViewDate(viewDate.date(1));
+                    setFocusedDate(viewDate.date(1));
                     setMode('date');
                 }
             } else {
-                setFocusedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1));
+                setFocusedDate(viewDate.date(1));
                 setMode('month');
             }
             return;
@@ -370,15 +364,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             e.preventDefault();
             const delta = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : key === 'ArrowUp' ? -7 : 7;
             if (mode === 'date') {
-                const next = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), focusedDate.getDate() + delta);
+                const next = focusedDate.add(delta, 'day');
                 setFocusedDate(next);
-                if (!isSameMonth(next, viewDate)) setViewDate(new Date(next.getFullYear(), next.getMonth(), 1));
+                if (!isSameMonth(next, viewDate)) setViewDate(next.date(1));
             } else if (mode === 'month') {
-                const next = new Date(viewDate.getFullYear(), viewDate.getMonth() + delta, 1);
+                const next = viewDate.add(delta, 'month').date(1);
                 setViewDate(next);
                 setFocusedDate(next);
             } else {
-                const next = new Date(viewDate.getFullYear() + delta, viewDate.getMonth(), 1);
+                const next = viewDate.add(delta, 'year').date(1);
                 setViewDate(next);
                 setFocusedDate(next);
             }
@@ -388,15 +382,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             e.preventDefault();
             const delta = key === 'PageUp' ? -1 : 1;
             if (mode === 'date') {
-                const next = new Date(viewDate.getFullYear(), viewDate.getMonth() + delta, 1);
+                const next = viewDate.add(delta, 'month').date(1);
                 setViewDate(next);
-                setFocusedDate(new Date(next.getFullYear(), next.getMonth(), focusedDate.getDate()));
+                setFocusedDate(next.date(focusedDate.date()));
             } else if (mode === 'month') {
-                const next = new Date(viewDate.getFullYear() + delta, viewDate.getMonth(), 1);
+                const next = viewDate.add(delta, 'year').date(1);
                 setViewDate(next);
                 setFocusedDate(next);
             } else {
-                const next = new Date(viewDate.getFullYear() + delta * 10, viewDate.getMonth(), 1);
+                const next = viewDate.add(delta * 10, 'year').date(1);
                 setViewDate(next);
                 setFocusedDate(next);
             }
@@ -404,24 +398,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     };
 
     // 构建日期网格：固定 6 行 × 7 列，首尾补齐上/下月日期
-    const buildCells = (vDate: Date): Date[] => {
-        const vYear = vDate.getFullYear();
-        const vMonth = vDate.getMonth();
-        const cells: Date[] = [];
-        const startWeekday = new Date(vYear, vMonth, 1).getDay();
-        const daysInMonth = new Date(vYear, vMonth + 1, 0).getDate();
-        const daysInPrevMonth = new Date(vYear, vMonth, 0).getDate();
-        for (let i = startWeekday - 1; i >= 0; i--) cells.push(new Date(vYear, vMonth - 1, daysInPrevMonth - i));
-        for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(vYear, vMonth, d));
-        for (let d = 1; cells.length < 42; d++) cells.push(new Date(vYear, vMonth + 1, d));
-        return cells;
+    const buildCells = (vDate: Dayjs): Dayjs[] => {
+        const first = vDate.date(1);
+        // 由本月 1 日是星期几决定向前补几天（周日起始）
+        const gridStart = first.subtract(first.day(), 'day');
+        return Array.from({ length: GRID_CELLS }, (_, i) => gridStart.add(i, 'day'));
     };
 
-    const today = new Date();
+    const today = dayjs();
 
     // 渲染某个月份的星期表头 + 日期网格（范围模式左右面板共用）
-    const renderDayGrid = (vDate: Date) => {
-        const vMonth = vDate.getMonth();
+    const renderDayGrid = (vDate: Dayjs) => {
+        const vMonth = vDate.month();
         return (
             <>
                 <div className={styles.weekRow}>
@@ -433,29 +421,29 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 </div>
                 <div className={styles.grid}>
                     {buildCells(vDate).map((cell) => {
-                        const disabledCell = disabledDate?.(cell) === true;
+                        const disabledCell = disabledDate?.(cell.toDate()) === true;
                         const isToday = isSameDay(cell, today);
-                        const outside = cell.getMonth() !== vMonth;
+                        const outside = cell.month() !== vMonth;
                         let selected = false;
                         let rangeStartCell = false;
                         let rangeEndCell = false;
                         let inRange = false;
                         if (range) {
                             // 有效范围端点：进行中的选择（预览）优先于已选范围
-                            let effStart: Date | null = null;
-                            let effEnd: Date | null = null;
+                            let effStart: Dayjs | null = null;
+                            let effEnd: Dayjs | null = null;
                             if (rangeStart) {
                                 if (rangeEnd) {
                                     // 已选定开始与结束：以待选范围高亮
                                     effStart = rangeStart;
                                     effEnd = rangeEnd;
-                                } else if (hoverDate && hoverDate < rangeStart) {
+                                } else if (hoverDate && hoverDate.isBefore(rangeStart, 'day')) {
                                     // 反向预览：悬停日期作为新的潜在起点
                                     effStart = hoverDate;
                                     effEnd = rangeStart;
                                 } else {
                                     effStart = rangeStart;
-                                    effEnd = hoverDate && hoverDate > rangeStart ? hoverDate : rangeStart;
+                                    effEnd = hoverDate && hoverDate.isAfter(rangeStart, 'day') ? hoverDate : rangeStart;
                                 }
                             } else if (selectedRange) {
                                 effStart = selectedRange[0];
@@ -464,7 +452,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                             if (effStart && effEnd) {
                                 rangeStartCell = isSameDay(cell, effStart);
                                 rangeEndCell = isSameDay(cell, effEnd);
-                                inRange = cell > effStart && cell < effEnd;
+                                inRange = cell.isAfter(effStart, 'day') && cell.isBefore(effEnd, 'day');
                             }
                         } else {
                             const activeDate = pendingDate ?? selectedDate;
@@ -485,10 +473,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                             .join(' ');
                         return (
                             <button
-                                key={cell.getTime()}
+                                key={cell.valueOf()}
                                 type="button"
                                 className={cls}
-                                aria-label={`${cell.getFullYear()}年${cell.getMonth() + 1}月${cell.getDate()}日`}
+                                aria-label={`${cell.year()}年${cell.month() + 1}月${cell.date()}日`}
                                 aria-disabled={disabledCell || undefined}
                                 disabled={disabledCell}
                                 onClick={() => selectDate(cell)}
@@ -496,7 +484,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                                 onMouseLeave={() => range && setHoverDate(null)}
                                 onMouseDown={(e) => e.preventDefault()}
                             >
-                                {cell.getDate()}
+                                {cell.date()}
                             </button>
                         );
                     })}
@@ -505,8 +493,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         );
     };
 
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
+    const year = viewDate.year();
+    const month = viewDate.month();
     const startYear = Math.floor(year / 10) * 10;
     const yearCells = Array.from({ length: 12 }, (_, i) => startYear - 1 + i);
 
@@ -550,17 +538,17 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                     open && rangeStart ? (
                         // 正在选择：实时显示待选的开始与结束日期
                         <>
-                            <span className={styles.value}>{formatDate(rangeStart, format)}</span>
+                            <span className={styles.value}>{rangeStart.format(format)}</span>
                             <span className={styles.rangeDivider} aria-hidden />
                             <span className={rangeEnd ? styles.value : styles.placeholder}>
-                                {rangeEnd ? formatDate(rangeEnd, format) : placeholder}
+                                {rangeEnd ? rangeEnd.format(format) : placeholder}
                             </span>
                         </>
                     ) : selectedRange ? (
                         <>
-                            <span className={styles.value}>{formatDate(selectedRange[0], format)}</span>
+                            <span className={styles.value}>{selectedRange[0].format(format)}</span>
                             <span className={styles.rangeDivider} aria-hidden />
-                            <span className={styles.value}>{formatDate(selectedRange[1], format)}</span>
+                            <span className={styles.value}>{selectedRange[1].format(format)}</span>
                         </>
                     ) : (
                         <span className={styles.placeholder}>{placeholder}</span>
@@ -568,9 +556,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 ) : (
                     <span className={currentValue || (open && pendingDate) ? styles.value : styles.placeholder}>
                         {open && pendingDate
-                            ? formatDate(pendingDate, format)
+                            ? pendingDate.format(format)
                             : selectedDate
-                              ? formatDate(selectedDate, format)
+                              ? selectedDate.format(format)
                               : placeholder}
                     </span>
                 )}
@@ -606,120 +594,118 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                     {range ? (
                         <>
                             <div className={styles.rangePanels}>
-                                {[viewDate, new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)].map(
-                                    (panelDate, idx) => (
-                                        <div key={panelDate.getTime()} className={styles.rangePanel}>
-                                            <div className={styles.header}>
-                                                <div className={styles.headerGroup}>
-                                                    {idx === 0 && (
-                                                        <button
-                                                            type="button"
-                                                            className={styles.navBtn}
-                                                            aria-label="上一年"
-                                                            onClick={() => shiftView(-1, 0)}
-                                                            onMouseDown={(e) => e.preventDefault()}
+                                {[viewDate, viewDate.date(1).add(1, 'month')].map((panelDate, idx) => (
+                                    <div key={panelDate.valueOf()} className={styles.rangePanel}>
+                                        <div className={styles.header}>
+                                            <div className={styles.headerGroup}>
+                                                {idx === 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className={styles.navBtn}
+                                                        aria-label="上一年"
+                                                        onClick={() => shiftView(-1, 0)}
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                    >
+                                                        <svg
+                                                            className={styles.navIcon}
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            aria-hidden
                                                         >
-                                                            <svg
-                                                                className={styles.navIcon}
-                                                                viewBox="0 0 12 12"
-                                                                fill="none"
-                                                                aria-hidden
-                                                            >
-                                                                <path
-                                                                    d="M7.5 2.5L4 6l3.5 3.5"
-                                                                    stroke="currentColor"
-                                                                    strokeWidth="1.5"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                />
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                    {idx === 0 && (
-                                                        <button
-                                                            type="button"
-                                                            className={styles.navBtn}
-                                                            aria-label="上个月"
-                                                            onClick={() => shiftView(0, -1)}
-                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            <path
+                                                                d="M7.5 2.5L4 6l3.5 3.5"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                                {idx === 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className={styles.navBtn}
+                                                        aria-label="上个月"
+                                                        onClick={() => shiftView(0, -1)}
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                    >
+                                                        <svg
+                                                            width="12"
+                                                            height="12"
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            aria-hidden
                                                         >
-                                                            <svg
-                                                                width="12"
-                                                                height="12"
-                                                                viewBox="0 0 12 12"
-                                                                fill="none"
-                                                                aria-hidden
-                                                            >
-                                                                <path
-                                                                    d="M7.5 2.5L4 6l3.5 3.5"
-                                                                    stroke="currentColor"
-                                                                    strokeWidth="1.5"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                />
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <span className={styles.yearLabel}>
-                                                    {panelDate.getFullYear()}年{panelDate.getMonth() + 1}月
-                                                </span>
-                                                <div className={styles.headerGroup}>
-                                                    {idx === 1 && (
-                                                        <button
-                                                            type="button"
-                                                            className={styles.navBtn}
-                                                            aria-label="下个月"
-                                                            onClick={() => shiftView(0, 1)}
-                                                            onMouseDown={(e) => e.preventDefault()}
-                                                        >
-                                                            <svg
-                                                                width="12"
-                                                                height="12"
-                                                                viewBox="0 0 12 12"
-                                                                fill="none"
-                                                                aria-hidden
-                                                            >
-                                                                <path
-                                                                    d="M4.5 2.5L8 6l-3.5 3.5"
-                                                                    stroke="currentColor"
-                                                                    strokeWidth="1.5"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                />
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                    {idx === 1 && (
-                                                        <button
-                                                            type="button"
-                                                            className={styles.navBtn}
-                                                            aria-label="下一年"
-                                                            onClick={() => shiftView(1, 0)}
-                                                            onMouseDown={(e) => e.preventDefault()}
-                                                        >
-                                                            <svg
-                                                                className={styles.navIcon}
-                                                                viewBox="0 0 12 12"
-                                                                fill="none"
-                                                                aria-hidden
-                                                            >
-                                                                <path
-                                                                    d="M4.5 2.5L8 6l-3.5 3.5"
-                                                                    stroke="currentColor"
-                                                                    strokeWidth="1.5"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                />
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                </div>
+                                                            <path
+                                                                d="M7.5 2.5L4 6l3.5 3.5"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                )}
                                             </div>
-                                            {renderDayGrid(panelDate)}
+                                            <span className={styles.yearLabel}>
+                                                {panelDate.year()}年{panelDate.month() + 1}月
+                                            </span>
+                                            <div className={styles.headerGroup}>
+                                                {idx === 1 && (
+                                                    <button
+                                                        type="button"
+                                                        className={styles.navBtn}
+                                                        aria-label="下个月"
+                                                        onClick={() => shiftView(0, 1)}
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                    >
+                                                        <svg
+                                                            width="12"
+                                                            height="12"
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            aria-hidden
+                                                        >
+                                                            <path
+                                                                d="M4.5 2.5L8 6l-3.5 3.5"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                                {idx === 1 && (
+                                                    <button
+                                                        type="button"
+                                                        className={styles.navBtn}
+                                                        aria-label="下一年"
+                                                        onClick={() => shiftView(1, 0)}
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                    >
+                                                        <svg
+                                                            className={styles.navIcon}
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            aria-hidden
+                                                        >
+                                                            <path
+                                                                d="M4.5 2.5L8 6l-3.5 3.5"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    )
-                                )}
+                                        {renderDayGrid(panelDate)}
+                                    </div>
+                                ))}
                             </div>
                             <div className={styles.footer}>
                                 <button
@@ -833,9 +819,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                                     {MONTHS.map((label, i) => {
                                         const activeDate = pendingDate ?? selectedDate;
                                         const selected =
-                                            !!activeDate &&
-                                            activeDate.getFullYear() === year &&
-                                            activeDate.getMonth() === i;
+                                            !!activeDate && activeDate.year() === year && activeDate.month() === i;
                                         return (
                                             <button
                                                 key={label}
@@ -843,12 +827,13 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                                                 className={`${styles.monthCell} ${selected ? styles.monthCellSelected : ''}`}
                                                 aria-label={`${i + 1}月`}
                                                 onClick={() => {
+                                                    const picked = viewDate.year(year).month(i).date(1);
                                                     if (picker === 'month' && !range) {
                                                         // 月份选择模式：点击即设为待选月份
-                                                        setPendingDate(new Date(year, i, 1));
+                                                        setPendingDate(picked);
                                                     } else {
-                                                        setViewDate(new Date(year, i, 1));
-                                                        setFocusedDate(new Date(year, i, 1));
+                                                        setViewDate(picked);
+                                                        setFocusedDate(picked);
                                                         setMode('date');
                                                     }
                                                 }}
@@ -863,7 +848,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                             {mode === 'year' && (
                                 <div className={styles.grid3x4}>
                                     {yearCells.map((y) => {
-                                        const selected = selectedDate?.getFullYear() === y;
+                                        const selected = selectedDate?.year() === y;
                                         return (
                                             <button
                                                 key={y}
@@ -871,8 +856,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                                                 className={`${styles.yearCell} ${selected ? styles.yearCellSelected : ''}`}
                                                 aria-label={`${y}年`}
                                                 onClick={() => {
-                                                    setViewDate(new Date(y, month, 1));
-                                                    setFocusedDate(new Date(y, month, 1));
+                                                    setViewDate(viewDate.year(y).month(month).date(1));
+                                                    setFocusedDate(viewDate.year(y).month(month).date(1));
                                                     setMode('month');
                                                 }}
                                                 onMouseDown={(e) => e.preventDefault()}
