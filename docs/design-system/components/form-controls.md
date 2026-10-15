@@ -542,7 +542,8 @@ Controlled dropdown selector; click the trigger to open, and options support ↑
 
 ## DatePicker
 
-Calendar popup date selector; value is a plain `YYYY-MM-DD` string (no date library, zero runtime deps). The trigger
+Calendar popup date selector; value is a plain `YYYY-MM-DD` string (the panel's date arithmetic runs on dayjs, see
+[ADR 0005](../../adr/0005-dayjs-as-the-date-layer.md)). The trigger
 follows the Input visual spec; the popup panel is a cream card with month/year/date three-level switching.
 
 **Trigger (matches Input):**
@@ -634,7 +635,8 @@ pending start (clicking it resets the start). This follows the mainstream range-
 
 ## TimePicker
 
-Time popup selector; value is a plain `HH:mm:ss` string (no date library, zero runtime deps). The trigger follows the
+Time popup selector; value is a plain `HH:mm:ss` string. A wall-clock time is not attached to a calendar date, so the
+panel needs no date library at all (see [ADR 0005](../../adr/0005-dayjs-as-the-date-layer.md)). The trigger follows the
 Input visual spec (cream pill, no border); the panel holds three scrollable columns (时 / 分 / 秒) plus a footer.
 
 **Trigger (matches Input):**
