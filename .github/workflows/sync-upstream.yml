@@ -1,87 +1,87 @@
 name: Sync upstream (anchored)
 
 on:
-    schedule:
-        - cron: "42 15 * * *"
-    workflow_dispatch:
+  schedule:
+    - cron: "42 15 * * *"
+  workflow_dispatch:
 
 permissions:
-    contents: write
+  contents: write
 
 concurrency:
-    group: sync-upstream-anchored
-    cancel-in-progress: false
+  group: sync-upstream-anchored
+  cancel-in-progress: false
 
 env:
-    UPSTREAM: "guokaigdg/animal-island-ui"
-    UPSTREAM_BRANCH: "main"
+  UPSTREAM: "guokaigdg/animal-island-ui"
+  UPSTREAM_BRANCH: "main"
 
 jobs:
-    sync:
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  fetch-depth: 0
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-            - name: Backup anchor (tag current state)
-              run: |
-                  TAG="backup/$(date -u +%Y-%m-%d)"
-                  if git ls-remote --exit-code origin "refs/tags/$TAG" >/dev/null 2>&1; then
-                    echo "Anchor $TAG already exists, skip."
-                  else
-                    git tag "$TAG"
-                    git push origin "$TAG"
-                    echo "Anchor created: $TAG -> $(git rev-parse HEAD)"
-                  fi
+      - name: Backup anchor (tag current state)
+        run: |
+          TAG="backup/$(date -u +%Y-%m-%d)"
+          if git ls-remote --exit-code origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Anchor $TAG already exists, skip."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "Anchor created: $TAG -> $(git rev-parse HEAD)"
+          fi
 
-            - name: Guard checks
-              run: |
-                  git remote add upstream "https://github.com/${UPSTREAM}.git"
-                  git fetch upstream "$UPSTREAM_BRANCH"
-                  if ! git merge-base HEAD "upstream/$UPSTREAM_BRANCH" >/dev/null 2>&1; then
-                    echo "::error::No common ancestor - upstream history may have been rewritten, aborting."; exit 1
-                  fi
-                  BEFORE=$(git ls-tree -r --name-only HEAD | wc -l)
-                  AFTER=$(git ls-tree -r --name-only "upstream/$UPSTREAM_BRANCH" | wc -l)
-                  echo "File count: $BEFORE -> $AFTER"
-                  if [ "$BEFORE" -gt 5 ] && [ "$AFTER" -lt $((BEFORE * 30 / 100)) ]; then
-                    echo "::error::File count dropped sharply $BEFORE -> $AFTER - upstream branch may have been wiped, aborting."; exit 1
-                  fi
+      - name: Guard checks
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM}.git"
+          git fetch upstream "$UPSTREAM_BRANCH"
+          if ! git merge-base HEAD "upstream/$UPSTREAM_BRANCH" >/dev/null 2>&1; then
+            echo "::error::No common ancestor - upstream history may have been rewritten, aborting."; exit 1
+          fi
+          BEFORE=$(git ls-tree -r --name-only HEAD | wc -l)
+          AFTER=$(git ls-tree -r --name-only "upstream/$UPSTREAM_BRANCH" | wc -l)
+          echo "File count: $BEFORE -> $AFTER"
+          if [ "$BEFORE" -gt 5 ] && [ "$AFTER" -lt $((BEFORE * 30 / 100)) ]; then
+            echo "::error::File count dropped sharply $BEFORE -> $AFTER - upstream branch may have been wiped, aborting."; exit 1
+          fi
 
-            - name: Merge upstream (merge-only, workflows frozen)
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  # upstream has nothing new: stop here
-                  if git merge-base --is-ancestor "upstream/$UPSTREAM_BRANCH" HEAD; then
-                    echo "Already up to date with upstream."
-                    exit 0
-                  fi
-                  if ! git merge --no-ff --no-edit "upstream/$UPSTREAM_BRANCH"; then
-                    CONFLICTS=$(git diff --name-only --diff-filter=U)
-                    NON_WF=$(echo "$CONFLICTS" | grep -v "^\.github/workflows/" || true)
-                    if [ -n "$NON_WF" ]; then
-                      echo "::error::Non-workflow conflicts, manual handling needed: $NON_WF"
-                      exit 1
-                    fi
-                    git checkout --ours -- .github/workflows
-                    git add -A .github/workflows
-                    git merge --continue
-                  fi
-                  # freeze .github/workflows at the pre-merge fork state
-                  PRE=$(git rev-parse HEAD^1)
-                  git diff-tree -r --name-only --diff-filter=A "$PRE" HEAD -- .github/workflows | while read -r f; do
-                    [ -n "$f" ] && git rm -q -f "$f"
-                  done
-                  git checkout "$PRE" -- .github/workflows
-                  if git diff --quiet HEAD; then
-                    echo "freeze: no workflow changes to revert"
-                  else
-                    git commit --amend --no-edit >/dev/null
-                  fi
-                  git diff --stat "$PRE" HEAD -- .github/workflows | grep -q . && {
-                    echo "::error::workflow freeze failed"; exit 1
-                  } || true
-                  git push origin "HEAD:${{ github.ref_name }}"
+      - name: Merge upstream (merge-only, workflows frozen)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # upstream has nothing new: stop here
+          if git merge-base --is-ancestor "upstream/$UPSTREAM_BRANCH" HEAD; then
+            echo "Already up to date with upstream."
+            exit 0
+          fi
+          if ! git merge --no-ff --no-edit "upstream/$UPSTREAM_BRANCH"; then
+            CONFLICTS=$(git diff --name-only --diff-filter=U)
+            NON_WF=$(echo "$CONFLICTS" | grep -v "^\.github/workflows/" || true)
+            if [ -n "$NON_WF" ]; then
+              echo "::error::Non-workflow conflicts, manual handling needed: $NON_WF"
+              exit 1
+            fi
+            git checkout --ours -- .github/workflows
+            git add -A .github/workflows
+            git merge --continue
+          fi
+          # freeze .github/workflows at the pre-merge fork state
+          PRE=$(git rev-parse HEAD^1)
+          git diff-tree -r --name-only --diff-filter=A "$PRE" HEAD -- .github/workflows | while read -r f; do
+            [ -n "$f" ] && git rm -q -f "$f"
+          done
+          git checkout "$PRE" -- .github/workflows
+          if git diff --quiet HEAD; then
+            echo "freeze: no workflow changes to revert"
+          else
+            git commit --amend --no-edit >/dev/null
+          fi
+          git diff --stat "$PRE" HEAD -- .github/workflows | grep -q . && {
+            echo "::error::workflow freeze failed"; exit 1
+          } || true
+          git push origin "HEAD:${{ github.ref_name }}"
