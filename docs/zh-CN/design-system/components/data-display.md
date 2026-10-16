@@ -1,6 +1,6 @@
 # Data display — 精确样式规范
 
-承载内容展示的组件：Table、Pagination、CodeBlock、Tag、Badge、Image、Avatar、CountUp 的精确取值
+承载内容展示的组件：Table、Pagination、CodeBlock、Tag、Badge、Image、Avatar、CountUp、Calendar 的精确取值
 
 ## Table（虚线行分隔，纯色 hover）
 
@@ -725,3 +725,126 @@ interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefi
 - **格式化**与 `use-count-up` 对齐：`decimalPlaces <= 0` 渲染 `Math.round(value)`（再做千分位分组）；否则 `toFixed(places)` 按 `.` 拆分后用 `decimalSeparator` 重新拼接；`formatter` 优先级高于以上全部。`updateInterval > 0` 时先量化**已用时长**（`floor(elapsed / interval) * interval`）再做缓动，因此刷新点严格落在间隔整数倍上。
 - 无障碍：根节点 `role="status"`；跳动中的数字 `aria-hidden`，由视觉隐藏的 span 承载**默认格式**的数值（永远不是 `formatter` 返回的节点）。它在计数期间保持为空、数值静止后写入 —— 每帧更新的 live region 无法使用，所以只播报最终得分。`prefix` / `suffix` 属装饰，不计入该文本。数字块整体 `aria-hidden`，因此 `children` 渲染函数只能放展示性内容：把可聚焦元素放进去会落在 `aria-hidden` 子树内（触发 axe 的 `aria-hidden-focus` 规则）。Demo 因此把渲染函数拿到的 `reset` 存进 ref，把重播按钮渲染在组件**外面**。
 - `prefers-reduced-motion: reduce` 下取消弹跳、隐藏光环与星芒；使用贴纸时保留 0.25s 纯淡入，结束状态依然有视觉信号。
+
+## Calendar（月面板，事项条可跨日期）
+
+源码：`src/components/Calendar/calendar.module.less`。**独立**的月历（不是弹出面板）：月份面板常驻，所以外壳是一张奶油卡片而不是定位浮层。视觉沿用 DatePicker —— `#fffdf7` 卡片、`#e8dcc8` 1.5px 描边、20px 圆角、圆形日期格 —— 并在每一周的日期下方增加事项带。
+
+**外壳与头部。** 面板没有尺寸档位：它测量自身盒子（`ResizeObserver`，或直接取数值型 `width`），再由宽度推导所有度量。`--animal-calendar-scale` = 实际宽度 / **750**（基准对齐 antd 的 full 日历卡片：实测 751px 宽 / 107px 格 / 116px 行 / 日期数字 14px），夹在 `0.6 … 2`，整套节奏都是 `基准值 × 系数`：
+
+| 度量 | 750px 基准 | 1000px（系数 1.33） |
+| ---- | ---------- | ------------------- |
+| 表头高度 | 32px | 43px |
+| 单元格高度 | 104px | 139px |
+| 日期圆 | 28px | 37px |
+| 事项行 / 事项条高度 | 22 / 17px | 29 / 23px |
+| 事项字号 | 11px | 15px |
+
+日期数字字号恒为 **13px** —— 随面板放大的是圆，不是圆里的数字（数字跟着放大会溢出圆外）。单元格还必须容得下
+「日期数字带 + 2 条事项行」（`38 + 22 × 2 = 82 ≤ 104`），这正是忙的那一周不会压到下一周的原因。
+
+
+
+```css
+.calendar {                       /* 固定强调色三件套（DatePicker 的青绿）；所有度量都是 基准值 × 系数 */
+    --animal-calendar-accent: #19c8b9;
+    --animal-calendar-accent-soft: rgba(25, 200, 185, 0.14);
+    --animal-calendar-accent-tint: #e6f9f6;
+    --animal-calendar-header-height: calc(32px * var(--animal-calendar-scale, 1));
+    --animal-calendar-number-size: calc(28px * var(--animal-calendar-scale, 1));
+    --animal-calendar-cell-height: calc(104px * var(--animal-calendar-scale, 1));
+    --animal-calendar-row-height: calc(22px * var(--animal-calendar-scale, 1));
+    --animal-calendar-bar-height: calc(17px * var(--animal-calendar-scale, 1));
+}
+
+.body   { position: relative; padding-bottom: calc(var(--animal-calendar-row-height) * 2 + 6px);
+          border: 1.5px solid #e8dcc8; border-radius: 20px; background: #fffdf7;
+          box-shadow: 0 6px 18px rgba(61, 52, 40, 0.12); }
+.monthLabel { padding: 4px 12px; border-radius: 12px; background: #fffbe7; /* 与 DatePicker 的导航标签同款胶囊 */
+              color: #725d42; font-size: 15px; font-weight: 700; }
+.navBtn { width: 28px; height: 28px; border-radius: 10px; color: #a0936e;   /* 14px / 16px 箭头 */
+          /* hover */ background: var(--animal-calendar-accent-tint); color: var(--animal-calendar-accent); }
+.todayBtn { padding: 4px 12px; border-radius: 10px; color: #8a7b66; font-size: 13px; font-weight: 700;
+            /* hover */ background: rgba(114, 93, 66, 0.1); color: #725d42; }
+```
+
+**日期网格** —— 单个 `<table role="grid">`，7 等分列 × 6 周（恒定 42 格，含上下月日期并置灰）。每格高度为 `--animal-calendar-cell-height`，并带与事项条相同的左右 4px 内边距，因此事项条与它上方的日期圆落在同一条轨道上：
+
+```css
+.weekCell { height: 32px; color: #a09080; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.cell     { height: var(--animal-calendar-cell-height); padding: 0 4px; box-sizing: border-box;
+            vertical-align: top; border-radius: 12px; cursor: pointer; }
+.cell:hover           { background: #f4f0e4; }                      /* 整个格子，不只是数字 */
+.cell:focus-visible   { outline: 2px solid var(--animal-calendar-accent); outline-offset: -2px; }
+.cellSelected         { background: var(--animal-calendar-accent-tint); }
+.dayNumber            { width: 1em; height: 1em; border-radius: 50%; line-height: 1em; text-align: center;
+                        color: #725d42; font-size: 13px; font-weight: 500; }
+.cellOutside .dayNumber { color: #c4b89e; font-weight: 400; }
+.cellToday   .dayNumber { box-shadow: inset 0 0 0 1.5px var(--animal-calendar-accent);
+                          color: var(--animal-calendar-accent); font-weight: 700; }
+.cellSelected .dayNumber { background: var(--animal-calendar-accent); box-shadow: none; color: #fff; font-weight: 700; }
+.more  { padding: 1px 5px; border-radius: 8px; font-size: 10px; font-weight: 700;   /* +N 折叠 */
+         background: var(--animal-calendar-accent-soft); color: var(--animal-calendar-accent); }
+```
+
+**事项条** —— 事项层绝对定位覆盖整张卡片，组件为每条事项下发三个算好的值。这里**刻意不用** `grid-column`：事项条是绝对定位元素，已经脱离网格布局，写网格定位不会生效。
+
+```css
+.eventsLayer { position: absolute; inset: 0; pointer-events: none; }
+.event { position: absolute;
+         top: var(--animal-calendar-bar-top);   /* 表头 + 周序 × 单元格 + 日期数字带 + 事项行序 × 行高 + 半行 */
+         left: var(--animal-calendar-bar-left);    /* (100% / 7) × 列序 + 4px —— 与 .cell 同一个 4px 内边距 */
+         width: var(--animal-calendar-bar-width);  /* (100% / 7) × 跨列数 − 8px */
+         height: var(--animal-calendar-bar-height); margin: 0; padding: 0 6px;
+         transform: translateY(-50%);   /* top 指向行首，这里把条在行内垂直居中 */
+         border-radius: 10px; font-size: calc(11px * var(--animal-calendar-scale, 1)); font-weight: 600;
+         line-height: var(--animal-calendar-bar-height); overflow: hidden; white-space: nowrap; }
+/* 跨天条在接缝处只留 1px 空档，相邻两周读起来是一条 */
+.event[data-span='true']  { margin-left: 1px; margin-right: 1px; border-radius: 6px; }
+.event[data-start='true'] { margin-left: 0; }    /* 起始周贴齐网格左缘 */
+.event[data-end='true']   { margin-right: 0; }
+/* 5 套配色：teal #e0f7f4/#17756d · amber #fff3d1/#8a6a08 · coral #ffe7de/#a44b32
+   · green #eaf6db/#4a7a1d · purple #f0eafb/#6849b8，各配 45% 同色描边 */
+.event[data-preview='true'] { border-style: dashed; }   /* 拖拽创建预览 */
+.eventTime  { display: inline; margin-right: 4px; color: #9f927d; font-variant-numeric: tabular-nums; }
+.eventTitle { display: inline; font-weight: 600; }
+```
+
+**布局规则。** 跨天事项在周边界处切断，因此每条最多占 1–7 列、永不换行；周内首段带 `HH:mm` 前缀，续接段只保留标题。每个周行最多并排 2 条（2 条事项行），同一天第 3 条折叠为日期格上的 `+N`，不撑高行高。完全落在 42 格视图之外的事项既不渲染也不计数 —— `+N` 与日期格的 `aria-label` 只描述屏幕上真正可见的内容。`prefers-reduced-motion` 下移除 `.cell` / `.dayNumber` / `.navBtn` / `.todayBtn` 的过渡。
+
+## TimePicker
+
+时间弹出选择器；值为纯 `HH:mm:ss` 字符串。挂钟时间不依附于某个日历日期，因此面板完全不需要日期库（见 [ADR 0005](../../adr/0005-dayjs-as-the-date-layer.md)）。触发区沿用 Input 视觉规格（奶油胶囊、
+无边框）；面板为 时 / 分 / 秒 三列滚选 + 底部按钮。
+
+**触发区（对齐 Input）：**
+
+| 属性        | small | middle | large |
+| ----------- | ----- | ------ | ----- |
+| 高度        | 32px  | 40px   | 48px  |
+| 内边距      | `0 14px` | `0 18px` | `0 22px` |
+| 字号        | 12px  | 14px   | 16px  |
+| 圆角        | 40px  | 50px   | 50px  |
+
+```css
+background: #fffbe7;      /* 无边框，同 Input */
+/* hover */ box-shadow: 0 3px 0 0 #c4b89e;
+/* 展开/聚焦 */ box-shadow: 0 3px 0 0 #e0b800, 0 0 0 3px rgba(255, 204, 0, 0.15);
+/* error */ box-shadow: 0 3px 0 0 #c94444;
+/* warning */ box-shadow: 0 3px 0 0 #dba90e;
+/* disabled */ background: #ece8dc; box-shadow: none; opacity: 0.6;
+```
+
+**面板**（宽 248px，`format` 不含 `ss` 时收窄至 172px）：时 / 分 / 秒 三列（`format` 不含 `ss` 时隐藏秒列）；
+每列为可滚动列表，选项为胶囊（高 28px、圆角 16px）：
+
+```css
+/* 选项 */ color: #725d42; border-radius: 16px;
+/* 选项 hover */ background: #ffd54f; color: #725d42;
+/* 选中选项 */ background: #ffb400; color: #fff; font-weight: 700;
+```
+
+**底部** —— `此刻`（待选值设为当前时间）+ `确定`（经 `onChange` 提交并以 0.2s 退场动效关闭）。点选某列数值时
+触发区实时更新；Esc / 点击外部丢弃待选值。
+
+**交互：** 键盘 Enter/空格/下箭头展开，Enter 确认，Esc 关闭；`hourStep` / `minuteStep` / `secondStep` 过滤列选项。
