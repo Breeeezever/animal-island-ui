@@ -1,6 +1,6 @@
 # Data display — pixel spec
 
-Exact values for the components that present content: Table, Pagination, CodeBlock, Tag, Badge, Image, Avatar and CountUp.
+Exact values for the components that present content: Table, Pagination, CodeBlock, Tag, Badge, Image, Avatar, CountUp and Calendar.
 
 ## Table (dashed row rules, solid hover)
 
@@ -727,3 +727,143 @@ interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefi
 - **Formatting** mirrors `use-count-up`: `decimalPlaces <= 0` renders `Math.round(value)` (then thousands grouping); otherwise `toFixed(places)` is split on `.` and rejoined with `decimalSeparator`; `formatter` wins over all of it. With `updateInterval > 0` the *elapsed time* is quantized (`floor(elapsed / interval) * interval`) before easing, so updates land exactly one interval apart.
 - a11y: the root is `role="status"`; the animated digits are `aria-hidden` and a visually-hidden span carries the **default-formatted** number (never a `formatter` node). It stays empty while counting and is filled once the value settles — a per-frame live region would be unusable, so only the final score is announced. `prefix` / `suffix` are decorative and excluded from that text. The whole digit plate is `aria-hidden`, so a `children` render prop must stay presentational: a focusable element placed inside it would sit in an `aria-hidden` subtree (an axe `aria-hidden-focus` violation). The demo therefore parks the `reset` function it receives in a ref and renders the replay button **outside** the component.
 - `prefers-reduced-motion: reduce` drops the pop and hides the rings + sparkles; a sticker, when used, keeps a plain 0.25s opacity fade so completion is still signalled visually.
+
+## Calendar (month panel, event bars that span days)
+
+Source: `src/components/Calendar/calendar.module.less`. A **standalone** month calendar (not a popup): the month panel is
+permanent, so the shell is a cream card rather than a positioned popover. It reuses DatePicker's visual language —
+`#fffdf7` card, `#e8dcc8` 1.5px border, 20px radius, day circles — and adds an event band under each week's dates.
+
+**Shell and header.** The panel has no size tiers: it measures its own box (`ResizeObserver`, or the numeric `width`
+prop when given) and derives every metric from it. `--animal-calendar-scale` = actual width / **750** (the baseline is
+tuned to match antd's full calendar card, measured at 751px wide / 107px cells / 116px rows / 14px day digits), clamped
+to `0.6 … 2`, and the whole rhythm is `baseline × scale`:
+
+| Metric | Baseline at 750px | At 1000px (scale 1.33) |
+| ------ | ----------------- | ---------------------- |
+| header height | 32px | 43px |
+| cell height | 104px | 139px |
+| day circle | 28px | 37px |
+| event row / bar height | 22 / 17px | 29 / 23px |
+| event font | 11px | 15px |
+
+The day-number font stays at **13px** at every width — the circle grows with the panel, the digit inside it does not,
+because a scaled-up digit overflows the circle. The cell must also fit the number band plus both event rows
+(`38 + 22 × 2 = 82 ≤ 104`), which is what keeps a busy week from bleeding into the next one.
+
+
+
+```css
+.calendar {                       /* fixed accent trio (DatePicker's teal); every metric is baseline × scale */
+    --animal-calendar-accent: #19c8b9;
+    --animal-calendar-accent-soft: rgba(25, 200, 185, 0.14);
+    --animal-calendar-accent-tint: #e6f9f6;
+    --animal-calendar-header-height: calc(32px * var(--animal-calendar-scale, 1));
+    --animal-calendar-number-size: calc(28px * var(--animal-calendar-scale, 1));
+    --animal-calendar-cell-height: calc(104px * var(--animal-calendar-scale, 1));
+    --animal-calendar-row-height: calc(22px * var(--animal-calendar-scale, 1));
+    --animal-calendar-bar-height: calc(17px * var(--animal-calendar-scale, 1));
+}
+
+.body   { position: relative; padding-bottom: calc(var(--animal-calendar-row-height) * 2 + 6px);
+          border: 1.5px solid #e8dcc8; border-radius: 20px; background: #fffdf7;
+          box-shadow: 0 6px 18px rgba(61, 52, 40, 0.12); }
+.monthLabel { padding: 4px 12px; border-radius: 12px; background: #fffbe7; /* same chip as the DatePicker nav label */
+              color: #725d42; font-size: 15px; font-weight: 700; }
+.navBtn { width: 28px; height: 28px; border-radius: 10px; color: #a0936e;   /* 14px / 16px chevrons */
+          /* hover */ background: var(--animal-calendar-accent-tint); color: var(--animal-calendar-accent); }
+.todayBtn { padding: 4px 12px; border-radius: 10px; color: #8a7b66; font-size: 13px; font-weight: 700;
+            /* hover */ background: rgba(114, 93, 66, 0.1); color: #725d42; }
+```
+
+**Date grid** — one `<table role="grid">`, 7 equal columns × 6 weeks (42 cells, always full; leading/trailing days of the
+neighbouring months included but dimmed). Each cell is `--animal-calendar-cell-height` tall and carries the same 4px
+side gutter the event bars use, so a bar and the day circle above it sit on one track:
+
+```css
+.weekCell { height: 32px; color: #a09080; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.cell     { height: var(--animal-calendar-cell-height); padding: 0 4px; box-sizing: border-box;
+            vertical-align: top; border-radius: 12px; cursor: pointer; }
+.cell:hover           { background: #f4f0e4; }                      /* the whole cell, not just the number */
+.cell:focus-visible   { outline: 2px solid var(--animal-calendar-accent); outline-offset: -2px; }
+.cellSelected         { background: var(--animal-calendar-accent-tint); }
+.dayNumber            { width: 1em; height: 1em; border-radius: 50%; line-height: 1em; text-align: center;
+                        color: #725d42; font-size: 13px; font-weight: 500; }   /* fixed: the circle scales, the digit does not */
+.cellOutside .dayNumber { color: #c4b89e; font-weight: 400; }
+.cellToday   .dayNumber { box-shadow: inset 0 0 0 1.5px var(--animal-calendar-accent);
+                          color: var(--animal-calendar-accent); font-weight: 700; }
+.cellSelected .dayNumber { background: var(--animal-calendar-accent); box-shadow: none; color: #fff; font-weight: 700; }
+.more  { padding: 1px 5px; border-radius: 8px; font-size: 10px; font-weight: 700;   /* the +N fold */
+         background: var(--animal-calendar-accent-soft); color: var(--animal-calendar-accent); }
+```
+
+**Event bars** — the layer is absolutely positioned over the card and the component hands each bar three computed
+values. It deliberately does **not** use `grid-column`: the bars are absolutely positioned, so they are outside grid
+layout and a grid placement would be ignored.
+
+```css
+.eventsLayer { position: absolute; inset: 0; pointer-events: none; }
+.event { position: absolute;
+         top: var(--animal-calendar-bar-top);   /* header + week × cell + number band + row × row-height + half a row */
+         left: var(--animal-calendar-bar-left);    /* (100% / 7) × column + 4px — the same 4px gutter as .cell */
+         width: var(--animal-calendar-bar-width);  /* (100% / 7) × span − 8px */
+         height: var(--animal-calendar-bar-height); margin: 0; padding: 0 6px;
+         transform: translateY(-50%);   /* top points at the row start; this centres the bar in it */
+         border-radius: 10px; font-size: calc(11px * var(--animal-calendar-scale, 1)); font-weight: 600;
+         line-height: var(--animal-calendar-bar-height); overflow: hidden; white-space: nowrap; }
+/* a span bar only keeps a 1px gutter at the seams, so consecutive weeks read as one strip */
+.event[data-span='true']  { margin-left: 1px; margin-right: 1px; border-radius: 6px; }
+.event[data-start='true'] { margin-left: 0; }    /* flush with the grid edge on the week it starts */
+.event[data-end='true']   { margin-right: 0; }
+/* 5 palettes: teal #e0f7f4/#17756d · amber #fff3d1/#8a6a08 · coral #ffe7de/#a44b32
+   · green #eaf6db/#4a7a1d · purple #f0eafb/#6849b8, each with a matching 45% border */
+.event[data-preview='true'] { border-style: dashed; }   /* drag-to-create preview */
+.eventTime  { display: inline; margin-right: 4px; color: #9f927d; font-variant-numeric: tabular-nums; }
+.eventTitle { display: inline; font-weight: 600; }
+```
+
+**Layout rules.** A multi-day event is cut at week boundaries, so every bar occupies 1–7 columns and never wraps; the
+week-internal first slice carries the `HH:mm` prefix, continuation slices carry the title only. Each week row can host
+2 bars (2 event rows); a third same-day event folds into `+N` on the day cell instead of pushing the row taller. Events
+that fall entirely outside the 42-day grid are neither rendered nor counted — the `+N` tally and the cell's `aria-label`
+both describe only what is on screen. `prefers-reduced-motion` drops the `.cell` / `.dayNumber` / `.navBtn` /
+`.todayBtn` transitions.
+
+## TimePicker
+
+Time popup selector; value is a plain `HH:mm:ss` string. A wall-clock time is not attached to a calendar date, so the
+panel needs no date library at all (see [ADR 0005](../../adr/0005-dayjs-as-the-date-layer.md)). The trigger follows the
+Input visual spec (cream pill, no border); the panel holds three scrollable columns (时 / 分 / 秒) plus a footer.
+
+**Trigger (matches Input):**
+
+| Property    | small | middle | large |
+| ----------- | ----- | ------ | ----- |
+| height      | 32px  | 40px   | 48px  |
+| padding     | `0 14px` | `0 18px` | `0 22px` |
+| font-size   | 12px  | 14px   | 16px  |
+| border-radius | 40px | 50px   | 50px  |
+
+```css
+background: #fffbe7;      /* no border, same as Input */
+/* hover */ box-shadow: 0 3px 0 0 #c4b89e;
+/* open/focus */ box-shadow: 0 3px 0 0 #e0b800, 0 0 0 3px rgba(255, 204, 0, 0.15);
+/* error */ box-shadow: 0 3px 0 0 #c94444;
+/* warning */ box-shadow: 0 3px 0 0 #dba90e;
+/* disabled */ background: #ece8dc; box-shadow: none; opacity: 0.6;
+```
+
+**Panel** (248px wide, narrowing to 172px when `format` omits `ss`): three columns titled 时 / 分 / 秒 (`format`
+without `ss` hides the seconds column); each column is a scrollable list of pill options (28px tall, radius 16px):
+
+```css
+/* option */ color: #725d42; border-radius: 16px;
+/* option hover */ background: #ffd54f; color: #725d42;
+/* selected option */ background: #ffb400; color: #fff; font-weight: 700;
+```
+
+**Footer** — `此刻` (sets the pending value to the current time) + `确定` (commits via `onChange` and closes with the
+0.2s exit animation). Picking a column value updates the trigger live; Esc / click-outside discards the pending value.
+
+**Interaction:** keyboard Enter/Space/ArrowDown opens, Enter confirms, Esc closes; `hourStep` / `minuteStep` /
+`secondStep` filter the column options.
