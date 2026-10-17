@@ -63,7 +63,7 @@ const CELL_ROWS = GRID_CELLS / COLS;
  * 布局基准：面板宽度 750px 时的度量，与 calendar.module.less 里的同名常量一一对应。
  * 组件按自身宽度算出缩放系数，事项条的纵向位置就是「基准值 × 系数」；CSS 那边用同一系数
  * 推导行高。单元格高度必须容得下「日期数字带 + 2 条事项行」，按下面的常量即
- *   numberBand 38 + eventRow 22 × 2 = 82 ≤ cellHeight 104
+ *   numberBand 42 + eventRow 22 × 2 = 86 ≤ cellHeight 104
  * 所以 2 条事项行整体落在单元格内，不会压到下一周的日期数字。
  * 改这里的取值时同步 calendar.module.less，两边的算式都写死常量值，不要再手写别的基准。
  */
@@ -75,7 +75,7 @@ const LAYOUT_BASE = {
     /** 单元格高度 */
     cellHeight: 104,
     /** 单元格内「日期圆 + 上下留白」占用的高度，事项条从它下方开始排 */
-    numberBand: 38,
+    numberBand: 42,
     /** 单条事项行的高度 */
     eventRow: 22,
 };
@@ -687,8 +687,8 @@ export const Calendar: React.FC<CalendarProps> = ({
                                             metrics.numberBand +
                                             (segment.row + 0.5) * metrics.eventRow
                                         }px`,
-                                        ['--animal-calendar-bar-left' as string]: `calc((100% / 7) * ${col - 1} + 4px)`,
-                                        ['--animal-calendar-bar-width' as string]: `calc((100% / 7) * ${colSpan} - 8px)`,
+                                        ['--animal-calendar-bar-left' as string]: `calc((100% / 7) * ${col - 1} + 5px)`,
+                                        ['--animal-calendar-bar-width' as string]: `calc((100% / 7) * ${colSpan} - 10px)`,
                                     }}
                                 >
                                     {content}

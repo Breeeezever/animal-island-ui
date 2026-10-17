@@ -8,7 +8,7 @@ Props/types below are copied from the library source. In an npm-installed projec
 type CalendarColor = 'teal' | 'amber' | 'coral' | 'green' | 'purple';
 
 interface CalendarEvent {
-    title: React.ReactNode;
+    title: React.ReactNode;         // flattened to text for the cell aria-label; a JSX title yields its children
     start: string | Dayjs;          // YYYY-MM-DD, or a dayjs object (its HH:mm shows when showTime)
     end?: string | Dayjs;           // omit for a single day; set it for a continuous multi-day bar
     color?: CalendarColor;          // default 'teal'
@@ -20,18 +20,26 @@ interface CalendarProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'defa
     value?: string;                 // controlled selected date, YYYY-MM-DD
     defaultValue?: string;          // uncontrolled; defaults to today
     panelValue?: string;            // controlled visible month; pair it with onPanelChange or the panel cannot flip
-    defaultPanelValue?: string;     // uncontrolled visible month
+    defaultPanelValue?: string;     // uncontrolled visible month; wins over the selected date when both are given
     onChange?: (date: string) => void;
     onPanelChange?: (month: string) => void;   // 'YYYY-MM' — required to write back when panelValue is controlled
-    events?: CalendarEvent[];       // default []
+    events?: CalendarEvent[];       // default []; layout is cached by reference — pass a new array when events change
     showEventTime?: boolean;        // default true — HH:mm prefix, shown once on an event's first slice
-    draggableEvents?: boolean;      // default false — drag across days to create an event
+    draggableEvents?: boolean;      // default false — left-button drag across days to create an event
     onEventCreate?: (start: string, end: string) => void;
     'aria-label'?: string; 'aria-labelledby'?: string;
     className?: string;
     style?: React.CSSProperties;
 }
 ```
+
+Panel month resolution: `defaultPanelValue` wins, else the selected date (`value` included), else today. The roving
+tabindex is clamped to the nearest cell of the 42-day grid on every render, so the grid always keeps exactly one Tab
+stop — even when a controlled `value` or an unacknowledged `onPanelChange` would otherwise push the cursor outside it.
+Selection clamps by the same rule, so cursor and selection never disagree. Drag commits on release anywhere inside the
+panel (header included) and cancels outside; only the left button starts a drag. The drag preview occupies a row like a
+real event but never folds into `+N`. Event layout is memoised by the `events` array reference: mutating `start` / `end`
+in place will not re-lay-out, so pass a new array when they change.
 
 ```tsx
 <Calendar

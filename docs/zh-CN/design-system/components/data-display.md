@@ -803,14 +803,18 @@ interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefi
 .event[data-span='true']  { margin-left: 1px; margin-right: 1px; border-radius: 6px; }
 .event[data-start='true'] { margin-left: 0; }    /* 起始周贴齐网格左缘 */
 .event[data-end='true']   { margin-right: 0; }
-/* 5 套配色：teal #e0f7f4/#17756d · amber #fff3d1/#8a6a08 · coral #ffe7de/#a44b32
+/* 5 套配色：teal #ffe4cc/#b04a1f（暖橙，非青绿）· amber #fff3d1/#8a6a08 · coral #ffe7de/#a44b32
    · green #eaf6db/#4a7a1d · purple #f0eafb/#6849b8，各配 45% 同色描边 */
 .event[data-preview='true'] { border-style: dashed; }   /* 拖拽创建预览 */
 .eventTime  { display: inline; margin-right: 4px; color: #9f927d; font-variant-numeric: tabular-nums; }
 .eventTitle { display: inline; font-weight: 600; }
 ```
 
-**布局规则。** 跨天事项在周边界处切断，因此每条最多占 1–7 列、永不换行；周内首段带 `HH:mm` 前缀，续接段只保留标题。每个周行最多并排 2 条（2 条事项行），同一天第 3 条折叠为日期格上的 `+N`，不撑高行高。完全落在 42 格视图之外的事项既不渲染也不计数 —— `+N` 与日期格的 `aria-label` 只描述屏幕上真正可见的内容。`prefers-reduced-motion` 下移除 `.cell` / `.dayNumber` / `.navBtn` / `.todayBtn` 的过渡。
+**布局规则。** 跨天事项在周边界处切断，因此每条最多占 1–7 列、永不换行；周内首段带 `HH:mm` 前缀，续接段只保留标题。每个周行最多并排 2 条（2 条事项行），同一天第 3 条折叠为日期格上的 `+N`，不撑高行高。完全落在 42 格视图之外的事项既不渲染也不计数 —— `+N` 与日期格的 `aria-label` 只描述屏幕上真正可见的内容。拖拽预览与真实事项一样占行，但它是临时态，因此不折进 `+N`。日期格的 `aria-label` 形如「`{date} {n} 项事项：{titles}`」：标题是 `ReactNode`，会先抽成文本（JSX 标题取其 children，不会变成 `[object Object]`）；同名标题去重后补一个尾缀「等」，保证念出的事项数与后面跟的标题不会对不上。`prefers-reduced-motion` 下移除 `.cell` / `.dayNumber` / `.navBtn` / `.todayBtn` 的过渡。
+
+**面板月份与选中值。** `defaultPanelValue` 优先；不传时面板按选中值（受控 `value` 同样适用）打开，都没有才停在今天。roving tabindex 每次渲染都会夹进 42 格网格内最近的一格 —— 即使受控 `value` 或未被父级回写的 `onPanelChange` 想把光标推到网格外，网格也始终保留且仅保留一个 Tab 停靠点，键盘用户不会被卡死。选中态用同一套夹取规则，光标与选中始终落在同一格，不会出现「有焦点环却没有任何格被选中」的画面；此时按 Enter 选中的也就是夹后的这一格。事项布局按 `events` 数组引用缓存，就地改 `start` / `end` 不会重新排布，变更请传入新数组。
+
+**拖拽建事项。** 只有左键会进入拖拽态，右键拖拽（选文本、右键菜单）不会建出事项。松手只要还在面板内就提交，年月表头也算面板内；松在面板外则取消。
 
 ## TimePicker
 

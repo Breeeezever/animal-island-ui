@@ -76,7 +76,7 @@ describe('Calendar', () => {
                 (container.querySelector('[data-color]') as HTMLElement).style.getPropertyValue(
                     '--animal-calendar-bar-top'
                 )
-            ).toBe('81px');
+            ).toBe('85px');
         });
 
         it('系数随宽度线性放大，并被上下限夹住', () => {
@@ -108,7 +108,7 @@ describe('Calendar', () => {
                 Number.parseFloat((bar as HTMLElement).style.getPropertyValue('--animal-calendar-bar-top'))
             );
             // 8/3 落在视图第 2 周：top = 表头 32 + 1 × 104 + 数字带 38 + (行序 + 0.5) × 22
-            expect(tops).toEqual([185, 207]);
+            expect(tops).toEqual([189, 211]);
             // 最后一条的条底（top + 半行 + 半个条高）仍在单元格高 104 之内
             const lastRowBottom = 32 + 1 * 104 + 38 + 1.5 * 22 + 17 / 2;
             expect(lastRowBottom).toBeLessThan(32 + 2 * 104);
@@ -161,8 +161,8 @@ describe('Calendar', () => {
             expect(bar).toHaveAttribute('data-color', 'amber');
             expect(bar).toHaveAttribute('data-span', 'true');
             // 8/12（周三）落在第 4 列，跨 4 列
-            expect(bar.style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 3 + 4px)');
-            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 8px)');
+            expect(bar.style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 3 + 5px)');
+            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 10px)');
         });
 
         it('跨日期条在周与周之间自行分段并各自收尾', () => {
@@ -173,13 +173,13 @@ describe('Calendar', () => {
             // 8/5（周三）-8/8 收尾、8/9-8/15 整周、8/16-8/18 续接
             expect(bars).toHaveLength(3);
             expect(bars[0]).toHaveAttribute('data-end', 'true');
-            expect(bars[0].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 8px)');
+            expect(bars[0].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 10px)');
             expect(bars[1]).toHaveAttribute('data-start', 'true');
             expect(bars[1]).toHaveAttribute('data-end', 'true');
-            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 0 + 4px)');
-            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 8px)');
+            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 0 + 5px)');
+            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 10px)');
             expect(bars[2]).toHaveAttribute('data-start', 'true');
-            expect(bars[2].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 3 - 8px)');
+            expect(bars[2].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 3 - 10px)');
         });
 
         it('整周事项从周日铺到周六，两侧不留接缝', () => {
@@ -187,7 +187,7 @@ describe('Calendar', () => {
                 <Calendar panelValue="2026-08" events={[{ title: '整周', start: '2026-08-09', end: '2026-08-15' }]} />
             );
             const bar = screen.getByText('整周');
-            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 8px)');
+            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 10px)');
             expect(bar).toHaveAttribute('data-start', 'true');
             expect(bar).toHaveAttribute('data-end', 'true');
         });
