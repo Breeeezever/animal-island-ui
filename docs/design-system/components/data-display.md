@@ -736,7 +736,7 @@ permanent, so the shell is a cream card rather than a positioned popover. It reu
 
 **Shell and header.** The panel has no size tiers: it measures its own box (`ResizeObserver`, or the numeric `width`
 prop when given) and derives every metric from it. `--animal-calendar-scale` = actual width / **750** (the baseline is
-tuned to match antd's full calendar card, measured at 751px wide / 107px cells / 116px rows / 14px day digits), clamped
+tuned to a 750px panel), clamped
 to `0.6 … 2`, and the whole rhythm is `baseline × scale`:
 
 | Metric | Baseline at 750px | At 1000px (scale 1.33) |
@@ -815,7 +815,7 @@ layout and a grid placement would be ignored.
 .event[data-span='true']  { margin-left: 1px; margin-right: 1px; border-radius: 6px; }
 .event[data-start='true'] { margin-left: 0; }    /* flush with the grid edge on the week it starts */
 .event[data-end='true']   { margin-right: 0; }
-/* 5 palettes: teal #e0f7f4/#17756d · amber #fff3d1/#8a6a08 · coral #ffe7de/#a44b32
+/* 5 palettes: teal #ffe4cc/#b04a1f (warm orange, not teal-green) · amber #fff3d1/#8a6a08 · coral #ffe7de/#a44b32
    · green #eaf6db/#4a7a1d · purple #f0eafb/#6849b8, each with a matching 45% border */
 .event[data-preview='true'] { border-style: dashed; }   /* drag-to-create preview */
 .eventTime  { display: inline; margin-right: 4px; color: #9f927d; font-variant-numeric: tabular-nums; }
@@ -826,8 +826,22 @@ layout and a grid placement would be ignored.
 week-internal first slice carries the `HH:mm` prefix, continuation slices carry the title only. Each week row can host
 2 bars (2 event rows); a third same-day event folds into `+N` on the day cell instead of pushing the row taller. Events
 that fall entirely outside the 42-day grid are neither rendered nor counted — the `+N` tally and the cell's `aria-label`
-both describe only what is on screen. `prefers-reduced-motion` drops the `.cell` / `.dayNumber` / `.navBtn` /
+both describe only what is on screen. The drag preview takes a row like a real event but is a transient, so it never
+folds into `+N`. The cell `aria-label` reads "`{date} {n} 项事项：{titles}`": titles are `ReactNode` and are flattened to
+text (a JSX title yields its children, never `[object Object]`), duplicated titles collapse and gain a trailing `等` so
+the announced count never disagrees with the titles that follow. `prefers-reduced-motion` drops the `.cell` / `.dayNumber` / `.navBtn` /
 `.todayBtn` transitions.
+
+**Panel month vs. selection.** `defaultPanelValue` wins; with no `defaultPanelValue` the panel opens on the selected date
+(`value` included), else today. The roving tabindex is clamped to the nearest cell of the 42-day grid on every render,
+so the grid always keeps exactly one Tab stop — even when a controlled `value` or an unacknowledged `onPanelChange`
+would otherwise push the cursor outside it. Selection clamps by the same rule, so cursor and selection always land on
+the same cell rather than showing a focus ring with nothing selected; pressing Enter there selects that clamped cell.
+Event layout is memoised by the `events` array reference: mutating `start` / `end` in place will not re-lay-out, so pass
+a new array when they change.
+
+**Drag to create.** Only the left button starts a drag, so a right-drag (text selection, context menu) never creates an
+event. The drag commits on release anywhere inside the panel, header included; releasing outside the panel cancels.
 
 ## TimePicker
 

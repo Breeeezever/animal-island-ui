@@ -76,7 +76,7 @@ describe('Calendar', () => {
                 (container.querySelector('[data-color]') as HTMLElement).style.getPropertyValue(
                     '--animal-calendar-bar-top'
                 )
-            ).toBe('81px');
+            ).toBe('85px');
         });
 
         it('系数随宽度线性放大，并被上下限夹住', () => {
@@ -108,7 +108,7 @@ describe('Calendar', () => {
                 Number.parseFloat((bar as HTMLElement).style.getPropertyValue('--animal-calendar-bar-top'))
             );
             // 8/3 落在视图第 2 周：top = 表头 32 + 1 × 104 + 数字带 38 + (行序 + 0.5) × 22
-            expect(tops).toEqual([185, 207]);
+            expect(tops).toEqual([189, 211]);
             // 最后一条的条底（top + 半行 + 半个条高）仍在单元格高 104 之内
             const lastRowBottom = 32 + 1 * 104 + 38 + 1.5 * 22 + 17 / 2;
             expect(lastRowBottom).toBeLessThan(32 + 2 * 104);
@@ -146,7 +146,7 @@ describe('Calendar', () => {
             );
             expect(screen.getByText('晨会')).toBeInTheDocument();
             expect(screen.getByText('评审')).toBeInTheDocument();
-            expect(cell('2026-08-10')).toHaveAttribute('aria-label', '2026-08-10 2 项事项');
+            expect(cell('2026-08-10')).toHaveAttribute('aria-label', '2026-08-10 2 项事项：晨会，评审');
         });
 
         it('跨日期事项渲染成横跨多列的连续条', () => {
@@ -161,8 +161,8 @@ describe('Calendar', () => {
             expect(bar).toHaveAttribute('data-color', 'amber');
             expect(bar).toHaveAttribute('data-span', 'true');
             // 8/12（周三）落在第 4 列，跨 4 列
-            expect(bar.style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 3 + 4px)');
-            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 8px)');
+            expect(bar.style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 3 + 5px)');
+            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 10px)');
         });
 
         it('跨日期条在周与周之间自行分段并各自收尾', () => {
@@ -173,13 +173,13 @@ describe('Calendar', () => {
             // 8/5（周三）-8/8 收尾、8/9-8/15 整周、8/16-8/18 续接
             expect(bars).toHaveLength(3);
             expect(bars[0]).toHaveAttribute('data-end', 'true');
-            expect(bars[0].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 8px)');
+            expect(bars[0].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 4 - 10px)');
             expect(bars[1]).toHaveAttribute('data-start', 'true');
             expect(bars[1]).toHaveAttribute('data-end', 'true');
-            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 0 + 4px)');
-            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 8px)');
+            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-left')).toBe('calc((100% / 7) * 0 + 5px)');
+            expect(bars[1].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 10px)');
             expect(bars[2]).toHaveAttribute('data-start', 'true');
-            expect(bars[2].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 3 - 8px)');
+            expect(bars[2].style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 3 - 10px)');
         });
 
         it('整周事项从周日铺到周六，两侧不留接缝', () => {
@@ -187,7 +187,7 @@ describe('Calendar', () => {
                 <Calendar panelValue="2026-08" events={[{ title: '整周', start: '2026-08-09', end: '2026-08-15' }]} />
             );
             const bar = screen.getByText('整周');
-            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 8px)');
+            expect(bar.style.getPropertyValue('--animal-calendar-bar-width')).toBe('calc((100% / 7) * 7 - 10px)');
             expect(bar).toHaveAttribute('data-start', 'true');
             expect(bar).toHaveAttribute('data-end', 'true');
         });
@@ -205,7 +205,7 @@ describe('Calendar', () => {
                 />
             );
             expect(cell('2026-08-13').textContent).toContain('+2');
-            expect(cell('2026-08-13')).toHaveAttribute('aria-label', '2026-08-13 4 项事项');
+            expect(cell('2026-08-13')).toHaveAttribute('aria-label', '2026-08-13 4 项事项：A，B，C，D');
         });
 
         it('showTime 的事项展示起始时间', () => {
@@ -266,6 +266,39 @@ describe('Calendar', () => {
             // 团建占第 0 行，晨会因此落在第 1 行而不是被折叠
             expect(screen.getByText('晨会')).toBeInTheDocument();
             expect(cell('2026-08-13').textContent).not.toContain('+');
+        });
+        it('aria-label 里的 JSX 标题抽成文本，不出现 [object Object]', () => {
+            render(<Calendar panelValue="2026-08" events={[{ title: <b>周会</b>, start: '2026-08-10' }]} />);
+            expect(cell('2026-08-10')).toHaveAttribute('aria-label', '2026-08-10 1 项事项：周会');
+        });
+
+        it('aria-label 保留数字标题（0 也不当作空值丢掉）', () => {
+            render(<Calendar panelValue="2026-08" events={[{ title: 0, start: '2026-08-10' }]} />);
+            expect(cell('2026-08-10')).toHaveAttribute('aria-label', '2026-08-10 1 项事项：0');
+        });
+
+        it('aria-label 里同名标题去重后补「等」，不与事项数错位', () => {
+            render(
+                <Calendar
+                    panelValue="2026-08"
+                    events={[
+                        { title: '周会', start: '2026-08-10' },
+                        { title: '周会', start: '2026-08-10' },
+                    ]}
+                />
+            );
+            expect(cell('2026-08-10')).toHaveAttribute('aria-label', '2026-08-10 2 项事项：周会 等');
+        });
+
+        it('事项条在头部插入新事项后复用原有 DOM', () => {
+            const keep = { title: 'KEEP', start: '2026-08-20' };
+            const { rerender } = render(<Calendar panelValue="2026-08" events={[keep]} />);
+            const before = [...document.querySelectorAll(`.${styles.eventsLayer} > div`)];
+            rerender(<Calendar panelValue="2026-08" events={[{ title: 'NEW', start: '2026-08-02' }, keep]} />);
+            const after = [...document.querySelectorAll(`.${styles.eventsLayer} > div`)];
+            expect(after).toHaveLength(2);
+            // 否则每次在头部插事项都会丢掉所有过渡
+            expect(after.filter((node) => before.includes(node))).toHaveLength(1);
         });
     });
 
@@ -368,6 +401,71 @@ describe('Calendar', () => {
     });
 
     describe('keyboard', () => {
+        it('受控 value 落在面板月外时，光标夹回网格且仍可 Tab 到', () => {
+            render(<Calendar value="2026-05-10" defaultPanelValue="2026-03" />);
+            const focusable = document.querySelectorAll('[data-date][tabindex="0"]');
+            expect(focusable).toHaveLength(1);
+            // 光标被夹到 3 月网格的末格（3 月 1 日是周日，网格到 4 月 11 日为止）
+            expect(focusable[0]).toBe(cell('2026-04-11'));
+        });
+
+        it('不传 defaultPanelValue 时，受控 value 直接决定面板月份', () => {
+            render(<Calendar value="2026-12-31" />);
+            expect(screen.getByText('2026年12月')).toBeInTheDocument();
+            expect(cell('2026-12-31')).toHaveAttribute('tabindex', '0');
+        });
+
+        it('受控 value 切到网格外后，光标仍夹在网格内可 Tab 到', () => {
+            const { rerender } = render(<Calendar value="2026-10-15" panelValue="2026-10" />);
+            expect(cell('2026-10-15')).toHaveAttribute('tabindex', '0');
+            rerender(<Calendar value="2026-12-31" panelValue="2026-10" />);
+            expect(document.querySelectorAll('[data-date][tabindex="0"]')).toHaveLength(1);
+            // 10 月网格是 09-27 ~ 11-07，光标夹到末格
+            expect(cell('2026-11-07')).toHaveAttribute('tabindex', '0');
+        });
+
+        it('受控面板不回写时，方向键越界也不会让网格失去 Tab 停靠点', async () => {
+            const user = setup();
+            render(<Calendar panelValue="2026-10" value="2026-10-28" aria-label="c" onPanelChange={vi.fn()} />);
+            cell('2026-10-28').focus();
+            for (let i = 0; i < 12; i++) await user.keyboard('{ArrowRight}');
+            expect(document.querySelectorAll('[data-date][tabindex="0"]')).toHaveLength(1);
+        });
+
+        it('调用方传入的 onPointerUp 不会顶掉内部拖拽收尾', async () => {
+            const user = setup();
+            const onEventCreate = vi.fn();
+            const onPointerUp = vi.fn();
+            render(
+                <Calendar
+                    panelValue="2026-08"
+                    draggableEvents
+                    onEventCreate={onEventCreate}
+                    onPointerUp={onPointerUp}
+                />
+            );
+            await drag(user, '2026-08-10', '2026-08-12');
+            expect(onEventCreate).toHaveBeenCalledWith('2026-08-10', '2026-08-12');
+            expect(onPointerUp).toHaveBeenCalled();
+        });
+
+        it('受控 value 在网格外时，选中态与光标夹到同一格，不出现「有焦点却无选中」', () => {
+            render(<Calendar panelValue="2026-10" value="2026-12-31" aria-label="c" onPanelChange={vi.fn()} />);
+            const selected = document.querySelectorAll('[aria-selected="true"]');
+            expect(selected).toHaveLength(1);
+            expect(selected[0]).toBe(document.querySelector('[data-date][tabindex="0"]'));
+            expect(selected[0]).toBe(cell('2026-11-07'));
+        });
+
+        it('非受控面板下点上下月补位格：面板跟过去，选中态与光标都落在那一格', async () => {
+            const user = setup();
+            render(<Calendar defaultPanelValue="2026-08-01" />);
+            await user.click(cell('2026-07-28'));
+            expect(screen.getByText('2026年7月')).toBeInTheDocument();
+            expect(cell('2026-07-28')).toHaveAttribute('aria-selected', 'true');
+            expect(cell('2026-07-28')).toHaveAttribute('tabindex', '0');
+        });
+
         it('只有一个日期格可 Tab 到达（roving tabindex）', () => {
             render(<Calendar panelValue="2026-08" defaultValue="2026-08-10" />);
             expect(document.querySelectorAll('[tabindex="0"]')).toHaveLength(1);
@@ -509,6 +607,54 @@ describe('Calendar', () => {
             expect(onChange).toHaveBeenCalledWith('2026-08-10');
         });
 
+        it('右键拖拽不进入拖拽态，也不创建事项', async () => {
+            const user = setup();
+            const onEventCreate = vi.fn();
+            render(<Calendar panelValue="2026-08" draggableEvents onEventCreate={onEventCreate} />);
+            await user.pointer([
+                { target: cell('2026-08-10'), keys: '[MouseRight>]' },
+                { target: cell('2026-08-12') },
+                { target: cell('2026-08-12'), keys: '[/MouseRight]' },
+            ]);
+            expect(document.querySelector('[data-preview="true"]')).not.toBeInTheDocument();
+            expect(onEventCreate).not.toHaveBeenCalled();
+        });
+
+        it('抬在月份表头上照常创建事项（表头也在面板内）', async () => {
+            const user = setup();
+            const onEventCreate = vi.fn();
+            const { container } = render(
+                <Calendar panelValue="2026-08" draggableEvents onEventCreate={onEventCreate} />
+            );
+            const header = container.querySelector('[class*="header"]') as HTMLElement;
+            await user.pointer([
+                { target: cell('2026-08-10'), keys: '[MouseLeft>]' },
+                { target: cell('2026-08-12') },
+                { target: header },
+                { target: header, keys: '[/MouseLeft]' },
+            ]);
+            expect(onEventCreate).toHaveBeenCalledWith('2026-08-10', '2026-08-12');
+        });
+
+        it('拖拽预览条占位失败时不折出 +N 徽标', async () => {
+            const user = setup();
+            const week = [
+                { title: 'E1', start: '2026-08-10', end: '2026-08-16' },
+                { title: 'E2', start: '2026-08-10', end: '2026-08-16' },
+            ];
+            const { container } = render(<Calendar panelValue="2026-08" draggableEvents events={week} />);
+            expect(cell('2026-08-12').querySelector(`.${styles.more}`)).not.toBeInTheDocument();
+            const body = container.querySelector('[class*="body"]') as HTMLElement;
+            await user.pointer([
+                { target: cell('2026-08-12'), keys: '[MouseLeft>]' },
+                { target: cell('2026-08-13') },
+                { target: body },
+            ]);
+            // 预览条在这周已无空行可占，正因如此它折不出片段，此时最考验 +N 不被它污染
+            expect(cell('2026-08-12').querySelector(`.${styles.more}`)).not.toBeInTheDocument();
+            expect(cell('2026-08-13').querySelector(`.${styles.more}`)).not.toBeInTheDocument();
+        });
+
         it('视图外的事项不参与渲染，也不计入 +N 与格子提示', () => {
             render(
                 <Calendar
@@ -524,7 +670,7 @@ describe('Calendar', () => {
             expect(screen.queryByText('下季度规划')).not.toBeInTheDocument();
             // 跨过整月的事项在视图内可见，且首格提示只算它一条
             expect(screen.getAllByText('跨过整月')).toHaveLength(6);
-            expect(cell('2026-07-26')).toHaveAttribute('aria-label', '2026-07-26 1 项事项');
+            expect(cell('2026-07-26')).toHaveAttribute('aria-label', '2026-07-26 1 项事项：跨过整月');
             expect(cell('2026-07-26').textContent).not.toContain('+');
         });
 

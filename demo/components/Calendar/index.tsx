@@ -10,7 +10,12 @@ const CALENDAR_API: ApiRow[] = [
     { prop: 'defaultPanelValue', desc: '默认展示月份（非受控）', type: 'string', defaultVal: '选中值 / 今天' },
     { prop: 'onChange', desc: '日期变化回调', type: '(date: string) => void', defaultVal: '-' },
     { prop: 'onPanelChange', desc: '面板月份变化回调', type: '(month: string) => void', defaultVal: '-' },
-    { prop: 'events', desc: '事项列表，支持同日多条与跨日期连续条', type: 'CalendarEvent[]', defaultVal: '[]' },
+    {
+        prop: 'events',
+        desc: '事项列表，支持同日多条与跨日期连续条；变更时传新数组引用，就地改不会重排',
+        type: 'CalendarEvent[]',
+        defaultVal: '[]',
+    },
     { prop: 'showEventTime', desc: '是否展示事项起始时间（仅首段）', type: 'boolean', defaultVal: 'true' },
     { prop: 'draggableEvents', desc: '允许鼠标拖拽跨日期创建事项', type: 'boolean', defaultVal: 'false' },
     {
@@ -35,7 +40,12 @@ const EVENT_API: ApiRow[] = [
         type: 'string | Dayjs',
         defaultVal: '-',
     },
-    { prop: 'color', desc: '颜色', type: `'teal' | 'amber' | 'coral' | 'green' | 'purple'`, defaultVal: "'teal'" },
+    {
+        prop: 'color',
+        desc: "配色；'teal' 是默认暖橙，与 'coral' 相近，同屏时优先用 green / purple 区分",
+        type: `'teal' | 'amber' | 'coral' | 'green' | 'purple'`,
+        defaultVal: "'teal'",
+    },
     { prop: 'showTime', desc: '是否展示起始时间', type: 'boolean', defaultVal: 'false' },
 ];
 
@@ -47,7 +57,7 @@ const S = {
         marginBottom: 20,
         background: '#faf8f3',
     } as React.CSSProperties,
-    /* 把容器收到面板的实际宽度（约 antd full 日历卡片），避免卡片右侧留一大片空地 */
+    /* 把容器收到面板的实际宽度，避免卡片右侧留一大片空地 */
     calendarBox: {
         maxWidth: 780,
     } as React.CSSProperties,

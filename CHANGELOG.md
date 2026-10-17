@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-10-17
+
+### Added
+
+- 新增 `Calendar` 轻量月历组件（组件数 39 → 40）：常驻月面板（无弹层、无周/年视图），6×7 满格日期网格、月份与年份导航、「今天」快捷键。日期算术走 `dayjs`（见 [ADR 0005](docs/adr/0005-dayjs-as-the-date-layer.md)）
+- `Calendar` 支持声明式 `events`：同日多条 + 跨天连续条。跨天条在周边界切断、永不换行，首段带 `HH:mm` 前缀、续接段只留标题；同一天第 3 条折叠为日期格上的 `+N` 而不撑高行高；完全落在 42 格视图外的事项既不渲染也不计数
+- `Calendar` 新增 `draggableEvents`：拖拽跨日期创建事项，松手经 `onEventCreate` 回调起止日期
+- 运行时依赖新增 `dayjs@^1.11.23`
+
+### Changed
+
+- `Cursor` default 箭头缩小 20%（缩放系数 K=1.36 → 1.12），描边固定 2.75px 不缩，占外廓宽从 13.1% 升到 15.4%
+- `Cursor` 文本选中态重做
+- `Button` loading 图标旋转方向改为顺时针（`-360deg` → `360deg`）
+- `Calendar` 事项条水平留白 4px → 5px，与格子内容盒（`.cell` 的 `padding`）对齐，跨天条接缝处不再错位 1px
+- 文档与 skill 参考中移除竞品库引用，改为直接陈述本库自身的设计理由（补齐 demo 与 Calendar 文档中的遗漏）
+- `AGENTS.md` 新增注释规范：只有「删掉就会静默出错」的信息才写注释，代码可推导的一律不写
+
+### Fixed
+
+- `Calendar` 受控 `value` 落在面板可见月份之外时，42 格全部 `tabindex=-1`，键盘用户 Tab 进日历后无处可停、方向键也无法救回。roving tabindex 现改为每次渲染夹回可见网格内，选中态用同一规则夹取（此前只夹光标，会出现「有焦点环却没有任何格被选中」）
+- `Calendar` 不传 `defaultPanelValue` 时面板不跟随受控 `value`（此前只认 `defaultValue`，与文档描述不符）
+- `Calendar` 右键拖拽会建出事项（`onMouseDown` 未区分按键，React 对任意按键都触发）
+- `Calendar` 拖拽抬在月份表头上静默取消（收尾 handler 只挂在日期区，`表头`属于面板内却按「面板外」处理）
+- `Calendar` 拖拽预览条计入 `+N` 统计，拖拽经过已有 2 条事项的格子时会凭空冒出 `+1` 徽标
+- `Calendar` 事项条 `key` 含数组下标，在列表头部插入一条事项会把其后所有条目整体重建
+- `Calendar` 事项布局的两个 `useMemo` 依赖恒变（`dayjs` 对象每次渲染都是新引用），memo 从不命中，拖拽时每次 `mouseenter` 都全量重算。改用字符串依赖后，1000 事项 × 20 次重渲染从 253ms 降到 23ms（原先随事项数线性增长）
+- `Calendar` 日期格 `aria-label` 把 JSX 标题渲染成 `[object Object]` 被读屏念出；`title: 0` 被 `filter(Boolean)` 当空值丢弃；同名标题去重后与事项数错位（「2 项事项」只念 1 个标题），现补「等」尾缀
+
 ## [2.2.1] - 2026-10-11
 
 ### Added

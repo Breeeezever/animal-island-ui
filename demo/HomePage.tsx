@@ -273,6 +273,7 @@ const S = {
     } as React.CSSProperties,
     heroSubtitle: {
         fontSize: 17,
+        fontWeight: 500,
         color: '#7c5734',
         lineHeight: 1.7,
         margin: '0 0 28px',
