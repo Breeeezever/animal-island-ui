@@ -736,7 +736,7 @@ permanent, so the shell is a cream card rather than a positioned popover. It reu
 
 **Shell and header.** The panel has no size tiers: it measures its own box (`ResizeObserver`, or the numeric `width`
 prop when given) and derives every metric from it. `--animal-calendar-scale` = actual width / **750** (the baseline is
-tuned to match antd's full calendar card, measured at 751px wide / 107px cells / 116px rows / 14px day digits), clamped
+tuned to a 750px panel), clamped
 to `0.6 … 2`, and the whole rhythm is `baseline × scale`:
 
 | Metric | Baseline at 750px | At 1000px (scale 1.33) |

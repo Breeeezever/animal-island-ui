@@ -11,7 +11,7 @@ interface CalendarEvent {
     title: React.ReactNode;         // flattened to text for the cell aria-label; a JSX title yields its children
     start: string | Dayjs;          // YYYY-MM-DD, or a dayjs object (its HH:mm shows when showTime)
     end?: string | Dayjs;           // omit for a single day; set it for a continuous multi-day bar
-    color?: CalendarColor;          // default 'teal'
+    color?: CalendarColor;          // default 'teal' — renders as the warm-orange primary, close to 'coral'
     showTime?: boolean;             // default false — shows the start HH:mm on the first slice
 }
 
@@ -55,13 +55,14 @@ in place will not re-lay-out, so pass a new array when they change.
 />
 ```
 
-Standalone month calendar (no popup, month panel only — no week/year modes). The panel is a permanent cream card in the
-DatePicker visual language, with DatePicker's teal selection accent: 6×7 always-full date grid, month/year navigation, optional `今天`. Events render as bars in a
+Standalone month calendar (no popup, month panel only — no week/year modes). The panel is a permanent cream card
+with a subtle dot pattern, in the DatePicker visual language and with DatePicker's teal selection accent: 6×7
+always-full date grid, month/year navigation, optional `今天`. Events render as bars in a
 bar band anchored under each week's date numbers (two rows per week); a multi-day event is cut at week boundaries (never
 wraps), its first slice carries the `HH:mm` prefix, and a third same-day event folds into `+N` on the day cell. Events
 entirely outside the 42-day grid are neither rendered nor counted. `value` is a plain `YYYY-MM-DD` string and the
 date arithmetic runs on dayjs (see [ADR 0005](https://github.com/guokaigdg/animal-island-ui/blob/main/docs/adr/0005-dayjs-as-the-date-layer.md)).
-`width` defaults to filling the parent; the baseline rhythm is tuned to a 750px panel (antd's full calendar card).
+`width` defaults to filling the parent; the baseline rhythm is tuned to a 750px panel.
 There is no size prop: the panel measures its own box and derives the rhythm from it
 (`--animal-calendar-scale` = width / 750, clamped to 0.6…2), so a wider panel gets taller rows and larger type.
 Cells are `role="gridcell"` with the roving tabindex: arrows move the cursor (crossing a month boundary flips the panel),
