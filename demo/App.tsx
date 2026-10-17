@@ -64,7 +64,7 @@ const MENU_ITEMS: MenuItem[] = [
         label: '── 基础 ──',
         children: [
             // 隐藏：暂不展示，恢复时取消注释
-            { key: 'title', label: 'Title 标题', isNew: true },
+            { key: 'title', label: 'Title 标题' },
             { key: 'button', label: 'Button 按钮' },
             { key: 'divider-comp', label: 'Divider 分割线' },
             { key: 'icon', label: 'Icon 图标', isNew: true },
@@ -90,7 +90,7 @@ const MENU_ITEMS: MenuItem[] = [
             { key: 'radio', label: 'Radio 单选框' },
             { key: 'rate', label: 'Rate 评分', isNew: true },
             { key: 'form', label: 'Form 表单' },
-            { key: 'upload', label: 'Upload 上传', isNew: true },
+            { key: 'upload', label: 'Upload 上传' },
         ],
     },
     {
@@ -113,7 +113,7 @@ const MENU_ITEMS: MenuItem[] = [
         label: '── 数据展示 ──',
         children: [
             { key: 'card', label: 'Card 卡片' },
-            { key: 'avatar', label: 'Avatar 头像', isNew: true },
+            { key: 'avatar', label: 'Avatar 头像' },
             { key: 'badge', label: 'Badge 徽标数', isNew: true },
             // 隐藏：暂不展示，恢复时取消注释
             { key: 'collapse', label: 'Collapse 折叠面板' },
@@ -235,7 +235,14 @@ const SidebarContent: React.FC<{
             <img
                 src={logo}
                 alt="Animal Island UI logo"
-                style={{ width: 25, height: 25, borderRadius: 8, marginRight: 8 }}
+                style={{
+                    display: 'block',
+                    width: 25,
+                    height: 25,
+                    borderRadius: 8,
+                    marginRight: 8,
+                    transform: 'translateY(-2px)',
+                }}
             />
             Animal Island UI
         </div>
