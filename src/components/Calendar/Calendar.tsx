@@ -32,7 +32,7 @@ export interface CalendarProps extends Omit<React.HTMLAttributes<HTMLDivElement>
     onChange?: (date: string) => void;
     /** 面板月份变化回调（切换上/下月、上/下年、光标跨月时触发）；受控 panelValue 下必须回写 */
     onPanelChange?: (month: string) => void;
-    /** 事项列表，支持同一天多条与跨日期连续条 */
+    /** 事项列表。布局按数组引用缓存，就地改 `start` / `end` 不会重新排布，变更请传入新数组 */
     events?: CalendarEvent[];
     /** 是否在事项条上展示起始时间，默认 true */
     showEventTime?: boolean;
@@ -60,11 +60,12 @@ const COLS = 7;
 /** 日期网格的行数（6 周） */
 const CELL_ROWS = GRID_CELLS / COLS;
 /*
- * 布局基准：面板宽度 640px 时的度量，与 calendar.module.less 里的同名常量一一对应。
+ * 布局基准：面板宽度 750px 时的度量，与 calendar.module.less 里的同名常量一一对应。
  * 组件按自身宽度算出缩放系数，事项条的纵向位置就是「基准值 × 系数」；CSS 那边用同一系数
- * 推导行高。单元格高度必须容得下「日期数字带 + 2 条事项行」：
- *   32 + 19 × 2 = 70 ≤ 86
+ * 推导行高。单元格高度必须容得下「日期数字带 + 2 条事项行」，按下面的常量即
+ *   numberBand 38 + eventRow 22 × 2 = 82 ≤ cellHeight 104
  * 所以 2 条事项行整体落在单元格内，不会压到下一周的日期数字。
+ * 改这里的取值时同步 calendar.module.less，两边的算式都写死常量值，不要再手写别的基准。
  */
 const LAYOUT_BASE = {
     /** 基准面板宽度 */
@@ -113,6 +114,21 @@ const cellIndexOf = (date: Dayjs, gridStart: Dayjs) => {
     return Math.min(GRID_CELLS - 1, Math.max(0, index));
 };
 
+/** 事项是否与 42 格视图（含上下月补位）相交：早于视图起点或晚于视图终点则不可见 */
+const isEventVisibleInGrid = (start: Dayjs, end: Dayjs, gridStart: Dayjs): boolean => {
+    const last = end.isBefore(start, 'day') ? start : end;
+    return !last.isBefore(gridStart, 'day') && start.isBefore(gridStart.add(GRID_CELLS, 'day'), 'day');
+};
+
+/**
+ * 把日期夹取到 42 格网格内。光标落在网格外时 42 格会全部 tabindex=-1，键盘用户 Tab 进日历后无处可停。
+ */
+const clampToGrid = (date: Dayjs, gridStart: Dayjs): Dayjs => {
+    if (date.isBefore(gridStart, 'day')) return gridStart;
+    const last = gridStart.add(GRID_CELLS - 1, 'day');
+    return date.isAfter(last, 'day') ? last : date;
+};
+
 /** 一段跨天事项在某一周里的可见片段：所在格子、跨列数、事项行 */
 interface EventSegment {
     event: CalendarEvent;
@@ -138,8 +154,15 @@ interface EventLayout {
 /**
  * 把事项映射到网格：跨天事项按自然日逐格铺开，并按周切成不超过 7 列的片段；
  * 同一天多条则依次占用事项行。结果与视图月份无关，因此拖拽预览（临时事项）也能复用同一套布局。
+ *
+ * nonCountingEvent 让某条事项占位但不计入 +N：拖拽预览条是临时态，计入就会在拖拽经过时凭空冒出徽标。
  */
-const layoutEvents = (events: CalendarEvent[], gridStart: Dayjs, today: Dayjs): EventLayout => {
+const layoutEvents = (
+    events: CalendarEvent[],
+    gridStart: Dayjs,
+    today: Dayjs,
+    nonCountingEvent?: CalendarEvent | null
+): EventLayout => {
     const segments: EventSegment[] = [];
     const counts = new Array<number>(GRID_CELLS).fill(0);
     const rows = Array.from({ length: GRID_CELLS }, () => new Array<boolean>(MAX_EVENT_ROWS).fill(false));
@@ -158,11 +181,11 @@ const layoutEvents = (events: CalendarEvent[], gridStart: Dayjs, today: Dayjs): 
         const to = cellIndexOf(last, gridStart);
 
         // 完全落在 42 格视图（上下月补位）之外的事项不参与计数与渲染
-        if (last.isBefore(gridStart, 'day')) continue;
-        if (!start.isBefore(gridStart.add(GRID_CELLS, 'day'), 'day')) continue;
+        if (!isEventVisibleInGrid(start, last, gridStart)) continue;
 
-        // 统计事项经过的每一格，用于 +N 折叠
-        for (let i = from; i <= to; i += 1) counts[i] += 1;
+        if (event !== nonCountingEvent) {
+            for (let i = from; i <= to; i += 1) counts[i] += 1;
+        }
 
         for (let row = 0; row < CELL_ROWS; row += 1) {
             const rowStart = row * COLS;
@@ -218,6 +241,19 @@ const eventLabel = (event: CalendarEvent, firstSegment: boolean, showTime: boole
     );
 };
 
+/**
+ * 把 title（ReactNode）抽成可读文本供 aria-label 用：直接 join 会让 JSX 标题变成 "[object Object]" 被念出来，
+ * 所以元素要递归取 children；数字标题（如 0）也不能按 falsy 当空值丢掉。
+ */
+const textOf = (node: React.ReactNode): string => {
+    if (node === null || node === undefined || typeof node === 'boolean') return '';
+    if (typeof node === 'string') return node;
+    if (typeof node === 'number') return String(node);
+    if (Array.isArray(node)) return node.map(textOf).join('');
+    if (React.isValidElement(node)) return textOf(node.props.children as React.ReactNode);
+    return '';
+};
+
 export const Calendar: React.FC<CalendarProps> = ({
     value,
     defaultValue,
@@ -235,6 +271,8 @@ export const Calendar: React.FC<CalendarProps> = ({
     className,
     style,
     onMouseLeave,
+    onPointerUp,
+    onPointerCancel,
     ...rest
 }) => {
     const isControlled = value !== undefined;
@@ -243,20 +281,26 @@ export const Calendar: React.FC<CalendarProps> = ({
 
     const isPanelControlled = panelValue !== undefined;
     const [innerPanel, setInnerPanel] = useState<Dayjs>(
-        () => parseMonthValue(defaultPanelValue) ?? parseDate(defaultValue) ?? dayjs()
+        () => parseMonthValue(defaultPanelValue) ?? parseDate(defaultValue) ?? parseDate(value) ?? dayjs()
     );
     const viewMonth = isPanelControlled ? (parseMonthValue(panelValue) ?? dayjs()) : innerPanel;
+    const gridStart = gridStartOf(viewMonth);
 
-    const [focusDate, setFocusDate] = useState<Dayjs>(() => parseDate(selectedValue) ?? dayjs());
+    const [focusCursor, setFocusCursor] = useState<Dayjs>(() => parseDate(selectedValue) ?? dayjs());
     const [dragging, setDragging] = useState(false);
     const [dragAnchor, setDragAnchor] = useState<Dayjs | null>(null);
     const [dragHead, setDragHead] = useState<Dayjs | null>(null);
 
     const today = dayjs();
+    // 在渲染时夹而不是放进 effect：受控面板不回写 panelValue 时 gridStart 不变，effect 永远等不到触发条件
+    const focusDate = clampToGrid(focusCursor, gridStart);
     const focusKey = toDateKey(focusDate);
     const monthKey = viewMonth.format('YYYY-MM');
-    const gridStart = gridStartOf(viewMonth);
-    const selectedKey = selectedValue ?? '';
+    const todayKey = today.format('YYYY-MM-DD');
+    const gridStartKey = gridStart.format('YYYY-MM-DD');
+    // 选中态与光标用同一套夹取，否则网格外 value 会让「有焦点环、却没有任何格被选中」
+    const selectedDate = parseDate(selectedValue);
+    const selectedKey = selectedDate ? toDateKey(clampToGrid(selectedDate, gridStart)) : '';
     const wrapperRef = useRef<HTMLDivElement>(null);
     /**
      * 方向键 / PageUp / PageDown 之后需要把 DOM 焦点搬到新的光标格子。
@@ -290,7 +334,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     // 受控 value 变化后，把 roving tabindex 的光标同步到新的选中日期
     useEffect(() => {
         const next = parseDate(selectedValue);
-        if (next) setFocusDate(next);
+        if (next) setFocusCursor(next);
     }, [selectedValue]);
 
     /*
@@ -312,7 +356,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             // 非受控时面板自己翻月；受控时只通知父级，由父级回写 panelValue
             if (!isPanelControlled) setInnerPanel(month);
             onPanelChange?.(month.format('YYYY-MM'));
-            if (focus) setFocusDate(focus);
+            if (focus) setFocusCursor(focus);
         },
         [isPanelControlled, onPanelChange]
     );
@@ -345,7 +389,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     const selectDate = useCallback(
         (date: Dayjs) => {
             const next = toDateKey(date);
-            setFocusDate(date);
+            setFocusCursor(date);
             if (!isControlled) setInnerValue(next);
             onChange?.(next);
             // 选中的日期不在当前视图时，面板跟随翻月（点选上下月补位格 / 跨月拖拽都适用）
@@ -376,23 +420,24 @@ export const Calendar: React.FC<CalendarProps> = ({
         [events, previewEvent]
     );
 
+    // 依赖必须是字符串：dayjs 对象每次渲染都是新引用，直接进依赖会让 memo 恒不命中
     const layout = useMemo(
-        () => layoutEvents(layoutEventsSource, gridStart, today.startOf('day')),
-        [layoutEventsSource, gridStart, today]
+        () => layoutEvents(layoutEventsSource, dayjs(gridStartKey), dayjs(todayKey), previewEvent),
+        [layoutEventsSource, gridStartKey, todayKey, previewEvent]
     );
 
     // 每个格子经过的所有事项：跨天事项在它经过的每一格都计入（用于 aria-label 与单元格提示）
     const eventsByCell = useMemo(() => {
         const map = new Map<number, CalendarEvent[]>();
-        const gridEnd = gridStart.add(GRID_CELLS, 'day');
+        const viewStart = dayjs(gridStartKey);
+        const fallbackDay = dayjs(todayKey);
         for (const event of events) {
-            const start = parseDate(event.start) ?? today.startOf('day');
+            const start = parseDate(event.start) ?? fallbackDay;
             const declaredEnd = parseDate(event.end);
             const end = !declaredEnd || declaredEnd.isBefore(start, 'day') ? start : declaredEnd;
-            // 与 layoutEvents 保持同一套可见性判断，避免视图外的事项被算进格子提示
-            if (end.isBefore(gridStart, 'day') || !start.isBefore(gridEnd, 'day')) continue;
-            const from = cellIndexOf(start, gridStart);
-            const to = cellIndexOf(end, gridStart);
+            if (!isEventVisibleInGrid(start, end, viewStart)) continue;
+            const from = cellIndexOf(start, viewStart);
+            const to = cellIndexOf(end, viewStart);
             for (let i = from; i <= to; i += 1) {
                 const list = map.get(i) ?? [];
                 list.push(event);
@@ -400,9 +445,9 @@ export const Calendar: React.FC<CalendarProps> = ({
             }
         }
         return map;
-    }, [events, gridStart, today]);
+    }, [events, gridStartKey, todayKey]);
 
-    // 叠加层：包含拖拽预览条（预览条不参与 +N 统计）
+    // 叠加层含拖拽预览条：参与占位，但不计 +N
     const overlaySegments = layout.segments;
 
     /** 折叠提示：本格事项总数 - 实际画出来的事项条数 */
@@ -439,7 +484,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             event.preventDefault();
             const next = focusDate.add(delta, 'day');
             pendingFocusRef.current = true;
-            setFocusDate(next);
+            setFocusCursor(next);
             // 光标移到别的月份时，面板跟随翻月（同月内的移动不动面板）
             if (!next.isSame(viewMonth, 'month')) {
                 const month = next.date(1);
@@ -507,7 +552,14 @@ export const Calendar: React.FC<CalendarProps> = ({
         const dayEvents = eventsByCell.get(index) ?? [];
         const isFocusable = cellKey === focusKey;
 
-        const label = dayEvents.length > 0 ? `${cellKey} ${dayEvents.length} 项事项` : cellKey;
+        // 去重后标题数少于事项数时补「等」，否则会出现「2 项事项」只念出 1 个标题
+        const label = (() => {
+            if (dayEvents.length === 0) return cellKey;
+            const titles = Array.from(new Set(dayEvents.map((event) => textOf(event.title)).filter(Boolean)));
+            if (titles.length === 0) return `${cellKey} ${dayEvents.length} 项事项`;
+            const collapsed = titles.length < dayEvents.length ? ' 等' : '';
+            return `${cellKey} ${dayEvents.length} 项事项：${titles.join('，')}${collapsed}`;
+        })();
 
         return (
             <td
@@ -526,7 +578,10 @@ export const Calendar: React.FC<CalendarProps> = ({
                     .filter(Boolean)
                     .join(' ')}
                 onClick={() => selectDate(cell)}
-                onMouseDown={() => startDragAt(index)}
+                onMouseDown={(event) => {
+                    // React 的 onMouseDown 对任意按键都会触发，只认左键，否则右键拖拽也会建出事项
+                    if (event.button === 0) startDragAt(index);
+                }}
                 onMouseEnter={() => extendDragAt(index)}
             >
                 <span className={styles.cellInner}>
@@ -548,6 +603,15 @@ export const Calendar: React.FC<CalendarProps> = ({
             ref={wrapperRef}
             className={calendarClass}
             data-draggable={draggableEvents ? 'true' : undefined}
+            // 挂根节点而非日期区：抬在月份表头上也算面板内，照常提交；调用方同名 handler 一并调用，别顶掉内部收尾
+            onPointerUp={(event) => {
+                finishDrag();
+                onPointerUp?.(event);
+            }}
+            onPointerCancel={(event) => {
+                finishDrag();
+                onPointerCancel?.(event);
+            }}
             style={{ width, '--animal-calendar-scale': scale, ...style } as React.CSSProperties}
             {...rest}
         >
@@ -576,13 +640,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                     </button>
                 </div>
             </div>
-            <div
-                className={styles.body}
-                onKeyDown={handleKeyDown}
-                onPointerUp={finishDrag}
-                onPointerCancel={finishDrag}
-                onMouseLeave={onMouseLeave}
-            >
+            <div className={styles.body} onKeyDown={handleKeyDown} onMouseLeave={onMouseLeave}>
                 {' '}
                 <table role="grid" aria-label={ariaLabel} aria-labelledby={ariaLabelledBy} className={styles.table}>
                     <thead>
@@ -604,14 +662,15 @@ export const Calendar: React.FC<CalendarProps> = ({
                 </table>
                 {overlaySegments.length > 0 && (
                     <div className={styles.eventsLayer} aria-hidden>
-                        {overlaySegments.map((segment, i) => {
+                        {overlaySegments.map((segment) => {
                             const content = eventLabel(segment.event, !segment.continuation, showEventTime);
                             const col = (segment.index % COLS) + 1;
                             const colSpan = segment.span;
                             const palette = segment.event.color ?? 'teal';
                             return (
                                 <div
-                                    key={`${monthKey}-evt-${segment.index}-${segment.row}-${i}`}
+                                    // 起点格 + 事项行已唯一，带上数组下标反而会在头部插入事项时冲掉后续条目的 key
+                                    key={`${monthKey}-evt-${segment.index}-${segment.row}`}
                                     data-color={palette}
                                     data-span={segment.span > 1 ? 'true' : undefined}
                                     data-start={segment.index % COLS === 0 ? 'true' : undefined}
