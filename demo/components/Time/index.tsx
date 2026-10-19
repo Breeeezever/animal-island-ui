@@ -22,7 +22,25 @@ const TimeDemo: React.FC = () => (
         <div style={labelStyle}>HUD 风格的实时时钟卡片，实时显示星期、月日与 HH:MM，每秒自动刷新。</div>
         <Time />
 
-        <div style={labelStyle}>搭配 className 自定义</div>
+        <div style={labelStyle}>
+            搭配 className 自定义：className 合并到根节点，用 CSS 变量换色并覆盖背景、描边与字体
+        </div>
+        <style>{`
+            .my-time {
+                --animal-text-color: #fffdf4;
+                --animal-text-color-disabled: #e0bd75;
+                --animal-primary-color: #ffd166;
+                --animal-primary-color-bg: #3d2a17;
+                --animal-font-family: 'Noto Sans SC', 'Nunito', sans-serif;
+                --animal-font-size-sm: 15px;
+
+                background: linear-gradient(160deg, #0f4c46 0%, #137f74 55%, #19c8b9 100%);
+                border: 2px dashed #ffd166;
+                border-radius: 28px;
+                padding: 24px 36px 18px;
+                box-shadow: 0 14px 30px rgba(15, 76, 70, 0.28);
+            }
+        `}</style>
         <Time className="my-time" aria-label="岛屿时间" />
 
         <CodeBlock
@@ -30,6 +48,24 @@ const TimeDemo: React.FC = () => (
 
 <Time />
 <Time className="my-time" aria-label="岛屿时间" />`}
+        />
+        <div style={labelStyle}>自定义样式由使用方在 CSS 中提供</div>
+        <CodeBlock
+            code={`.my-time {
+    /* 覆盖 Time 使用的设计变量：时钟/日期颜色、日期字号、字体 */
+    --animal-text-color: #fffdf4;
+    --animal-text-color-disabled: #e0bd75;
+    --animal-primary-color: #ffd166;
+    --animal-primary-color-bg: #3d2a17;
+    --animal-font-family: 'Noto Sans SC', 'Nunito', sans-serif;
+    --animal-font-size-sm: 15px;
+
+    background: linear-gradient(160deg, #0f4c46 0%, #137f74 55%, #19c8b9 100%);
+    border: 2px dashed #ffd166;
+    border-radius: 28px;
+    padding: 24px 36px 18px;
+    box-shadow: 0 14px 30px rgba(15, 76, 70, 0.28);
+}`}
         />
         <ApiTable rows={TIME_API} />
     </div>
