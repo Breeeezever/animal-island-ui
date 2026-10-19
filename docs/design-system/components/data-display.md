@@ -765,26 +765,30 @@ because a scaled-up digit overflows the circle. The cell must also fit the numbe
     --animal-calendar-bar-height: calc(17px * var(--animal-calendar-scale, 1));
 }
 
-.body   { position: relative; padding-bottom: calc(var(--animal-calendar-row-height) * 2 + 6px);
-          border: 1.5px solid #e8dcc8; border-radius: 20px; background: #fffdf7;
+.body   { position: relative; padding: 8px 8px calc(var(--animal-calendar-row-height) * 2 + 6px + 8px);
+          border: 1.5px solid #e8dcc8; border-radius: 20px;
+          background: radial-gradient(circle, rgba(196,184,158,0.15) 1.1px, transparent 1.1px) 0 0 / 28px 28px,
+                      radial-gradient(circle, rgba(196,184,158,0.1) 0.8px, transparent 0.8px) 7px 7px / 14px 14px,
+                      #fffdf7;   /* cream plus two offset dot grids; the bottom padding still reserves the 2 bar rows */
           box-shadow: 0 6px 18px rgba(61, 52, 40, 0.12); }
 .monthLabel { padding: 4px 12px; border-radius: 12px; background: #fffbe7; /* same chip as the DatePicker nav label */
               color: #725d42; font-size: 15px; font-weight: 700; }
 .navBtn { width: 28px; height: 28px; border-radius: 10px; color: #a0936e;   /* 14px / 16px chevrons */
-          /* hover */ background: var(--animal-calendar-accent-tint); color: var(--animal-calendar-accent); }
+          /* hover */ background: rgba(114, 93, 66, 0.1); color: var(--animal-calendar-accent); }
 .todayBtn { padding: 4px 12px; border-radius: 10px; color: #8a7b66; font-size: 13px; font-weight: 700;
             /* hover */ background: rgba(114, 93, 66, 0.1); color: #725d42; }
 ```
 
 **Date grid** — one `<table role="grid">`, 7 equal columns × 6 weeks (42 cells, always full; leading/trailing days of the
-neighbouring months included but dimmed). Each cell is `--animal-calendar-cell-height` tall and carries the same 4px
-side gutter the event bars use, so a bar and the day circle above it sit on one track:
+neighbouring months included but dimmed). Each cell is `--animal-calendar-cell-height` tall and carries the same 5px
+gutter the event bars use, so a bar and the day circle above it sit on one track:
 
 ```css
 .weekCell { height: 32px; color: #a09080; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
-.cell     { height: var(--animal-calendar-cell-height); padding: 0 4px; box-sizing: border-box;
+.cell     { height: var(--animal-calendar-cell-height); padding: 5px 5px 0; box-sizing: border-box;
             vertical-align: top; border-radius: 12px; cursor: pointer; }
 .cell:hover           { background: #f4f0e4; }                      /* the whole cell, not just the number */
+.cell:hover .dayNumber { color: #5a4530; font-weight: 700; }        /* hover darkens the digit; it never turns teal */
 .cell:focus-visible   { outline: 2px solid var(--animal-calendar-accent); outline-offset: -2px; }
 .cellSelected         { background: var(--animal-calendar-accent-tint); }
 .dayNumber            { width: 1em; height: 1em; border-radius: 50%; line-height: 1em; text-align: center;
@@ -793,7 +797,7 @@ side gutter the event bars use, so a bar and the day circle above it sit on one 
 .cellToday   .dayNumber { box-shadow: inset 0 0 0 1.5px var(--animal-calendar-accent);
                           color: var(--animal-calendar-accent); font-weight: 700; }
 .cellSelected .dayNumber { background: var(--animal-calendar-accent); box-shadow: none; color: #fff; font-weight: 700; }
-.more  { padding: 1px 5px; border-radius: 8px; font-size: 10px; font-weight: 700;   /* the +N fold */
+.more  { margin: 2px 0 6px; padding: 1px 5px; border-radius: 8px; font-size: 10px; font-weight: 700;   /* the +N fold */
          background: var(--animal-calendar-accent-soft); color: var(--animal-calendar-accent); }
 ```
 
@@ -802,11 +806,11 @@ values. It deliberately does **not** use `grid-column`: the bars are absolutely 
 layout and a grid placement would be ignored.
 
 ```css
-.eventsLayer { position: absolute; inset: 0; pointer-events: none; }
+.eventsLayer { position: absolute; inset: 8px; pointer-events: none; }   /* matches .body's padding, so bars track the columns */
 .event { position: absolute;
          top: var(--animal-calendar-bar-top);   /* header + week × cell + number band + row × row-height + half a row */
-         left: var(--animal-calendar-bar-left);    /* (100% / 7) × column + 4px — the same 4px gutter as .cell */
-         width: var(--animal-calendar-bar-width);  /* (100% / 7) × span − 8px */
+         left: var(--animal-calendar-bar-left);    /* (100% / 7) × column + 5px — the same 5px gutter as .cell */
+         width: var(--animal-calendar-bar-width);  /* (100% / 7) × span − 10px */
          height: var(--animal-calendar-bar-height); margin: 0; padding: 0 6px;
          transform: translateY(-50%);   /* top points at the row start; this centres the bar in it */
          border-radius: 10px; font-size: calc(11px * var(--animal-calendar-scale, 1)); font-weight: 600;

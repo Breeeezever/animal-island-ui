@@ -52,7 +52,6 @@ const TimeDemo: React.FC = () => (
                 --animal-font-size-sm: 15px;
 
                 background: linear-gradient(160deg, #0f4c46 0%, #137f74 55%, #19c8b9 100%);
-                border: 2px dashed #ffd166;
                 border-radius: 28px;
                 padding: 24px 36px 18px;
                 box-shadow: 0 14px 30px rgba(15, 76, 70, 0.28);
@@ -81,7 +80,6 @@ const TimeDemo: React.FC = () => (
     --animal-font-size-sm: 15px;
 
     background: linear-gradient(160deg, #0f4c46 0%, #137f74 55%, #19c8b9 100%);
-    border: 2px dashed #ffd166;
     border-radius: 28px;
     padding: 24px 36px 18px;
     box-shadow: 0 14px 30px rgba(15, 76, 70, 0.28);

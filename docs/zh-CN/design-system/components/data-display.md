@@ -757,24 +757,28 @@ interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefi
     --animal-calendar-bar-height: calc(17px * var(--animal-calendar-scale, 1));
 }
 
-.body   { position: relative; padding-bottom: calc(var(--animal-calendar-row-height) * 2 + 6px);
-          border: 1.5px solid #e8dcc8; border-radius: 20px; background: #fffdf7;
+.body   { position: relative; padding: 8px 8px calc(var(--animal-calendar-row-height) * 2 + 6px + 8px);
+          border: 1.5px solid #e8dcc8; border-radius: 20px;
+          background: radial-gradient(circle, rgba(196,184,158,0.15) 1.1px, transparent 1.1px) 0 0 / 28px 28px,
+                      radial-gradient(circle, rgba(196,184,158,0.1) 0.8px, transparent 0.8px) 7px 7px / 14px 14px,
+                      #fffdf7;   /* 奶油底 + 两层错位波点；下方内边距仍为 2 行事项带预留 */
           box-shadow: 0 6px 18px rgba(61, 52, 40, 0.12); }
 .monthLabel { padding: 4px 12px; border-radius: 12px; background: #fffbe7; /* 与 DatePicker 的导航标签同款胶囊 */
               color: #725d42; font-size: 15px; font-weight: 700; }
 .navBtn { width: 28px; height: 28px; border-radius: 10px; color: #a0936e;   /* 14px / 16px 箭头 */
-          /* hover */ background: var(--animal-calendar-accent-tint); color: var(--animal-calendar-accent); }
+          /* hover */ background: rgba(114, 93, 66, 0.1); color: var(--animal-calendar-accent); }
 .todayBtn { padding: 4px 12px; border-radius: 10px; color: #8a7b66; font-size: 13px; font-weight: 700;
             /* hover */ background: rgba(114, 93, 66, 0.1); color: #725d42; }
 ```
 
-**日期网格** —— 单个 `<table role="grid">`，7 等分列 × 6 周（恒定 42 格，含上下月日期并置灰）。每格高度为 `--animal-calendar-cell-height`，并带与事项条相同的左右 4px 内边距，因此事项条与它上方的日期圆落在同一条轨道上：
+**日期网格** —— 单个 `<table role="grid">`，7 等分列 × 6 周（恒定 42 格，含上下月日期并置灰）。每格高度为 `--animal-calendar-cell-height`，并带与事项条相同的左右 5px 内边距，因此事项条与它上方的日期圆落在同一条轨道上：
 
 ```css
 .weekCell { height: 32px; color: #a09080; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
-.cell     { height: var(--animal-calendar-cell-height); padding: 0 4px; box-sizing: border-box;
+.cell     { height: var(--animal-calendar-cell-height); padding: 5px 5px 0; box-sizing: border-box;
             vertical-align: top; border-radius: 12px; cursor: pointer; }
 .cell:hover           { background: #f4f0e4; }                      /* 整个格子，不只是数字 */
+.cell:hover .dayNumber { color: #5a4530; font-weight: 700; }        /* hover 时数字转深棕，绝不转青绿 */
 .cell:focus-visible   { outline: 2px solid var(--animal-calendar-accent); outline-offset: -2px; }
 .cellSelected         { background: var(--animal-calendar-accent-tint); }
 .dayNumber            { width: 1em; height: 1em; border-radius: 50%; line-height: 1em; text-align: center;
@@ -783,18 +787,18 @@ interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefi
 .cellToday   .dayNumber { box-shadow: inset 0 0 0 1.5px var(--animal-calendar-accent);
                           color: var(--animal-calendar-accent); font-weight: 700; }
 .cellSelected .dayNumber { background: var(--animal-calendar-accent); box-shadow: none; color: #fff; font-weight: 700; }
-.more  { padding: 1px 5px; border-radius: 8px; font-size: 10px; font-weight: 700;   /* +N 折叠 */
+.more  { margin: 2px 0 6px; padding: 1px 5px; border-radius: 8px; font-size: 10px; font-weight: 700;   /* +N 折叠 */
          background: var(--animal-calendar-accent-soft); color: var(--animal-calendar-accent); }
 ```
 
 **事项条** —— 事项层绝对定位覆盖整张卡片，组件为每条事项下发三个算好的值。这里**刻意不用** `grid-column`：事项条是绝对定位元素，已经脱离网格布局，写网格定位不会生效。
 
 ```css
-.eventsLayer { position: absolute; inset: 0; pointer-events: none; }
+.eventsLayer { position: absolute; inset: 8px; pointer-events: none; }   /* 与 .body 的内边距一致，事项条才对得上列 */
 .event { position: absolute;
          top: var(--animal-calendar-bar-top);   /* 表头 + 周序 × 单元格 + 日期数字带 + 事项行序 × 行高 + 半行 */
-         left: var(--animal-calendar-bar-left);    /* (100% / 7) × 列序 + 4px —— 与 .cell 同一个 4px 内边距 */
-         width: var(--animal-calendar-bar-width);  /* (100% / 7) × 跨列数 − 8px */
+         left: var(--animal-calendar-bar-left);    /* (100% / 7) × 列序 + 5px —— 与 .cell 同一个 5px 内边距 */
+         width: var(--animal-calendar-bar-width);  /* (100% / 7) × 跨列数 − 10px */
          height: var(--animal-calendar-bar-height); margin: 0; padding: 0 6px;
          transform: translateY(-50%);   /* top 指向行首，这里把条在行内垂直居中 */
          border-radius: 10px; font-size: calc(11px * var(--animal-calendar-scale, 1)); font-weight: 600;
