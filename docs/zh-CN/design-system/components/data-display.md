@@ -822,8 +822,9 @@ interface CountUpProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'prefi
 
 ## TimePicker
 
-时间弹出选择器；值为纯 `HH:mm:ss` 字符串。挂钟时间不依附于某个日历日期，因此面板完全不需要日期库（见 [ADR 0005](../../adr/0005-dayjs-as-the-date-layer.md)）。触发区沿用 Input 视觉规格（奶油胶囊、
-无边框）；面板为 时 / 分 / 秒 三列滚选 + 底部按钮。
+时间弹出选择器；值为纯 `HH:mm:ss` 字符串。值仍然不带日期，但解析、格式化与序列化在内部固定锚点日期（`2000-01-01`）上走 dayjs，因此 `format` 与 DatePicker、Time 使用同一种语言（见 [ADR 0007](../../adr/0007-timepicker-date-layer.md)）。触发区沿用 Input 视觉规格（奶油胶囊、无边框）；面板为 时 / 分 / 秒 三列滚选 + 底部按钮。
+
+**`format` token。** dayjs 核心时间 token（`HH` / `mm` / `ss` / `h` / `A` 等）与 `[字面量]` 转义会展开，插件 token 保持字面量。只有时间 token 有意义 —— 值不携带日历日期，日期 token 会渲染内部锚点 `2000-01-01`。`ss` 决定是否显示秒列。
 
 **触发区（对齐 Input）：**
 

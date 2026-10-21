@@ -849,9 +849,14 @@ event. The drag commits on release anywhere inside the panel, header included; r
 
 ## TimePicker
 
-Time popup selector; value is a plain `HH:mm:ss` string. A wall-clock time is not attached to a calendar date, so the
-panel needs no date library at all (see [ADR 0005](../../adr/0005-dayjs-as-the-date-layer.md)). The trigger follows the
-Input visual spec (cream pill, no border); the panel holds three scrollable columns (时 / 分 / 秒) plus a footer.
+Time popup selector; value is a plain `HH:mm:ss` string. The value is still date-free, but parsing, formatting and
+serialization go through dayjs on a fixed internal anchor date (`2000-01-01`), so `format` speaks the same language
+as DatePicker and Time (see [ADR 0007](../../adr/0007-timepicker-date-layer.md)). The trigger follows the Input visual
+spec (cream pill, no border); the panel holds three scrollable columns (时 / 分 / 秒) plus a footer.
+
+**`format` tokens.** dayjs core time tokens (`HH` / `mm` / `ss` / `h` / `A` …) and `[literal]` escapes render;
+plugin tokens stay literal. Only time tokens are meaningful — the value carries no calendar date, and a date token
+renders the internal anchor `2000-01-01`. `ss` controls whether the seconds column is shown.
 
 **Trigger (matches Input):**
 
