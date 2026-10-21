@@ -160,6 +160,14 @@ describe('TimePicker', () => {
             expect(screen.getByRole('button', { name: '10 时' })).toBeInTheDocument();
             expect(screen.getByRole('dialog')).toHaveClass(styles.panelNoSeconds);
         });
+
+        it('方括号字面量里的 ss 不显示秒列', async () => {
+            const user = setup();
+            render(<TimePicker format="HH:mm [ss]" />);
+            await user.click(screen.getByRole('combobox'));
+            expect(screen.queryByRole('button', { name: '45 秒' })).not.toBeInTheDocument();
+            expect(screen.getByRole('dialog')).toHaveClass(styles.panelNoSeconds);
+        });
     });
 
     describe('键盘交互', () => {

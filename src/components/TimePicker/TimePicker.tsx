@@ -85,8 +85,8 @@ const toValue = (part: TimePart) => toDayjs(part).format('HH:mm:ss');
 /** 按 dayjs 模板格式化时间 */
 const formatTime = (part: TimePart, format: string) => toDayjs(part).format(format);
 
-/** 面板是否展示秒列：format 包含 ss */
-const hasSeconds = (format: string) => format.includes('ss');
+/** 面板是否展示秒列：format 中未转义的 ss */
+const hasSeconds = (format: string) => format.replace(/\[[^\]]*]/g, '').includes('ss');
 
 /** 关闭退场动画时长，与 .panel 的 0.2s 过渡保持一致，动画结束后再卸载面板 */
 const CLOSE_ANIMATION_MS = 200;
