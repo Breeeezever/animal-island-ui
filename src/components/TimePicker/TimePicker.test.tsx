@@ -20,6 +20,31 @@ describe('TimePicker', () => {
             expect(screen.getByText('09时08分')).toBeInTheDocument();
         });
 
+        it('format 支持 dayjs 核心时间 token', () => {
+            render(<TimePicker value="09:08:07" format="h:mm A" />);
+            expect(screen.getByText('9:08 AM')).toBeInTheDocument();
+        });
+
+        it('format 支持方括号字面量', () => {
+            render(<TimePicker value="09:08:07" format="[此刻] HH:mm" />);
+            expect(screen.getByText('此刻 09:08')).toBeInTheDocument();
+        });
+
+        it('解析兼容 1–2 位字段', () => {
+            render(<TimePicker value="9:08:7" />);
+            expect(screen.getByText('09:08:07')).toBeInTheDocument();
+        });
+
+        it('解析兼容省略秒', () => {
+            render(<TimePicker value="9:08" />);
+            expect(screen.getByText('09:08:00')).toBeInTheDocument();
+        });
+
+        it('越界的时分秒回退到占位文本', () => {
+            render(<TimePicker value="24:00:00" />);
+            expect(screen.getByText('请选择时间')).toBeInTheDocument();
+        });
+
         it('非法 value 回退到占位文本', () => {
             render(<TimePicker value="not-a-time" />);
             expect(screen.getByText('请选择时间')).toBeInTheDocument();
