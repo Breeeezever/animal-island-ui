@@ -45,6 +45,7 @@ A lightweight React + TypeScript component library with an original, cozy island
 
 - Icons (**naive-icons**): <https://github.com/guokaigdg/naive-icons>
 - Vue version (**animal-island-vue**): <https://github.com/guokaigdg/animal-island-vue>
+- WeChat Mini Program version (**animal-island-wx**, community port — native WXML/WXSS with no runtime dependency, 43 components): <https://github.com/lns567/animal-island-wx>
 
 ## Use AI to Generate animal-island-ui Pages
 
