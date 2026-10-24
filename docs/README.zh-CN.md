@@ -44,6 +44,7 @@
 
 - 图标（**naive-icons**）：<https://github.com/guokaigdg/naive-icons>
 - Vue 版本（**animal-island-vue**）：<https://github.com/guokaigdg/animal-island-vue>
+- 微信小程序版本（**animal-island-wx**，社区移植，原生 WXML/WXSS、零运行时依赖，43 个组件）：<https://github.com/lns567/animal-island-wx>
 
 ## 用 AI 工具生成 animal-island-ui 风格页面
 
