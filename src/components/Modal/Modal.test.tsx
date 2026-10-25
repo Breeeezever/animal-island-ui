@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { Modal } from './Modal';
+import styles from './modal.module.less';
 
 describe('Modal', () => {
     it('open=false 不渲染', () => {
@@ -255,6 +256,34 @@ describe('Modal', () => {
             });
             await user.tab({ shift: true });
             expect(screen.getByTestId('b2')).toHaveFocus();
+        });
+    });
+
+    describe('文本选区', () => {
+        it('弹窗 chrome 不可选中（遮罩 / 标题 / 底部按钮区）', () => {
+            render(
+                <Modal open title="岛屿设置" typewriter={false}>
+                    <p>正文内容</p>
+                </Modal>
+            );
+            const dialog = screen.getByRole('dialog');
+            const mask = dialog.parentElement!;
+            const title = screen.getByText('岛屿设置');
+            const footer = dialog.querySelector(`.${styles.footer}`)!;
+
+            expect(getComputedStyle(mask).userSelect).toBe('none');
+            expect(getComputedStyle(title).userSelect).toBe('none');
+            expect(getComputedStyle(footer).userSelect).toBe('none');
+        });
+
+        it('内容区仍可选中（用户要能复制弹窗里的文字）', () => {
+            render(
+                <Modal open title="t" typewriter={false}>
+                    <p>正文内容</p>
+                </Modal>
+            );
+            const body = screen.getByRole('dialog').querySelector(`.${styles.body}`)!;
+            expect(getComputedStyle(body).userSelect).toBe('text');
         });
     });
 });

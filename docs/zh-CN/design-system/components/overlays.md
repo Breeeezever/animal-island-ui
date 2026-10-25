@@ -47,6 +47,7 @@
 background: rgba(0, 0, 0, 0.35);
 animation: animal-fade-in 0.25s ease;
 z-index: 1000;
+user-select: none; /* chrome — never hosts a selection */
 
 /* modal container */
 max-width: calc(100vw - 32px);
@@ -68,6 +69,7 @@ font-size: 28px;
 font-weight: 700;
 color: rgba(114, 93, 66, 1);
 padding-bottom: 15px;
+user-select: none;
 
 /* close button */
 width: 32px;
@@ -76,6 +78,7 @@ font-size: 22px;
 color: rgba(114, 93, 66, 0.6);
 border-radius: 50%;
 transition: all 0.2s;
+user-select: none;
 /* hover */
 background: rgba(114, 93, 66, 0.1);
 color: rgba(114, 93, 66, 1);
@@ -86,9 +89,11 @@ font-weight: 600;
 line-height: 1.6;
 color: #8a7b66;
 padding-bottom: 20px;
+user-select: text; /* content stays copyable */
 
 /* footer */
 gap: 12px;
+user-select: none;
 
 /* normal button */
 height: 40px;
@@ -111,6 +116,8 @@ background: rgba(255, 204, 0, 0.85);
 border-color: rgba(255, 204, 0, 0.85);
 ```
 
+**弹窗 chrome 不可选中，只有内容区可选。** 遮罩、标题行、标题、关闭 × 与底部按钮区均为 `user-select: none`，内容区为 `user-select: text`（正文仍可复制）。不这么设的话，双击标题会选中一个词，暖黄 `::selection` 会在弹窗里涂出一块莫名的高亮。
+
 ## Drawer（下沉景深）
 
 **下沉景深抽屉 — 背景下沉 + 缩放 + 降亮突出主体。**
@@ -118,6 +125,7 @@ border-color: rgba(255, 204, 0, 0.85);
 - `pushBackground`（默认 `true`）：打开时，`document.body` 下每个非 fixed 的直接子元素施加 `transform: scale(0.94)`、`border-radius: 14px`、`overflow: hidden`，过渡 `0.36s cubic-bezier(0.2, 0, 0.2, 1)`。fixed 定位元素、`[data-animal-drawer-ignore]` 节点以及组件自身的 portal 包裹器都会被排除。
 - 被下沉的背景**刻意不加 `filter`**。`filter` 是非合成器属性：它会为每个背景元素新建合成层，并对整个视口做逐像素高斯模糊，症状就是**首次打开卡顿**（此时各层需要从零光栅化），而之后打开却很顺。景深读数由 `scale` + 圆角 + 遮罩压暗承担。同时在过渡开始前加 `will-change: transform`，让分层提前完成而不是发生在动画中途。
 - `prefers-reduced-motion: reduce` 下**同时**关闭背景下沉（缩放位移）与面板自身的 `translateX/Y(±100%) → none` 滑入，与 `Modal` 关闭 `scale(0.92) → scale(1)` 缩放入场保持一致。面板直接落位，不会停在中间帧或不可见。遮罩的 opacity 过渡不属于位移动效，予以保留。
+- **面板 chrome 不可选中，只有内容区可选。** 遮罩、标题行、标题、关闭 × 与底部按钮区均为 `user-select: none`，内容区为 `user-select: text`（正文仍可复制）。不这么设的话，双击标题会选中一个词；双击触发按钮打开抽屉时，第二击会落在正在滑入的面板上并落下一块选区 —— 暖黄 `::selection` 于是把弹窗里涂出一块莫名的高亮。
 
 ```css
 /* mask — light black (0.18), lighter than Modal so the recessed background stays visible (key to the depth effect) */
@@ -126,6 +134,7 @@ inset: 0;
 z-index: 1000;
 background: rgba(0, 0, 0, 0.18);
 animation: animal-drawer-fade-in 0.25s ease;
+user-select: none; /* chrome — never hosts a selection */
 
 /* panel (shared) */
 position: fixed;
@@ -164,12 +173,14 @@ animation-name: animal-drawer-slide-bottom; /* translateY(100%) → 0 */
 font-size: 28px;
 font-weight: 700;
 color: rgba(114, 93, 66, 1);
+user-select: none;
 
 /* close button × */
 width: 32px; height: 32px;
 font-size: 22px;
 color: rgba(114, 93, 66, 0.6);
 border-radius: 50%;
+user-select: none;
 /* hover */
 background: rgba(114, 93, 66, 0.1);
 color: rgba(114, 93, 66, 1);
@@ -180,10 +191,12 @@ font-weight: 600;
 line-height: 1.6;
 color: #8a7b66;
 padding: 0 24px 24px 24px;
+user-select: text; /* content stays copyable */
 
 /* footer */
 gap: 12px;
 padding: 0 24px 24px 24px;
+user-select: none;
 ```
 
 **背景下沉（JS 注入到 body 非固定子元素的 inline style）：**

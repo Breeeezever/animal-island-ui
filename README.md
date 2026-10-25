@@ -15,11 +15,12 @@ A cozy React UI component library
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square" alt="License: MIT"></a>
     <a href="https://www.npmjs.com/package/animal-island-ui"><img src="https://img.shields.io/npm/dm/animal-island-ui.svg?style=flat-square" alt="Weekly downloads"></a>
     <a href="https://www.npmjs.com/package/animal-island-ui"><img src="https://img.shields.io/npm/v/animal-island-ui?label=version&style=flat-square" alt="Version"></a>
-    <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
+    <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
     <br/>
     <a href="./coverage/badges/coverage.json"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/guokaigdg/animal-island-ui/main/coverage/badges/coverage.json&style=flat-square" alt="Coverage"></a>
     <img src="https://img.shields.io/badge/components-40-blue?style=flat-square" alt="Components">
-    <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
+    <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
+    <a href="https://repolode.com/en/repo/guokaigdg/animal-island-ui" target="_blank" rel="noopener noreferrer"><img src="https://repolode.com/badge/guokaigdg/animal-island-ui" alt="Featured on Repolode"/></a>
 </div>
 <br/>
 <div align="center">
@@ -45,7 +46,7 @@ A lightweight React + TypeScript component library with an original, cozy island
 
 - Icons (**naive-icons**): <https://github.com/guokaigdg/naive-icons>
 - Vue version (**animal-island-vue**): <https://github.com/guokaigdg/animal-island-vue>
-- WeChat Mini Program version (**animal-island-wx**, community port — native WXML/WXSS with no runtime dependency, 43 components): <https://github.com/lns567/animal-island-wx>
+- WeChat Mini Program version (**animal-island-wx**): <https://github.com/lns567/animal-island-wx>
 
 ## Use AI to Generate animal-island-ui Pages
 

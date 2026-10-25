@@ -324,4 +324,34 @@ describe('Drawer', () => {
             expect(screen.getByTestId('b2')).toHaveFocus();
         });
     });
+
+    describe('文本选区', () => {
+        it('面板 chrome 不可选中（遮罩 / 标题 / 关闭按钮 / 底部按钮区）', () => {
+            render(
+                <Drawer open title="岛屿设置" footer={<button>确定</button>}>
+                    <p data-testid="para">正文内容</p>
+                </Drawer>
+            );
+            const dialog = screen.getByRole('dialog');
+            const mask = dialog.parentElement!;
+            const title = screen.getByText('岛屿设置');
+            const closeBtn = screen.getByLabelText('关闭');
+            const footer = dialog.querySelector(`.${styles.footer}`)!;
+
+            expect(getComputedStyle(mask).userSelect).toBe('none');
+            expect(getComputedStyle(title).userSelect).toBe('none');
+            expect(getComputedStyle(closeBtn).userSelect).toBe('none');
+            expect(getComputedStyle(footer).userSelect).toBe('none');
+        });
+
+        it('内容区仍可选中（用户要能复制抽屉里的文字）', () => {
+            render(
+                <Drawer open title="t">
+                    <p data-testid="para">正文内容</p>
+                </Drawer>
+            );
+            const body = screen.getByRole('dialog').querySelector(`.${styles.body}`)!;
+            expect(getComputedStyle(body).userSelect).toBe('text');
+        });
+    });
 });

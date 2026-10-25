@@ -10,17 +10,20 @@
 一款治愈系风格的 React UI 组件库
 </div>
 <br/>
+
 <div align="center">
     <a href="https://github.com/guokaigdg/animal-island-ui/stargazers"><img src="https://img.shields.io/github/stars/guokaigdg/animal-island-ui?style=flat-square" alt="Stars"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square" alt="License: MIT"></a>
     <a href="https://www.npmjs.com/package/animal-island-ui"><img src="https://img.shields.io/npm/dm/animal-island-ui.svg?style=flat-square" alt="Weekly downloads"></a>
     <a href="https://www.npmjs.com/package/animal-island-ui"><img src="https://img.shields.io/npm/v/animal-island-ui?label=version&style=flat-square" alt="Version"></a>
-    <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
+    <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
     <br/>
     <a href="../coverage/badges/coverage.json"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/guokaigdg/animal-island-ui/main/coverage/badges/coverage.json&style=flat-square" alt="Coverage"></a>
     <img src="https://img.shields.io/badge/components-40-blue?style=flat-square" alt="Components">
-    <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
+    <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
+    <a href="https://repolode.com/en/repo/guokaigdg/animal-island-ui" target="_blank" rel="noopener noreferrer"><img src="https://repolode.com/badge/guokaigdg/animal-island-ui" alt="Featured on Repolode"/></a>
 </div>
+
 <br/>
 <div align="center">
     <a href="https://trendshift.io/repositories/34594?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-34594" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/34594/daily?language=TypeScript" alt="guokaigdg%2Fanimal-island-ui | Trendshift" width="250" height="55"/></a>
@@ -44,7 +47,7 @@
 
 - 图标（**naive-icons**）：<https://github.com/guokaigdg/naive-icons>
 - Vue 版本（**animal-island-vue**）：<https://github.com/guokaigdg/animal-island-vue>
-- 微信小程序版本（**animal-island-wx**，社区移植，原生 WXML/WXSS、零运行时依赖，43 个组件）：<https://github.com/lns567/animal-island-wx>
+- 微信小程序版本（**animal-island-wx**）：<https://github.com/lns567/animal-island-wx>
 
 ## 用 AI 工具生成 animal-island-ui 风格页面
 
