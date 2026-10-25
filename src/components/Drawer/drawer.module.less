@@ -11,6 +11,8 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.36s ease;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .maskOpen {
@@ -93,18 +95,25 @@
 // ============================================
 // Header
 // ============================================
+// 标题行是 chrome：双击标题会选词，且 × 按钮的字面量 "×" 在 JSX 里独占一行，
+// 渲染成 " × " —— 双击时选中的是那圈空白，叠加 cursor.css 的暖黄 ::selection
+// 就是面板里凭空一块高亮。header 一并置 none，标题/按钮的规则随后各自再声明一次。
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 24px 24px 15px 24px;
     flex-shrink: 0;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .title {
     font-size: 28px;
     font-weight: 700;
     color: rgba(114, 93, 66, 1);
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .close {
@@ -121,6 +130,8 @@
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
 
     &:hover {
         background: rgba(114, 93, 66, 0.1);
@@ -131,6 +142,7 @@
 // ============================================
 // Body
 // ============================================
+// 内容区是给用户看/复制的，必须显式写回 text：.mask 上的 none 会继承下来。
 .body {
     flex: 1;
     overflow-y: auto;
@@ -139,6 +151,8 @@
     font-weight: 600;
     line-height: 1.6;
     color: #8a7b66;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 // ============================================
@@ -151,4 +165,14 @@
     gap: 12px;
     padding: 0 24px 24px 24px;
     flex-shrink: 0;
+    // 按钮区同属 chrome。但表单控件要保留自己的文本可选（继承 none 会让
+    // input/textarea 里的内容选不中），所以单独把它们写回 text。
+    user-select: none;
+    -webkit-user-select: none;
+
+    input,
+    textarea {
+        user-select: text;
+        -webkit-user-select: text;
+    }
 }

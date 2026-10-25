@@ -47,6 +47,7 @@ Exact values for the layered surfaces that sit above page content: Modal, Drawer
 background: rgba(0, 0, 0, 0.35);
 animation: animal-fade-in 0.25s ease;
 z-index: 1000;
+user-select: none; /* chrome — never hosts a selection */
 
 /* modal container */
 max-width: calc(100vw - 32px);
@@ -68,6 +69,7 @@ font-size: 28px;
 font-weight: 700;
 color: rgba(114, 93, 66, 1);
 padding-bottom: 15px;
+user-select: none;
 
 /* close button */
 width: 32px;
@@ -76,6 +78,7 @@ font-size: 22px;
 color: rgba(114, 93, 66, 0.6);
 border-radius: 50%;
 transition: all 0.2s;
+user-select: none;
 /* hover */
 background: rgba(114, 93, 66, 0.1);
 color: rgba(114, 93, 66, 1);
@@ -86,9 +89,11 @@ font-weight: 600;
 line-height: 1.6;
 color: #8a7b66;
 padding-bottom: 20px;
+user-select: text; /* content stays copyable */
 
 /* footer */
 gap: 12px;
+user-select: none;
 
 /* normal button */
 height: 40px;
@@ -111,6 +116,8 @@ background: rgba(255, 204, 0, 0.85);
 border-color: rgba(255, 204, 0, 0.85);
 ```
 
+**Modal chrome is not selectable; only the body is.** The mask, header, title, close × and footer carry `user-select: none`; the body carries `user-select: text` so content stays copyable. Without this, double-clicking the title selects a word, and the warm `::selection` colour paints a stray highlight inside the popup.
+
 ## Drawer (recessed depth-of-field)
 
 **Recessed depth-of-field drawer — the background sinks, scales down and dims to push the panel forward.**
@@ -118,6 +125,7 @@ border-color: rgba(255, 204, 0, 0.85);
 - `pushBackground` (default `true`): on open, every non-fixed direct child of `document.body` gets `transform: scale(0.94)`, `border-radius: 14px` and `overflow: hidden` over `0.36s cubic-bezier(0.2, 0, 0.2, 1)`. Fixed-position elements, `[data-animal-drawer-ignore]` nodes and the component's own portal wrapper are excluded.
 - The pushed background deliberately carries **no `filter`**. `filter` is a non-composited property — it forces a fresh composited layer and a per-pixel gaussian blur across the viewport for each background element, so the *first* open stalls while the layers are rasterized from scratch and later opens feel fine. The depth read comes from `scale` + rounded corners + the dimming mask. `will-change: transform` is applied before the transition starts so layer promotion does not happen mid-animation.
 - `prefers-reduced-motion: reduce` disables **both** the background push (the sunken translate/scale) **and** the panel's own `translateX/Y(±100%) → none` slide-in, matching `Modal`, which drops its `scale(0.92) → scale(1)` zoom-in. The panel lands directly on its final transform — it never stops mid-flight or invisible. The mask's opacity transition is not motion and is kept.
+- **Panel chrome is not selectable; only the body is.** The mask, header, title, close × and footer carry `user-select: none`; the body carries `user-select: text` so content stays copyable. Without this, double-clicking the title selects a word, and double-clicking the trigger to open the drawer drops a selection onto the sliding-in panel — the warm `::selection` colour then paints a stray highlight inside the popup.
 
 ```css
 /* mask — light black (0.18), lighter than Modal so the recessed background stays visible (key to the depth effect) */
@@ -126,6 +134,7 @@ inset: 0;
 z-index: 1000;
 background: rgba(0, 0, 0, 0.18);
 animation: animal-drawer-fade-in 0.25s ease;
+user-select: none; /* chrome — never hosts a selection */
 
 /* panel (shared) */
 position: fixed;
@@ -164,12 +173,14 @@ animation-name: animal-drawer-slide-bottom; /* translateY(100%) → 0 */
 font-size: 28px;
 font-weight: 700;
 color: rgba(114, 93, 66, 1);
+user-select: none;
 
 /* close button × */
 width: 32px; height: 32px;
 font-size: 22px;
 color: rgba(114, 93, 66, 0.6);
 border-radius: 50%;
+user-select: none;
 /* hover */
 background: rgba(114, 93, 66, 0.1);
 color: rgba(114, 93, 66, 1);
@@ -180,10 +191,12 @@ font-weight: 600;
 line-height: 1.6;
 color: #8a7b66;
 padding: 0 24px 24px 24px;
+user-select: text; /* content stays copyable */
 
 /* footer */
 gap: 12px;
 padding: 0 24px 24px 24px;
+user-select: none;
 ```
 
 **Background recession (injected by JS into the inline style of every non-fixed child of `body`):**
