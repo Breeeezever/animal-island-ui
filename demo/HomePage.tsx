@@ -430,6 +430,7 @@ const features: Array<{ icon: string; title: string; desc: string }> = [
 ];
 
 const components = [
+    { key: 'charts', name: 'Chart', desc: '19 种海岛统计图，趋势、占比、分布、仪表盘与地图' },
     { key: 'input', name: 'Input', desc: '前后缀、一键清空、校验状态' },
     {
         key: 'form',
@@ -460,6 +461,7 @@ const components = [
         desc: '命令式通知，4 种 type × 6 个 position',
     },
     { key: 'loading', name: 'Loading', desc: '全屏落雪，结束渐变消失' },
+    { key: 'no-data', name: 'NoData', desc: '海岛空态、搜索无结果、自定义文案与恢复操作' },
     { key: 'card', name: 'Card', desc: '默认/标题两种卡片风格' },
     { key: 'codeblock', name: 'CodeBlock', desc: '代码语法高亮组件' },
     { key: 'background', name: 'Background', desc: '奶油/深绿波点 + 彩色针糖 + 12 色 Card pattern 底色壁纸' },

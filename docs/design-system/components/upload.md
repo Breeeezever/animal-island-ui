@@ -6,9 +6,21 @@ File upload with a cream-capsule trigger (text mode) or a dashed drop zone (`dra
 
 ## props
 
+`progress` defaults to `false`, preserving the original spinner and percentage. Passing an object enables progress: `type="bar"` (the object default) reuses small 14px Progress, 6px below the filename in text / picture rows with 11px info; picture cards have 8px side insets and white percentage text above the bar. `type="background"` fills the entire file-item background left-to-right according to percentage without an extra bar. The fill uses `var(--animal-primary-color, #19c8b9)` with opacity 0.28 and clips to the item radius; picture cards use a cream mask at opacity 0.88 to keep text readable. Both modes support `color / wave / animated / showInfo / duration`, follow `file.percent` (missing or NaN becomes 0, clamped to 0–100), and appear only while uploading. The background progress node stays separate from action buttons and has a file-specific accessible name; reduced motion stops waves and width transitions.
+
+```tsx
+<Upload progress={{ type: 'background', wave: true }} />
+<Upload progress={{ type: 'bar', wave: true, color: '#82d5bb' }} />
+<Upload /> // original spinner and percentage
+```
+
 ```ts
 type UploadFileStatus = 'uploading' | 'done' | 'error' | 'removed';
 type UploadListType = 'text' | 'picture' | 'picture-card';
+type UploadProgressType = 'bar' | 'background';
+interface UploadProgressConfig extends Pick<ProgressProps, 'color' | 'wave' | 'animated' | 'showInfo' | 'duration'> {
+    type?: UploadProgressType; // default 'bar'
+}
 
 interface UploadFile {
     uid: string;              // unique id, tracked internally
@@ -44,6 +56,7 @@ interface UploadProps {
     defaultFileList?: UploadFile[];
     listType?: UploadListType;  // default 'text'
     showUploadList?: boolean | UploadShowUploadList; // default true
+    progress?: false | UploadProgressConfig;
     onPreview?: (file: UploadFile) => void; // click preview (picture / picture-card thumb / text image)
     drag?: boolean;             // default false
     tip?: React.ReactNode;
@@ -153,7 +166,7 @@ The zone carries the arrow-up icon at 1.5× scale and the caption `点击或拖�
 .removeBtn:hover { background: rgba(0, 0, 0, 0.14); color: #e05a5a; }
 ```
 
-Row anatomy: file icon · name (ellipsis) · size · status (spinner+% / ✓ / ⚠) · remove `×`.
+Row anatomy: file icon · name (ellipsis) · size · status (✓ / ⚠; spinner+% by default) · remove `×`.
 
 ## Picture-card list
 
@@ -197,7 +210,7 @@ Row anatomy: file icon · name (ellipsis) · size · status (spinner+% / ✓ / �
 - **`onRemove` returning `false` (or rejecting/throwing) blocks the removal** — a thrown hook is logged with `console.error` so a no-op delete button is debuggable. Removing clears any pending simulated timer, aborts the in-flight XHR, and revokes the ObjectURL the component created for that file; all timers and URLs are cleaned up on unmount. When controlled, the ObjectURL is *not* revoked at remove time — the external `fileList` may only drop the item after an async round trip, and revoking first would leave a broken thumbnail on screen; the controlled diff releases it as soon as the item actually disappears.
 - **`maxCount`** follows these semantics. `maxCount={1}` replaces: the new file takes the single slot and the previous one is dropped. `maxCount > 1` keeps the *earliest* `maxCount` files — once the list is full, newly selected files are discarded and never enter the list, and `onChange` is not fired for them. Use **`onExceed(files, fileList)`** to tell the user why nothing happened: it fires for both files that entered the list and were pushed out, and files that were never processed because the limit was already reached (e.g. three files picked under `maxCount={1}` — one is kept, the other two are reported). It never fires for the `maxCount={1}` replacement of an *older* file, which is a replace, not an excess. `0` or a negative value is treated as no limit. The trigger / add tile stay active in all cases; hiding them is left to the consumer. Dropped files still get their timers/XHR aborted and their ObjectURLs revoked.
 - **`action` / `data` also accept function forms** (`(file) => ...`), sync or async, resolved per file — an OSS direct-upload signature fetched over the network is the typical case, and the result is awaited before the request is built. If the resolved `action` is empty (or resolving it throws), the file is marked `error` instead of hanging at `uploading` / `0%`. `directory` passes `webkitdirectory` through to the hidden input for whole-folder picking.
-- **a11y**: the trigger / drag zone / add tile are real focusable elements labelled `aria-label` (default `上传文件`); each remove and preview button is labelled `删除 <name>` / `预览 <name>` (and is `disabled` when the whole upload is disabled); uploading status is announced via `aria-label="上传中 N%"` on the status icon; the drag zone is `role="button"` with Enter/Space support. The built-in preview layer is `role="dialog" aria-modal="true"`, closes on Escape or backdrop click, moves focus to its close button on open, keeps Tab inside while it is open, locks background scrolling, and returns focus to the opener on close.
+- **a11y**: the trigger / drag zone / add tile are real focusable elements labelled `aria-label` (default `上传文件`); each remove and preview button is labelled `删除 <name>` / `预览 <name>` (and is `disabled` when the whole upload is disabled); uploading progress has `role="progressbar"`, a file-specific accessible name, and `aria-valuenow`; `progress=false` keeps `aria-label="上传中 N%"` on the status icon; the drag zone is `role="button"` with Enter/Space support. The built-in preview layer is `role="dialog" aria-modal="true"`, closes on Escape or backdrop click, moves focus to its close button on open, keeps Tab inside while it is open, locks background scrolling, and returns focus to the opener on close.
 - **Built-in preview layer** shows `thumbUrl ?? url` in a full-screen overlay. If the file disappears from the list while it is open (removed or replaced), the layer closes itself instead of leaving a broken image.
 - `prefers-reduced-motion: reduce` stops the spinner and disables the hover/press transitions.
 - Sizes render through an internal `formatFileSize` helper (`B / KB / MB` with one decimal); it is not part of the public API.

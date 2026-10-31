@@ -1,3 +1,4 @@
+import { OceanWaveDemo } from './OceanWaveDemo';
 import React from 'react';
 import { Divider } from '../../../src';
 import {
@@ -18,9 +19,10 @@ const DIVIDER_API: ApiRow[] = [
     {
         prop: 'type',
         desc: '分隔线类型',
-        type: `'dashed-brown' | 'thin' | 'hairline' | 'wave-yellow' | 'squiggle'`,
+        type: `'dashed-brown' | 'thin' | 'hairline' | 'wave-yellow' | 'squiggle' | 'ocean-wave'`,
         defaultVal: "'dashed-brown'",
     },
+    { prop: 'animated', desc: '播放海浪动画，仅 ocean-wave 生效', type: 'boolean', defaultVal: 'true' },
     {
         prop: 'icon',
         desc: '指定单一图标元素，渲染「图标 + 连接线」相连分割线（与 type 二选一，icon 优先）',
@@ -102,6 +104,7 @@ const App = () => {
 
 export default App;`}
         />
+        <OceanWaveDemo />
         <ApiTable rows={DIVIDER_API} />
     </div>
 );

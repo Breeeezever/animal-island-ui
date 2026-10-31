@@ -187,3 +187,33 @@ line-height: 1.8;
 | CSS variable name          | `#e8c87a`                        |
 | `:root`                    | `#f0a870`                        |
 | Hex color value            | `#8ab8e0`                        |
+
+# Chart navigation
+
+The **图表统计** category follows the component categories at the bottom of the sidebar. Its first entry is **Chart 图表总览** (`#/charts`); the 19 type entries use **English type name + Chinese name** in the order below. Desktop and mobile navigation share this configuration.
+
+| `Chart.type` | Sidebar label |
+| --- | --- |
+| `column` | Column 柱状图 |
+| `bar` | Bar 条状图 |
+| `line` | Line 折线图 |
+| `area` | Area 面积图 |
+| `mount` | Mountain 山峰图 |
+| `mix` | Mixed 混合图 |
+| `pie` | Pie 饼图 |
+| `ring` | Ring 环形图 |
+| `rose` | Rose 玫瑰图 |
+| `radar` | Radar 雷达图 |
+| `scatter` | Scatter 散点图 |
+| `bubble` | Bubble 气泡图 |
+| `arcbar` | ArcBar 圆弧进度 |
+| `gauge` | Gauge 仪表盘 |
+| `funnel` | Funnel 漏斗图 |
+| `word` | WordCloud 词云图 |
+| `candle` | Candlestick K线图 |
+| `time` | TimeSeries 时序图 |
+| `map` | Map 地图统计 |
+
+`demo/chartPages.ts` owns `type`, the Chinese `label`, the English `englishLabel` and `desc`. `demo/App.tsx` combines the two labels for the menu. Type routes remain `#/chart-${type}`; for example, **Mountain 山峰图** opens `#/chart-mount` and renders `<Chart type="mount" series={series} />`. Display names are not API values or exported components. Page headings, overview cards and gallery links continue to use the Chinese `label`.
+
+Chart visuals, interactions and gallery layout are defined in [Chart](components/charts.md).

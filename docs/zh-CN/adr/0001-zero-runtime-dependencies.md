@@ -29,8 +29,8 @@
 ```json
 "peerDependencies": {
     "classnames": "^2.5.1",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
 }
 ```
 
@@ -48,7 +48,7 @@ external: ['react', 'react-dom', 'react/jsx-runtime', 'classnames']
 
 - 安装本库不会带来任何传递依赖。发布的 tarball 就是 `dist/` 加类型垫片。
 - React 版本由宿主应用决定。React 实例唯一，因此 hooks 与 context 能跨边界正常工作，不会踩到「两份 React」的坑。
-- `react` 接受 17 及以上。因此组件库必须避免使用 React 17 之后引入的 API，除非做了保护。
+- `react` 和 `react-dom` 要求 18 及以上，因为组件使用 `useId` 等 React 18 API。不支持 React 17；使用 React 18 之后引入的 API 时，必须提供兼容保护或同步提高 peer 版本范围。
 - 消费者必须安装 `classnames`。npm 7 及以上会自动安装缺失的 peer dependencies，通常无感；使用更老 npm 或严格包管理器（未开 `auto-install-peers` 的 pnpm）的消费者会看到 unmet peer 警告，需要显式添加。
 - 未来任何运行时工具函数，要么内置进 `src/`，要么提升为 peer dependency。新增一条 `dependencies` 就是推翻这个决策，必须以新记录取代本记录。
 - 维护 externals 列表的正确性是 [ADR 0003](0003-vite-library-mode-build.md) 所述构建契约的一部分；删掉其中一项，就会悄无声息地把那个包的副本发给每一个消费者。

@@ -1,5 +1,9 @@
+import { CHART_PAGES } from './chartPages';
 // 独立的轻量页面元信息，供 App 等场景静态导入，避免拉入整个 ComponentPage bundle
 export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
+    charts: { title: '图表统计', desc: '海岛风格图表，覆盖趋势、对比、占比、分布与指标统计。' },
+    'no-data': { title: 'NoData 空状态', desc: '温暖的空数据提示，支持搜索无结果、简洁模式、自定义图标与操作区。' },
+    ...Object.fromEntries(CHART_PAGES.map((page) => [`chart-${page.type}`, { title: page.label, desc: page.desc }])),
     button: {
         title: 'Button 按钮',
         desc: '按钮组件 — 支持 primary / dashed / text / link 等类型，danger / ghost / loading / disabled 状态，icon 图标，block 块级，三种尺寸',

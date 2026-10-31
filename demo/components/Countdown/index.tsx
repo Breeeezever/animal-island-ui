@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { CountdownReminderDemo } from './CountdownReminderDemo';
+import { CountdownShakeDemo } from './CountdownShakeDemo';
+import { CountdownFinishDemo } from './CountdownFinishDemo';
+import { CountdownMotionDemo } from './CountdownMotionDemo';
 import { Button, Countdown } from '../../../src';
 import { ApiRow, ApiTable, CodeBlock, DemoTag, labelStyle, sectionStyle, sectionTitleStyle } from '../../tools';
 
@@ -9,6 +13,30 @@ const COUNTDOWN_API: ApiRow[] = [
     { prop: 'size', desc: '尺寸', type: `'small' | 'middle' | 'large'`, defaultVal: "'middle'" },
     { prop: 'variant', desc: '显示风格', type: `'default' | 'island'`, defaultVal: "'default'" },
     { prop: 'bordered', desc: '数字块是否带边框', type: 'boolean', defaultVal: 'false' },
+    {
+        prop: 'reminder',
+        desc: 'true 开启默认提醒（60 秒橙色 / 10 秒红色），数组自定义秒数与颜色',
+        type: 'boolean | readonly CountdownReminderRule[]',
+        defaultVal: 'false',
+    },
+    {
+        prop: 'shake',
+        desc: '兼容布尔值与秒数；对象自定义阈值、加强阶段、速度、幅度与缓动',
+        type: 'boolean | number | CountdownShakeOptions',
+        defaultVal: 'false',
+    },
+    {
+        prop: 'endingAnimation',
+        desc: '最后几秒循环回弹与波纹，true 默认最后 5 秒每秒一次；对象自定义全部动效参数',
+        type: 'boolean | CountdownEndingAnimationOptions',
+        defaultVal: 'false',
+    },
+    {
+        prop: 'finishAnimation',
+        desc: '实际归零时播放一次，支持自定义回弹、波纹、时长和减少动态效果反馈',
+        type: 'boolean | CountdownEffectOptions',
+        defaultVal: 'false',
+    },
     { prop: 'onChange', desc: '剩余毫秒变化回调', type: '(remaining: number) => void', defaultVal: '-' },
     { prop: 'onFinish', desc: '归零回调', type: '() => void', defaultVal: '-' },
 ];
@@ -79,6 +107,10 @@ const CountdownDemo: React.FC = () => {
     onFinish={() => console.log('倒计时结束')}
 />`}
             />
+            <CountdownReminderDemo />
+            <CountdownShakeDemo />
+            <CountdownFinishDemo />
+            <CountdownMotionDemo />
             <ApiTable rows={COUNTDOWN_API} />
         </div>
     );

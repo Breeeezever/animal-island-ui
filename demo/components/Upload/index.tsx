@@ -1,3 +1,4 @@
+import { UploadProgressDemo } from './UploadProgressDemo';
 import React, { useRef, useState } from 'react';
 import { UploadIcon } from 'naive-icons';
 import { Upload, Modal, Notification, type UploadFile } from '../../../src';
@@ -23,6 +24,12 @@ const S = {
 };
 
 const UPLOAD_API: ApiRow[] = [
+    {
+        prop: 'progress',
+        desc: '上传进度配置；默认保留原样，type 支持 background / bar',
+        type: 'false | UploadProgressConfig',
+        defaultVal: 'false',
+    },
     {
         prop: 'accept',
         desc: '接受的文件类型,透传 input[accept];拖拽进来的文件同样按它过滤',
@@ -423,6 +430,7 @@ const UploadDemo: React.FC = () => {
 // 行内缩略图(picture):图片文件自动生成预览
 <Upload listType="picture" accept="image/*" maxCount={4} />`}
             />
+            <UploadProgressDemo />
             <ApiTable rows={UPLOAD_API} />
         </div>
     );

@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { UploadIcon, FileIcon, CheckIcon, CloseIcon, EyeIcon } from 'naive-icons';
+import { Progress } from '../Progress';
+import type { ProgressProps } from '../Progress';
+import { Wave } from '../../internal/Wave';
 import styles from './upload.module.less';
 
 /** 单个文件的状态 */
@@ -7,6 +10,18 @@ export type UploadFileStatus = 'uploading' | 'done' | 'error' | 'removed';
 
 /** 文件列表的展示形态 */
 export type UploadListType = 'text' | 'picture' | 'picture-card';
+
+/** 上传进度展示方式：独立条形或文件项背景填充。 */
+export type UploadProgressType = 'bar' | 'background';
+
+/** 上传进度外观配置，百分比始终由文件状态驱动。 */
+export interface UploadProgressConfig extends Pick<
+    ProgressProps,
+    'color' | 'wave' | 'animated' | 'showInfo' | 'duration'
+> {
+    /** 展示方式，默认 bar；background 将整个文件项背景作为进度区域 */
+    type?: UploadProgressType;
+}
 
 /** 文件列表项（组件内部以 uid 追踪） */
 export interface UploadFile {
@@ -90,6 +105,8 @@ export interface UploadProps {
     listType?: UploadListType;
     /** 是否展示文件列表，或传入对象分别控制预览/删除图标，默认 true */
     showUploadList?: boolean | UploadShowUploadList;
+    /** 上传中的进度配置；默认 false 保留转圈与百分比，传对象启用条形或背景进度 */
+    progress?: false | UploadProgressConfig;
     /** 点击预览（picture-card 缩略图或 picture/text 行图片的预览图标）时触发 */
     onPreview?: (file: UploadFile) => void;
     /** 是否开启拖拽上传区域 */
@@ -141,7 +158,11 @@ export interface UploadProps {
 let uidSeed = 0;
 const genUid = () => `animal-upload-${Date.now().toString(36)}-${(uidSeed += 1)}`;
 
-const clampPercent = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+/** 统一列表文字与进度条的数值，忽略上传回调中的 NaN。 */
+const clampPercent = (n: number) => {
+    // 未知进度按零展示，避免出现 NaN% 或无效的进度条宽度。
+    return Number.isNaN(n) ? 0 : Math.max(0, Math.min(100, Math.round(n)));
+};
 
 /**
  * 按 accept 校验单个文件（拖拽进来的文件不受 <input accept> 约束，必须自己过滤）。
@@ -184,6 +205,7 @@ export const Upload: React.FC<UploadProps> = ({
     defaultFileList,
     listType = 'text',
     showUploadList = true,
+    progress = false,
     onPreview,
     drag = false,
     tip,
@@ -667,6 +689,56 @@ export const Upload: React.FC<UploadProps> = ({
         .filter(Boolean)
         .join(' ');
 
+    /** 仅上传中展示进度，卡片内将百分比置于条形上方以适配固定宽度。 */
+    const renderProgress = (file: UploadFile, inCard = false) => {
+        // 完成与失败仍由原有状态图标表达，避免条形与结果状态重复。
+        if (progress === false || progress.type === 'background' || (file.status ?? 'uploading') !== 'uploading')
+            return null;
+        const percent = clampPercent(file.percent ?? 0);
+        return (
+            <div className={inCard ? styles.cardProgress : styles.fileProgress}>
+                {inCard && progress?.showInfo !== false && <span className={styles.cardPercent}>{percent}%</span>}
+                <Progress
+                    {...progress}
+                    size="small"
+                    percent={percent}
+                    showInfo={inCard ? false : progress?.showInfo}
+                    aria-label={`${file.name} 上传进度`}
+                />
+            </div>
+        );
+    };
+
+    /** 把文件项背景作为进度区域，独立的无障碍节点不会吞掉相邻操作按钮。 */
+    const renderBackgroundProgress = (file: UploadFile) => {
+        // 背景模式不占布局空间，文件名和操作入口始终保持原有位置。
+        if (progress === false || progress.type !== 'background' || (file.status ?? 'uploading') !== 'uploading')
+            return null;
+        const percent = clampPercent(file.percent ?? 0);
+        return (
+            <div
+                className={styles.backgroundProgress}
+                role="progressbar"
+                aria-label={`${file.name} 上传进度`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={percent}
+                aria-valuetext={`${percent}%`}
+            >
+                <div
+                    className={styles.backgroundFill}
+                    style={{
+                        width: `${percent}%`,
+                        backgroundColor: progress.color,
+                        transitionDuration: `${progress.duration ?? 0.6}s`,
+                    }}
+                >
+                    {progress.wave && <Wave animated={progress.animated !== false && percent > 0 && percent < 100} />}
+                </div>
+            </div>
+        );
+    };
+
     const renderStatus = (file: UploadFile) => {
         const status = file.status ?? 'uploading';
         if (status === 'done') {
@@ -685,6 +757,13 @@ export const Upload: React.FC<UploadProps> = ({
         }
         // 'removed' 只在 onChange 里上报，受控列表若仍保留该项就不该显示转圈
         if (status === 'removed') return null;
+        if (progress !== false) {
+            return progress.type === 'background' && progress.showInfo !== false ? (
+                <span className={styles.backgroundPercent} aria-hidden="true">
+                    {clampPercent(file.percent ?? 0)}%
+                </span>
+            ) : null;
+        }
         return (
             <span className={styles.statusIcon} aria-label={`上传中 ${clampPercent(file.percent ?? 0)}%`}>
                 <span className={styles.spinner} aria-hidden="true" />
@@ -697,6 +776,7 @@ export const Upload: React.FC<UploadProps> = ({
         <ul className={styles.textList}>
             {list.map((file) => (
                 <li key={file.uid} className={`${styles.textItem} ${file.status === 'error' ? styles.itemError : ''}`}>
+                    {renderBackgroundProgress(file)}
                     {listType === 'picture' ? (
                         <span className={styles.textThumb}>
                             {previewSrc(file) ? (
@@ -710,9 +790,12 @@ export const Upload: React.FC<UploadProps> = ({
                             <FileIcon size={15} />
                         </span>
                     )}
-                    <span className={styles.fileName} title={file.name}>
-                        {file.name}
-                    </span>
+                    <div className={styles.fileDetails}>
+                        <span className={styles.fileName} title={file.name}>
+                            {file.name}
+                        </span>
+                        {renderProgress(file)}
+                    </div>
                     {file.size !== undefined && file.size !== null && (
                         <span className={styles.fileSize}>{formatFileSize(file.size)}</span>
                     )}
@@ -773,10 +856,30 @@ export const Upload: React.FC<UploadProps> = ({
                                 </span>
                             )}
                             {status === 'uploading' && (
-                                <span className={styles.cardMask}>
-                                    <span className={styles.spinner} aria-hidden="true" />
-                                    <span className={styles.percent}>{clampPercent(file.percent ?? 0)}%</span>
-                                </span>
+                                <div
+                                    className={[
+                                        styles.cardMask,
+                                        progress !== false &&
+                                            progress.type === 'background' &&
+                                            styles.cardMaskBackground,
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                >
+                                    {progress === false ? (
+                                        <>
+                                            <span className={styles.spinner} aria-hidden="true" />
+                                            <span className={styles.percent}>{clampPercent(file.percent ?? 0)}%</span>
+                                        </>
+                                    ) : progress.type === 'background' ? (
+                                        <>
+                                            {renderBackgroundProgress(file)}
+                                            {renderStatus(file)}
+                                        </>
+                                    ) : (
+                                        renderProgress(file, true)
+                                    )}
+                                </div>
                             )}
                             {status === 'error' && (
                                 <span className={styles.cardMask}>

@@ -246,6 +246,13 @@ interface CarouselProps extends Omit<HTMLAttributes<HTMLElement>, 'onChange'> {
 
 传入 `icon`（`IconComponent`，一个 React 图标组件，如来自 naive-icons 的 `FishIcon`）时切换为图标相连模式（与 Footer 单图标链同思路）：flex 行重复 `[图标][空隙]` 单元铺满整行，由 `iconSize`（默认 24）与 `iconGap`（默认 8）控制。每个空隙内放一根 4×2px 棕色短连接条，水平居中，视觉上正好位于相邻两图标中间；最后一个图标不跟连接条，分割线两端都以图标收尾；周期数通过 ResizeObserver 随宽度变化实时重算。
 
+`ocean-wave`：24px 高度，使用与 `squiggle` 一致的薄荷色 `#19c8b9`，复用 `src/internal/Wave.tsx` 与 `wave.module.less` 的双层 CSS mask 波形。波长 128px，透明度 0.28 / 0.48，第二层顶部偏移 20%、相位偏移 -32px，6s / 9s 匀速反向循环。`animated` 默认 `true`；`false` 保留静态海浪。离屏、页面隐藏时暂停，系统减少动态效果时停止；`icon` 仍优先于 `type`。
+
+```tsx
+<Divider type="ocean-wave" />
+<Divider type="ocean-wave" animated={false} />
+```
+
 ## Background（图案壁纸）
 
 ```tsx

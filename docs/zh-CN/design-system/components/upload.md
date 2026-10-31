@@ -6,9 +6,21 @@ Source: `src/components/Upload/Upload.tsx` + `upload.module.less`.
 
 ## props
 
+`progress` 默认 `false`，保留原有转圈与百分比。传对象后，`type="bar"`（对象默认值）复用 14px 小号 Progress：text / picture 列表在文件名下方显示，间距 6px、字号 11px；图片卡片左右留白 8px，白色百分比置于条形上方。`type="background"` 将整个文件项背景作为进度区域，从左向右按百分比填充，不额外显示进度条；底色使用 `var(--animal-primary-color, #19c8b9)`，透明度 0.28，裁切遵循文件项圆角，图片卡片使用 0.88 不透明度的奶油遮罩保证文字清晰。两种模式均支持 `color / wave / animated / showInfo / duration`，由 `file.percent` 驱动（缺失或 NaN 视为 0，钳制到 0–100），仅上传中显示。背景进度节点与操作按钮分离，保留文件名无障碍标签；减少动态效果时停止海浪与宽度动画。
+
+```tsx
+<Upload progress={{ type: 'background', wave: true }} />
+<Upload progress={{ type: 'bar', wave: true, color: '#82d5bb' }} />
+<Upload /> // original spinner and percentage
+```
+
 ```ts
 type UploadFileStatus = 'uploading' | 'done' | 'error' | 'removed';
 type UploadListType = 'text' | 'picture' | 'picture-card';
+type UploadProgressType = 'bar' | 'background';
+interface UploadProgressConfig extends Pick<ProgressProps, 'color' | 'wave' | 'animated' | 'showInfo' | 'duration'> {
+    type?: UploadProgressType; // default 'bar'
+}
 
 interface UploadFile {
     uid: string;               // 唯一标识，组件内部以 uid 追踪
@@ -43,6 +55,7 @@ interface UploadProps {
     defaultFileList?: UploadFile[];
     listType?: UploadListType;  // 默认 'text'
     showUploadList?: boolean | UploadShowUploadList; // 默认 true
+    progress?: false | UploadProgressConfig;
     onPreview?: (file: UploadFile) => void; // 点击预览（picture / picture-card 缩略图 / text 行图片）
     drag?: boolean;             // 默认 false
     tip?: React.ReactNode;
@@ -152,7 +165,7 @@ type UploadOnChange = (info: UploadChangeParam) => void;
 .removeBtn:hover { background: rgba(0, 0, 0, 0.14); color: #e05a5a; }
 ```
 
-行内结构：文件图标 · 文件名（超出省略）· 大小 · 状态（转圈+百分比 / ✓ / ⚠）· 删除 `×`。
+行内结构：文件图标 · 文件名（超出省略）· 大小 · 状态（✓ / ⚠；默认使用转圈+百分比）· 删除 `×`。
 
 ## 图片卡片列表（picture-card）
 
@@ -196,7 +209,7 @@ type UploadOnChange = (info: UploadChangeParam) => void;
 - **`onRemove` 返回 `false`（或 reject / 抛错）会阻止删除**，钩子抛错时还会 `console.error` 记录（否则按钮点了没反应无从排查）。删除时会清掉该文件的模拟定时器、中止进行中的 XHR，并 revoke 组件为它生成的 ObjectURL；卸载时统一清理全部定时器与 URL。受控模式下删除当刻**不** revoke —— 外部 `fileList` 可能要等异步请求回来才移除该项，提前 revoke 会让仍在渲染的缩略图裂开；释放交给受控 diff 在该项真正消失时补做。
 - **`maxCount`** 语义如下。`maxCount={1}` 为替换：新文件占用唯一的位置，旧文件被移出。`maxCount > 1` 保留**最早**的 `maxCount` 个 —— 列表已满时新选择的文件会被丢弃、不进列表，且不为它们触发 `onChange`；此时改用 **`onExceed(files, fileList)`** 告知用户「已达上限」：进了列表又被顶掉的文件、以及因已达上限而压根没被处理的文件都会通知（例如 `maxCount={1}` 时一次选 3 个 —— 保留 1 个，另外 2 个走 `onExceed`）；`maxCount={1}` 顶掉**旧**文件属于替换语义，不触发。`0` 或负数视为不限量。触发钮 / 添加块都保持可点，是否需要隐藏由消费方决定；被丢弃项的定时器 / XHR / ObjectURL 仍会清理。
 - **`action` / `data` 也支持函数形式**（`(file) => ...` 按文件解析），同步异步皆可 —— 异步取 OSS 直传签名是典型场景，组件会 await 结果后再构建请求。若解析出的 `action` 为空（或解析过程抛错），该文件被标记为 `error`，而不是永远停在 `uploading` / `0%`。`directory` 会将 `webkitdirectory` 透传给隐藏 input，支持整文件夹选择。
-- **无障碍**：触发钮 / 拖拽区 / 添加块都是真实可聚焦元素，`aria-label` 默认「上传文件」；删除 / 预览按钮标签分别为「删除 <文件名>」「预览 <文件名>」，整体 `disabled` 时二者都置为 `disabled`；上传中状态通过状态图标的 `aria-label="上传中 N%"` 播报；拖拽区为 `role="button"` 并支持 Enter / Space。内置预览层为 `role="dialog" aria-modal="true"`，ESC 或点遮罩关闭，打开时焦点移到关闭按钮、期间把 Tab 锁在弹层内并锁定背景滚动、关闭后归还焦点给触发元素。
+- **无障碍**：触发钮 / 拖拽区 / 添加块都是真实可聚焦元素，`aria-label` 默认「上传文件」；删除 / 预览按钮标签分别为「删除 <文件名>」「预览 <文件名>」，整体 `disabled` 时二者都置为 `disabled`；上传进度通过带文件名标签的 `role="progressbar"` 和 `aria-valuenow` 表达，`progress=false` 保留状态图标的 `aria-label="上传中 N%"`；拖拽区为 `role="button"` 并支持 Enter / Space。内置预览层为 `role="dialog" aria-modal="true"`，ESC 或点遮罩关闭，打开时焦点移到关闭按钮、期间把 Tab 锁在弹层内并锁定背景滚动、关闭后归还焦点给触发元素。
 - **内置预览层**展示 `thumbUrl ?? url` 的全屏大图。打开期间若该文件从列表消失（被删除或被替换），弹层会自行关闭，而不是留着一张裂图。
 - `prefers-reduced-motion: reduce` 下停止转圈动画并关闭悬停/按压过渡。
 - 文件大小经内部的 `formatFileSize` 辅助函数渲染（`B / KB / MB`，保留一位小数）；该函数不对外导出。
