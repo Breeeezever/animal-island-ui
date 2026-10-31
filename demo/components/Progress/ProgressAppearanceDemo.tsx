@@ -40,8 +40,8 @@ export const ProgressAppearanceDemo: React.FC = () => {
                 />
             </div>
             <CodeBlock
-                code={`<Progress percent={45} color="#82d5bb" wave />
-<Progress percent={45} wave animated={false} />`}
+                code={`<Progress percent={45} color="#82d5bb" wave aria-label="薄荷色海浪进度" />
+<Progress percent={45} wave animated={false} aria-label="静态海浪进度" />`}
             />
         </section>
     );

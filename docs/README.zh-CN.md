@@ -39,6 +39,8 @@
 
 基于 React + TypeScript 的轻量 UI 组件库，采用原创的治愈系海岛风格设计语言，所有视觉元素、布局、图标、动画均为独立设计实现。
 
+要求 React 和 React DOM 18 及以上版本；组件使用 `useId`，不支持 React 17。
+
 ## 预览
 
 - 在线预览：[animal-island-ui](https://guokaigdg.github.io/animal-island-ui/#/)

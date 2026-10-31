@@ -47,6 +47,9 @@ const NoDataDemo: React.FC = () => {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                 />
+                <div role="status" aria-live="polite" aria-atomic="true" style={{ marginTop: 12 }}>
+                    {islands.length ? `找到 ${islands.length} 个岛屿` : `没有找到“${query}”相关的岛屿`}
+                </div>
                 {islands.length ? (
                     <ul aria-label="岛屿搜索结果">
                         {islands.map((name) => (

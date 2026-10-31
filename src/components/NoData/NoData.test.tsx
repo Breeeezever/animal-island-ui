@@ -11,7 +11,7 @@ describe('NoData', () => {
         rerender(<NoData variant="search" />);
         expect(screen.getByText('没有找到相关结果')).toBeInTheDocument();
         rerender(<NoData title={null} icon={null} description="请更换筛选条件" />);
-        expect(screen.queryByText('没有找到相关结果')).not.toBeInTheDocument();
+        expect(screen.queryByText('暂无数据')).not.toBeInTheDocument();
         expect(container.querySelector('[aria-hidden="true"]')).not.toBeInTheDocument();
         expect(screen.getByText('请更换筛选条件')).toBeInTheDocument();
     });

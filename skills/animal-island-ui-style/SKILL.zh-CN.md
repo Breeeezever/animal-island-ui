@@ -57,9 +57,9 @@ props 参考按大类分组在 `references/components/` 下（props、合法取�
 | 浮层 | Modal, Drawer, Tooltip | [overlays.md](references/components/overlays.md) |
 | 反馈 | Progress, Skeleton, BackTop, Loading, Countdown, Time | [feedback.md](references/components/feedback.md) |
 | 通知 | Notification（命令式 API） | [Notification.md](references/components/Notification.md) |
+| 数据展示 | Table, CodeBlock, Tag, Badge, Pagination | [data-display.md](references/components/data-display.md) |
 | 图表统计 | Chart（19 种类型） | [charts.md](references/components/charts.md) |
 | 空状态 | NoData | [no-data.md](references/components/no-data.md) |
-| 数据展示 | Table, CodeBlock, Tag, Badge, Pagination | [data-display.md](references/components/data-display.md) |
 | 日历 | Calendar | [calendar.md](references/components/calendar.md) |
 | 计分滚动 | CountUp | [CountUp.md](references/components/CountUp.md) |
 | 媒体 | Image, Avatar, Carousel | [media.md](references/components/media.md) |

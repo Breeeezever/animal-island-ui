@@ -45,6 +45,7 @@ export interface NoDataProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
 ```
 
 - Default uses layered cream/mint journal paper with a LeafIcon imprint. Search adds a sage SearchIcon; simple keeps one upright blank sheet. Custom icons retain their own colors in a cream tile. Paper geometry is CSS; no image assets or handwritten SVG are added.
+- Title inherits `--animal-text-color`; description uses `--animal-text-color-secondary` and the bordered surface uses `--animal-bg-color`.
 - Override paper colors through `--no-data-paper`, `--no-data-paper-line`, `--no-data-mint` and `--no-data-mint-line` on the root.
 - `undefined` uses the default title/icon; explicit null or false hides it. `extra` takes precedence over children, including null/false.
 - The root is a native div; pass `role="status"` or `aria-live` when a business flow requires announcements. Decorative icons are hidden from assistive technology; action content remains keyboard-accessible.

@@ -38,6 +38,8 @@ A cozy React UI component library
 
 A lightweight React + TypeScript component library with an original, cozy island-style design language. Every visual element, layout, icon, and animation is crafted from scratch.
 
+Requires React and React DOM 18 or later; components use `useId`, which React 17 does not provide.
+
 ## Preview
 
 - Online Preview: [animal-island-ui](https://guokaigdg.github.io/animal-island-ui/#/)

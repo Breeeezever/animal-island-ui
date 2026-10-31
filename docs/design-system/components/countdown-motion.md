@@ -24,7 +24,7 @@ All four default to false. Existing shorthand usage keeps its prior behavior. `e
 | Easing | `var(--animal-motion-ease, cubic-bezier(0.4, 0, 0.2, 1))`, independently configurable for shake and effects. |
 | Retention | 900ms. Automatically extended to include the complete bounce, final delayed ripple and reduced-motion fade. Ending interval is at least this retention and 16ms. |
 
-Each effect supports independent `bounce={false}` and `ripple={false}`. Wave count is an integer between 0 and 10; zero removes ripples. Other non-finite numbers use defaults; negative unsigned values clamp to zero, opacity to 0–1 and rotation to 0–360. Numeric configuration caps at 60000 (signed offsets permit -60000); the legacy numeric shake shortcut retains its existing finite-threshold behavior. This bounds DOM decoration count and timer values without replacing user-supplied CSS colors or easing strings. Empty CSS strings fall back to defaults.
+Each effect supports independent `bounce={false}` and `ripple={false}`. Ripple count is an integer between 0 and 10; zero removes ripples. Other non-finite numbers use defaults; negative unsigned values clamp to zero, opacity to 0–1 and rotation to 0–360. Numeric configuration caps at 60000 (signed offsets permit -60000); the legacy numeric shake shortcut retains its existing finite-threshold behavior. This bounds DOM decoration count and timer values without replacing user-supplied CSS colors or easing strings. Empty CSS strings fall back to defaults.
 
 # State and lifecycle
 

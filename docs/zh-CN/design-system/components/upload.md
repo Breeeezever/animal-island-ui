@@ -6,7 +6,7 @@ Source: `src/components/Upload/Upload.tsx` + `upload.module.less`.
 
 ## props
 
-`progress` 默认 `false`，保留原有转圈与百分比。传对象后，`type="bar"`（对象默认值）复用 14px 小号 Progress：text / picture 列表在文件名下方显示，间距 6px、字号 11px；图片卡片左右留白 8px，白色百分比置于条形上方。`type="background"` 将整个文件项背景作为进度区域，从左向右按百分比填充，不额外显示进度条；底色默认薄荷色，透明度 0.28，裁切遵循文件项圆角，图片卡片使用 0.88 不透明度的奶油遮罩保证文字清晰。两种模式均支持 `color / wave / animated / showInfo / duration`，由 `file.percent` 驱动（缺失或 NaN 视为 0，钳制到 0–100），仅上传中显示。背景进度节点与操作按钮分离，保留文件名无障碍标签；减少动态效果时停止海浪与宽度动画。
+`progress` 默认 `false`，保留原有转圈与百分比。传对象后，`type="bar"`（对象默认值）复用 14px 小号 Progress：text / picture 列表在文件名下方显示，间距 6px、字号 11px；图片卡片左右留白 8px，白色百分比置于条形上方。`type="background"` 将整个文件项背景作为进度区域，从左向右按百分比填充，不额外显示进度条；底色使用 `var(--animal-primary-color, #19c8b9)`，透明度 0.28，裁切遵循文件项圆角，图片卡片使用 0.88 不透明度的奶油遮罩保证文字清晰。两种模式均支持 `color / wave / animated / showInfo / duration`，由 `file.percent` 驱动（缺失或 NaN 视为 0，钳制到 0–100），仅上传中显示。背景进度节点与操作按钮分离，保留文件名无障碍标签；减少动态效果时停止海浪与宽度动画。
 
 ```tsx
 <Upload progress={{ type: 'background', wave: true }} />
