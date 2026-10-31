@@ -166,6 +166,7 @@ export const CATALOG: CatalogRow[] = [
     },
     { category: 'Calendar', color: 'brown', components: ['Calendar'], reference: 'calendar.md' },
     { category: 'Empty state', color: 'app-green', components: ['NoData'], reference: 'no-data.md' },
+    { category: 'Charts', color: 'app-teal', components: ['Chart'], reference: 'charts.md' },
     {
         category: 'Count-up score',
         color: 'app-teal',

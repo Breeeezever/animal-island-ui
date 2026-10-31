@@ -69,6 +69,7 @@ import { TimePicker } from '@/components/TimePicker';
 import { Title } from '@/components/Title';
 import { Tooltip } from '@/components/Tooltip';
 import { Typewriter } from '@/components/Typewriter';
+import { Chart } from '@/components/Chart';
 import { NoData } from '@/components/NoData';
 
 afterEach(() => {
@@ -146,6 +147,10 @@ const flushRaf = () =>
 // ---------------------------------------------------------------------------
 
 describe('a11y smoke / 全组件 axe-core 自动检查', () => {
+    it('Chart (可聚焦数据点、图例与数据明细)', async () => {
+        const r = render(<Chart title="到访统计" series={[{ name: '访客', data: [12, 25] }]} />);
+        await expectNoA11yViolations(containerOf(r), 'Chart');
+    });
     // -------- 交互触发器 --------
 
     it('Button', async () => {

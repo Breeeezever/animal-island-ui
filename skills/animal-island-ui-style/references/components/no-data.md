@@ -49,6 +49,6 @@ export interface NoDataProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
 - `undefined` uses the default title/icon; explicit null or false hides it. `extra` takes precedence over children, including null/false.
 - The root is a native div; pass `role="status"` or `aria-live` when a business flow requires announcements. Decorative icons are hidden from assistive technology; action content remains keyboard-accessible.
 - The component has no built-in retry, loading or request behavior. Pass real business actions via Button. No continuous animation.
-- In a Table emptyText slot, use `icon={null}` when retaining the table's existing empty icon.
+- In a Table emptyText slot, use `icon={null}` when retaining the table's existing empty icon. Chart empty states use NoData automatically.
 
 Canonical visuals: [NoData design system](https://github.com/guokaigdg/animal-island-ui/blob/main/docs/design-system/components/no-data.md).

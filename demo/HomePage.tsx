@@ -430,6 +430,7 @@ const features: Array<{ icon: string; title: string; desc: string }> = [
 ];
 
 const components = [
+    { key: 'charts', name: 'Chart', desc: '19 种海岛统计图，趋势、占比、分布、仪表盘与地图' },
     { key: 'input', name: 'Input', desc: '前后缀、一键清空、校验状态' },
     {
         key: 'form',

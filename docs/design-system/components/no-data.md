@@ -28,6 +28,6 @@ The artwork palette can be themed with `--no-data-paper`, `--no-data-paper-line`
 
 The root is a native div and accepts native attributes; it does not force a live region for static page content. Consumers may pass role="status" or aria-live when content changes need announcements. The decorative artwork has aria-hidden; title, description and actions remain readable and interactive. Use concise recovery instructions and a real callback in the action slot.
 
-Table retains its existing empty icon, so use icon={null} when placing NoData in its emptyText slot. Existing Table behavior is unchanged.
+Chart uses the small variant for no data, missing map contours and all-hidden legends; the last state offers a restore-all action. Table retains its existing empty icon, so use icon={null} when placing NoData in its emptyText slot. Existing Table behavior is unchanged.
 
 The independent demo under **反馈 → NoData 空状态** starts with an independent side-by-side journal/search preview, followed by the retained defaults, working search reset, a table creation action, sizes, custom icons and text-only presentation. Props and examples: [NoData reference](https://github.com/guokaigdg/animal-island-ui/blob/main/skills/animal-island-ui-style/references/components/no-data.md).

@@ -196,5 +196,20 @@ export type {
     UploadOnChange,
 } from './components/Upload';
 
+export { Chart } from './components/Chart';
+export type {
+    ChartProps,
+    ChartType,
+    ChartSeries,
+    ChartDatum,
+    ChartPoint,
+    ChartCandle,
+    ChartMapRegion,
+    ChartDataEvent,
+    ChartTooltipOptions,
+    ChartTooltipContext,
+    ChartTooltipItem,
+} from './components/Chart';
+
 export { NoData } from './components/NoData';
 export type { NoDataProps, NoDataSize, NoDataVariant } from './components/NoData';
