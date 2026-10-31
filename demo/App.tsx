@@ -135,8 +135,8 @@ const MENU_ITEMS: MenuItem[] = [
         key: 'cat-charts',
         label: '── 图表统计 ──',
         children: [
-            { key: 'charts', label: '图表总览', isNew: true },
-            ...CHART_PAGES.map((page) => ({ key: `chart-${page.type}`, label: page.label })),
+            { key: 'charts', label: 'Chart 图表总览', isNew: true },
+            ...CHART_PAGES.map((page) => ({ key: `chart-${page.type}`, label: `${page.englishLabel} ${page.label}` })),
         ],
     },
 ];
