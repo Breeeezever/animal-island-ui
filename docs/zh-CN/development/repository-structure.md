@@ -13,7 +13,7 @@ animal-island-ui 是一套受《治愈系海岛风格》启发的 React + TypeSc
 
 | 类别     | 选型                                            |
 | -------- | ----------------------------------------------- |
-| 框架     | React 18（peerDependencies 支持 >=17）          |
+| 框架     | React 18+（useId 要求的最低版本）          |
 | 语言     | TypeScript 5.7，`strict: true`                  |
 | 构建     | Vite 7（library mode，ES + CJS 双格式输出）     |
 | 测试     | Vitest 4 + jsdom 29 + @testing-library/react 16 |

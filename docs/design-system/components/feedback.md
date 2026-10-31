@@ -17,6 +17,9 @@ interface ProgressProps {
     size?: ProgressSize;        // small=14px / middle=24px / large=32px
     showInfo?: boolean;         // default true; label sits right of the bar
     variant?: ProgressVariant;  // scene image for the fill; omit to use the mint gradient
+    color?: string;
+    wave?: boolean;
+    animated?: boolean;
     infoFormat?: (p: number) => ReactNode; // default `${p}%`
     duration?: number;          // seconds; 0 disables the fill width animation; default 0.6
     className?: string;
@@ -31,7 +34,7 @@ interface ProgressProps {
     box-sizing: border-box;  /* height includes the border, so size = total height */
     flex: 1 1 auto;
     width: 100%;
-    min-width: 80px;
+    min-width: 0;
     background:
         radial-gradient(circle, rgba(196, 184, 158, 0.1) 1.5px, transparent 1.5px) 7px 7px / 14px 14px,
         #f8f8f0;              /* fine cream dots over the unchanged cream base */
@@ -86,8 +89,16 @@ The small dot layer carries over from the old wallpaper track — 14px grid, 7px
 - `duration=0` → the fill width transition is disabled (`transition: none`) and jumps instantly.
 - a11y: the root div carries `role="progressbar"` plus `aria-valuemin=0` / `aria-valuemax=100` / `aria-valuenow=<rounded percent>` / `aria-valuetext=<string result of infoFormat>`.
 - Under `prefers-reduced-motion: reduce`, the fill width transition is switched off automatically.
-- Without a `variant`, `Progress.tsx` still sets an inline `background-color: #19c8b9`. The stylesheet gradient is fully opaque, so it paints on top and that inline color is only a paint-order fallback, not the visible result.
-- The 100% brightening applies to the gradient fill only. A `variant` injects its own `background-image` inline and deliberately keeps the scene art un-tinted at 100%.
+- The 100% brightening applies to the default mint gradient only. A `variant` injects its own `background-image` inline and deliberately keeps the scene art un-tinted at 100%.
+
+`color` accepts a CSS color or variable with a translucent top highlight and bottom shade; it retains the chosen hue at 100%. `variant` takes precedence over `color`; omitting both preserves the original mint gradient. `wave` defaults to `false` and adds two white wave layers inside the fill, composable with colors and scenes. `animated` defaults to `true`; false or 0% / 100% keeps the waves static. Loops pause offscreen or when hidden and stop under reduced motion. `duration` controls width transitions only.
+
+```tsx
+<Progress percent={58} color="#82d5bb" wave />
+<Progress percent={58} wave animated={false} />
+```
+
+Waves reuse `src/internal/Wave.tsx` and `wave.module.less`: 128px wavelength, opposing linear 6s / 9s loops, opacity 0.28 / 0.48; the second layer starts 20% lower with a -32px phase offset. Both `-webkit-mask` / `mask` and their position declarations are provided for prefixed WebKit engines. Fixed-width masks translate while the fill width still represents the actual percentage. The track minimum width is 0 to fit Upload’s 84px picture cards.
 
 ## Loading (fullscreen falling snow)
 
@@ -312,6 +323,7 @@ The component calculates the non-negative distance between `value` (`number | Da
 ```ts
 type CountdownSize = 'small' | 'middle' | 'large';
 type CountdownVariant = 'default' | 'island';
+interface CountdownReminderRule { seconds: number; color: string }
 interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'prefix'> {
     value: number | Date;
     format?: string; // default 'HH:mm:ss'; tokens DD / HH / mm / ss
@@ -319,12 +331,30 @@ interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'
     size?: CountdownSize; // default 'middle'
     variant?: CountdownVariant; // default 'default'
     bordered?: boolean; // default false — draws the 1.5px digit-tile borders
+    reminder?: boolean | readonly CountdownReminderRule[]; // default false
+    shake?: boolean | number | CountdownShakeOptions; // default false
+    endingAnimation?: boolean | CountdownEndingAnimationOptions; // default false; true = last 5 seconds, every second
+    finishAnimation?: boolean | CountdownEffectOptions; // default false; one-shot completion effect
     onChange?: (remaining: number) => void;
     onFinish?: () => void;
 }
 ```
 
 The default variant is a white 20px-radius panel with a warm border and soft elevation. `island` uses the parchment background `rgb(247,243,223)` with a 2px dashed `#d4c4a8` border. Each DD / HH / mm / ss token renders as its own 12px-radius digit tile (a cream gradient face `linear-gradient(180deg, #fff, #f8f8f0)`; a `#fffdf4→#f8f8f0` gradient on the island variant; the 1.5px `#d4c9b4` border is opt-in via `bordered`, off by default) while format literals such as `:` or `天` render as plain separators. Colons are sized with the digits, 900 weight, `#8b7355`. Inside each tile every digit is a vertical strip of two 0-9 cycles; all changes roll downward with a 0.35s `cubic-bezier(0.4, 0, 0.2, 1)` transition (odometer style). When a digit wraps past 0, the strip instantly teleports to the same digit in the next cycle and keeps rolling down, so the direction never reverses. Digits use the earth-tone `#8b7355`, 900 weight, tabular, sized 20/26/34px. The rolling strips are `aria-hidden` and a visually-hidden span carries the full formatted value; the root uses `role="timer"` and `aria-live="off"` so screen readers are not interrupted four times per second.
+
+`reminder` defaults to false. Set it to true for warm orange `#c77c34` at ≤60 seconds and the error token `var(--animal-error-color, #e05a5a)` at ≤10 seconds. An array of `{ seconds, color }` fully replaces these defaults; CSS colors and variables are accepted. Rules compare the ceiling-rounded displayed seconds: the smallest matching threshold wins regardless of order, with the first entry winning ties. Negative/non-finite thresholds and empty colors are ignored; an empty array disables reminders. Only digits, separators and enabled digit-tile borders change color (0.2s color transition); the prefix and panel retain their styling. Zero retains the matching reminder color; resetting outside all thresholds or disabling reminders restores the original color without changing timing or callbacks.
+
+`shake` keeps boolean/numeric shortcuts and adds options for thresholds, escalation, periods, displacement, rotation and easing. Shake acts on the inner digit group while bounce acts on its outer motion layer, composing their transforms. Only decoration restarts each cycle; digit strips stay mounted. Loop timers stop offscreen and on hidden pages; resetting or disabling cleans up effects. Reduced motion removes recurring motion, with optional completion fading or no feedback.
+
+`finishAnimation` retains its one-shot completion behavior and now accepts visual options. `endingAnimation` applies the same rebound and ripple effect to the last few seconds: true defaults to the last 5 seconds every second; an object configures thresholds, cadence and visuals. They can be enabled and styled independently; zero switches the recurring effect to the completion effect. Full parameters and pixel specs: [Countdown motion](countdown-motion.md).
+
+```tsx
+<Countdown value={deadline} reminder shake endingAnimation finishAnimation />
+<Countdown value={deadline} reminder />
+<Countdown value={deadline} reminder shake />
+<Countdown value={deadline} reminder shake={8} />
+<Countdown value={deadline} reminder={[{ seconds: 120, color: '#c77c34' }, { seconds: 30, color: '#b25770' }]} />
+```
 
 ## Time (live clock card)
 

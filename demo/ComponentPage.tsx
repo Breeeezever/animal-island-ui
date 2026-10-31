@@ -19,6 +19,7 @@ import NotificationDemo from './components/Notification';
 import ProgressDemo from './components/Progress';
 import LoadingDemo from './components/Loading';
 import SkeletonDemo from './components/Skeleton';
+import NoDataDemo from './components/NoData';
 import BackTopDemo from './components/BackTop';
 import ImageDemo from './components/Image';
 import AvatarDemo from './components/Avatar';
@@ -43,6 +44,7 @@ import TimeDemo from './components/Time';
 import CarouselDemo from './components/Carousel';
 import SkillDemo from './components/Skill';
 import { PAGE_INFO } from './pageInfo';
+import { ChartOverviewDemo, CHART_DEMO_PAGES } from './components/Chart';
 const pageDescStyle: React.CSSProperties = {
     fontSize: 14,
     color: '#794f27',
@@ -54,6 +56,8 @@ const pageDescStyle: React.CSSProperties = {
 // ============================================
 
 const PAGES: Record<string, React.FC> = {
+    charts: ChartOverviewDemo,
+    ...CHART_DEMO_PAGES,
     button: ButtonDemo,
     input: InputDemo,
     switch: SwitchDemo,
@@ -87,6 +91,7 @@ const PAGES: Record<string, React.FC> = {
     form: FormDemo,
     upload: UploadDemo,
     skeleton: SkeletonDemo,
+    'no-data': NoDataDemo,
     backtop: BackTopDemo,
     image: ImageDemo,
     avatar: AvatarDemo,

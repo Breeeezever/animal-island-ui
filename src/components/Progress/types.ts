@@ -24,11 +24,17 @@ export interface ProgressProps {
     size?: ProgressSize;
     /** 是否显示百分比文字（显示在进度条右侧） */
     showInfo?: boolean;
-    /** fill 背景场景图；不传时为纯色 fill（`#19c8b9`） */
+    /** fill 背景场景图，优先于 color；不传时为薄荷渐变 */
     variant?: ProgressVariant;
+    /** 自定义填充色，支持 CSS 颜色与变量；保留高光且完成时不变回薄荷色 */
+    color?: string;
+    /** 是否叠加双层海浪，默认 false，可与 color 或 variant 组合 */
+    wave?: boolean;
+    /** 是否播放海浪动画，默认 true；0% / 100% 时自动静止 */
+    animated?: boolean;
     /** 自定义文字格式化（默认 `${percent}%`） */
     infoFormat?: (percent: number) => React.ReactNode;
-    /** 进度条 fill 宽度动画时长（秒），0 = 不动画；不影响斜纹滚动 */
+    /** 进度条 fill 宽度动画时长（秒），0 = 不动画；海浪播放由 animated 控制 */
     duration?: number;
     /** 自定义类名 */
     className?: string;

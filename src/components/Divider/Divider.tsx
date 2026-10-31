@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
+import { Wave } from '../../internal/Wave';
 import styles from './divider.module.less';
 
-export type DividerType = 'dashed-brown' | 'thin' | 'hairline' | 'wave-yellow' | 'squiggle';
+export type DividerType = 'dashed-brown' | 'thin' | 'hairline' | 'wave-yellow' | 'squiggle' | 'ocean-wave';
 
 export interface DividerProps {
     /** 分隔线类型（type 与 icon 二选一，icon 优先） */
     type?: DividerType;
+    /** 是否播放海浪动画，仅 type="ocean-wave" 生效，默认 true */
+    animated?: boolean;
     /** 传入图标元素（来自 naive-icons，如 `<FishIcon size={24} />`）；传入时渲染「图标 + 连接线」循环相连的装饰分割线，铺满整行 */
     icon?: React.ReactNode;
     /** 图标大小（px），同 Icon 默认 24 */
@@ -21,6 +24,7 @@ export interface DividerProps {
 
 export const Divider: React.FC<DividerProps> = ({
     type = 'dashed-brown',
+    animated = true,
     icon,
     iconSize = 24,
     iconGap = 8,
@@ -66,7 +70,11 @@ export const Divider: React.FC<DividerProps> = ({
     }
 
     const cls = [styles.divider, styles[type], className].filter(Boolean).join(' ');
-    return <div className={cls} style={style} />;
+    return (
+        <div className={cls} style={style}>
+            {type === 'ocean-wave' && <Wave animated={animated} />}
+        </div>
+    );
 };
 
 Divider.displayName = 'Divider';

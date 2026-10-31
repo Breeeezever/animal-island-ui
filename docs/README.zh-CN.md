@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/a11y-WAI--ARIA%20APG-brightgreen?style=flat-square" alt="Accessibility">
     <br/>
     <a href="../coverage/badges/coverage.json"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/guokaigdg/animal-island-ui/main/coverage/badges/coverage.json&style=flat-square" alt="Coverage"></a>
-    <img src="https://img.shields.io/badge/components-40-blue?style=flat-square" alt="Components">
+    <img src="https://img.shields.io/badge/components-42-blue?style=flat-square" alt="Components">
     <a href="https://atomgit.com/guokaigdg/animal-island-ui"><img alt="AtomGit Star" src="https://atomgit.com/guokaigdg/animal-island-ui/star/badge.svg"></a>
     <a href="https://repolode.com/en/repo/guokaigdg/animal-island-ui" target="_blank" rel="noopener noreferrer"><img src="https://repolode.com/badge/guokaigdg/animal-island-ui" alt="Featured on Repolode"/></a>
 </div>
@@ -38,6 +38,8 @@
 ## 介绍
 
 基于 React + TypeScript 的轻量 UI 组件库，采用原创的治愈系海岛风格设计语言，所有视觉元素、布局、图标、动画均为独立设计实现。
+
+要求 React 和 React DOM 18 及以上版本；组件使用 `useId`，不支持 React 17。
 
 ## 预览
 

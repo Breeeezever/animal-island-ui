@@ -17,7 +17,7 @@ game-button depth, soft motion, and a mix of geometric and organic shapes — se
 
 | Area            | Choice                                          |
 | --------------- | ----------------------------------------------- |
-| Framework       | React 18 (peerDependencies allow >=17)          |
+| Framework       | React 18+ (required for useId)                  |
 | Language        | TypeScript 5.7, `strict: true`                  |
 | Build           | Vite 7 (library mode, dual ES + CJS output)     |
 | Testing         | Vitest 4 + jsdom 29 + @testing-library/react 16 |

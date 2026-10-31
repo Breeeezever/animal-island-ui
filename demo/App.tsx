@@ -7,6 +7,7 @@ import bgCoffeeBreak from '../src/assets/image/coffee-break.svg';
 import './fonts.css';
 import HomePage from './HomePage';
 import { PAGE_INFO } from './pageInfo';
+import { CHART_PAGES } from './chartPages';
 import { useIsMobile } from './tools';
 import logo from './assets/logo.png';
 
@@ -45,12 +46,13 @@ interface MenuItem {
 }
 
 // ============================================
-// Menu config — 5 categories by function:
+// Menu config — 图表与指南独立分组，组件继续按功能分类：
+//   指南      → Skill 介绍
 //   基础      → 无状态/纯展示 (Title, Button, Divider, Icon, Tag, Cursor, CodeBlock, Footer)
 //   表单      → 数据录入/校验 (Input, Switch, Select, Checkbox, Radio, Form)
 //   反馈      → 浮层/状态/异步反馈 (Notification, Modal, Drawer, Tooltip, Progress)
 //   数据展示  → 容器/列表/排版 (Card, Collapse, Tabs, Table, Typewriter)
-//   主题  → 业务复合/主题专属 (Countdown)
+//   图表统计  → Chart 总览与各类型独立演示，置于组件分类下方
 // ============================================
 const MENU_ITEMS: MenuItem[] = [
     // 隐藏：暂不展示，恢复时取消注释
@@ -105,6 +107,7 @@ const MENU_ITEMS: MenuItem[] = [
             { key: 'tooltip', label: 'Tooltip 气泡提示' },
             { key: 'progress', label: 'Progress 进度条' },
             { key: 'skeleton', label: 'Skeleton 骨架屏' },
+            { key: 'no-data', label: 'NoData 空状态', isNew: true },
             { key: 'backtop', label: 'BackTop 返回顶部' },
         ],
     },
@@ -126,6 +129,14 @@ const MENU_ITEMS: MenuItem[] = [
             { key: 'time', label: 'Time 时钟' },
             { key: 'countdown', label: 'Countdown 倒计时' },
             { key: 'countup', label: 'CountUp 数字滚动', isNew: true },
+        ],
+    },
+    {
+        key: 'cat-charts',
+        label: '── 图表统计 ──',
+        children: [
+            { key: 'charts', label: 'Chart 图表总览', isNew: true },
+            ...CHART_PAGES.map((page) => ({ key: `chart-${page.type}`, label: `${page.englishLabel} ${page.label}` })),
         ],
     },
 ];

@@ -151,7 +151,17 @@ export { Image } from './components/Image';
 export type { ImageProps, ImageColor } from './components/Image';
 
 export { Countdown } from './components/Countdown';
-export type { CountdownProps, CountdownSize, CountdownVariant } from './components/Countdown';
+export type {
+    CountdownProps,
+    CountdownSize,
+    CountdownVariant,
+    CountdownReminderRule,
+    CountdownShakeOptions,
+    CountdownBounceOptions,
+    CountdownRippleOptions,
+    CountdownEffectOptions,
+    CountdownEndingAnimationOptions,
+} from './components/Countdown';
 
 export { CountUp } from './components/CountUp';
 export type {
@@ -175,6 +185,8 @@ export type { CarouselProps } from './components/Carousel';
 export { Upload } from './components/Upload';
 export type {
     UploadProps,
+    UploadProgressConfig,
+    UploadProgressType,
     UploadFile,
     UploadFileStatus,
     UploadListType,
@@ -183,3 +195,21 @@ export type {
     UploadShowUploadList,
     UploadOnChange,
 } from './components/Upload';
+
+export { Chart } from './components/Chart';
+export type {
+    ChartProps,
+    ChartType,
+    ChartSeries,
+    ChartDatum,
+    ChartPoint,
+    ChartCandle,
+    ChartMapRegion,
+    ChartDataEvent,
+    ChartTooltipOptions,
+    ChartTooltipContext,
+    ChartTooltipItem,
+} from './components/Chart';
+
+export { NoData } from './components/NoData';
+export type { NoDataProps, NoDataSize, NoDataVariant } from './components/NoData';

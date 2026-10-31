@@ -2,7 +2,7 @@
  * a11y 烟雾测试 —— 全组件 axe-core 自动检查
  * --------------------------------------------------------------------------
  * 设计目的：
- *   作为 32 个组件的"无障碍基线设施"，用 axe-core 跑一轮 WCAG 2.1 AA 自动化
+ *   作为全组件的"无障碍基线设施"，用 axe-core 跑一轮 WCAG 2.1 AA 自动化
  *   规则，把"我应该写 aria-label 但忘了"这类问题在 CI 里拦下来。
  *
  * 入口策略：
@@ -11,10 +11,8 @@
  *   - 用 portal 渲染的组件（Modal / Drawer / Notification）必须把 axe 根
  *     节点设为 document.body，否则 portal 输出（挂在 body 上、容器外）扫不到
  *
- * 不并入 npm run ci：
- *   32 个组件首次跑一定会有几十条违规（多是需要补 aria-label/aria-labelledby
- *   的契约缺口），目前单独跑 `npm run test:a11y`，等 Tier 1 契约层在
- *   32 个组件测试里就近补完后，再视情况并入 ci。
+ * CI 入口：
+ *   `npm run ci` 通过 test:run 执行无障碍检查；也可单独运行 `npm run test:a11y`。
  *
  * 已知规则差异（在 axeOptions 中关闭）：
  *   - color-contrast          jsdom 不计算样式，永远不通过
@@ -69,6 +67,8 @@ import { TimePicker } from '@/components/TimePicker';
 import { Title } from '@/components/Title';
 import { Tooltip } from '@/components/Tooltip';
 import { Typewriter } from '@/components/Typewriter';
+import { Chart } from '@/components/Chart';
+import { NoData } from '@/components/NoData';
 
 afterEach(() => {
     cleanup();
@@ -145,6 +145,10 @@ const flushRaf = () =>
 // ---------------------------------------------------------------------------
 
 describe('a11y smoke / 全组件 axe-core 自动检查', () => {
+    it('Chart (可聚焦数据点、图例与数据明细)', async () => {
+        const r = render(<Chart title="到访统计" series={[{ name: '访客', data: [12, 25] }]} />);
+        await expectNoA11yViolations(containerOf(r), 'Chart');
+    });
     // -------- 交互触发器 --------
 
     it('Button', async () => {
@@ -489,6 +493,11 @@ describe('a11y smoke / 全组件 axe-core 自动检查', () => {
             />
         );
         await expectNoA11yViolations(containerOf(r), 'Table');
+    });
+
+    it('NoData (文案与恢复操作)', async () => {
+        const r = render(<NoData variant="search" description="请调整筛选条件" extra={<Button>清除筛选</Button>} />);
+        await expectNoA11yViolations(containerOf(r), 'NoData');
     });
 
     it('Image (带 alt)', async () => {

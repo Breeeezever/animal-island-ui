@@ -1,0 +1,49 @@
+// 周期与位移共用一个值，保证不同容器宽度下循环接缝不跳动。
+@wave-period: 128px;
+@wave-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12 C16 4 48 4 64 12 S112 20 128 12 V24 H0Z' fill='white'/%3E%3C/svg%3E");
+
+.wave {
+    // 全局 reset 会给 span 设置正文色，显式继承以保留分割线色与进度条白色浪花。
+    color: inherit;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        right: -@wave-period;
+        background: currentColor;
+        -webkit-mask: @wave-mask left center / @wave-period 100% repeat-x;
+        mask: @wave-mask left center / @wave-period 100% repeat-x;
+        opacity: 0.28;
+        animation: ocean-drift 6s linear infinite;
+        animation-play-state: var(--animal-wave-play-state, paused);
+    }
+
+    &::after {
+        top: 20%;
+        opacity: 0.48;
+        -webkit-mask-position: -32px center;
+        mask-position: -32px center;
+        animation-duration: 9s;
+        animation-direction: reverse;
+    }
+}
+
+@keyframes ocean-drift {
+    to {
+        transform: translateX(-@wave-period);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wave::before,
+    .wave::after {
+        animation: none;
+    }
+}

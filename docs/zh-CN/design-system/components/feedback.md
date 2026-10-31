@@ -17,6 +17,9 @@ interface ProgressProps {
     size?: ProgressSize;        // small=14px / middle=24px / large=32px
     showInfo?: boolean;         // default true；文字显示在进度条右侧
     variant?: ProgressVariant;  // fill 场景图；不传时用薄荷渐变
+    color?: string;
+    wave?: boolean;
+    animated?: boolean;
     infoFormat?: (p: number) => ReactNode; // default `${p}%`
     duration?: number;          // seconds; 0 disables the fill width animation; default 0.6
     className?: string;
@@ -31,7 +34,7 @@ interface ProgressProps {
     box-sizing: border-box;  /* 高度含描边，保证 size 是总高 */
     flex: 1 1 auto;
     width: 100%;
-    min-width: 80px;
+    min-width: 0;
     background:
         radial-gradient(circle, rgba(196, 184, 158, 0.1) 1.5px, transparent 1.5px) 7px 7px / 14px 14px,
         #f8f8f0;              /* 细奶油波点 + 未改动的奶油底 */
@@ -86,8 +89,16 @@ interface ProgressProps {
 - `duration=0` → 关闭 fill 宽度过渡（`transition: none`），瞬间到位。
 - a11y：根 div 有 `role="progressbar"` + `aria-valuemin=0/aria-valuemax=100/aria-valuenow=<四舍五入后的 percent>/aria-valuetext=<infoFormat 的字符串结果>`。
 - `prefers-reduced-motion: reduce` 时 fill 宽度过渡自动关闭。
-- 不传 `variant` 时 `Progress.tsx` 仍会内联写入 `background-color: #19c8b9`；样式表里的渐变完全不透明、盖在其上，所以这个内联色只是兜底，不是实际观感。
-- 100% 提亮只作用于渐变 fill。传了 `variant` 时场景图会内联注入自己的 `background-image`，100% 下刻意保持场景原色不染色。
+- 100% 提亮只作用于默认薄荷渐变 fill。传了 `variant` 时场景图会内联注入自己的 `background-image`，100% 下刻意保持场景原色不染色。
+
+`color` 支持 CSS 颜色或变量，叠加透明高光与底部阴影，100% 时保留自定义色。`variant` 优先于 `color`；两者都未传时保持原薄荷渐变。`wave` 默认 `false`，在 fill 内叠加白色双层海浪，可与颜色、场景图组合。`animated` 默认 `true`，为 `false` 或进度为 0% / 100% 时保持静态；离屏或页面隐藏时暂停，减少动态效果设置下停止。`duration` 只控制进度宽度过渡。
+
+```tsx
+<Progress percent={58} color="#82d5bb" wave />
+<Progress percent={58} wave animated={false} />
+```
+
+海浪复用 `src/internal/Wave.tsx` 与 `wave.module.less`：128px 波长，6s / 9s 匀速反向循环，透明度 0.28 / 0.48；第二层顶部偏移 20%、相位偏移 -32px。同时提供 `-webkit-mask` / `mask` 及对应的位置声明，兼容需要前缀的 WebKit 引擎。固定纹理波长配合 transform 位移，fill 宽度仍对应真实百分比。轨道最小宽度为 0，可适配 Upload 的 84px 图片卡片。
 
 ## Loading（全屏落雪）
 
@@ -312,6 +323,7 @@ border-radius: 16px;
 ```ts
 type CountdownSize = 'small' | 'middle' | 'large';
 type CountdownVariant = 'default' | 'island';
+interface CountdownReminderRule { seconds: number; color: string }
 interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'prefix'> {
     value: number | Date;
     format?: string; // 默认 'HH:mm:ss'；支持 DD / HH / mm / ss
@@ -319,12 +331,30 @@ interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'
     size?: CountdownSize; // 默认 'middle'
     variant?: CountdownVariant; // 默认 'default'
     bordered?: boolean; // 默认 false — 数字块是否带 1.5px 细边框
+    reminder?: boolean | readonly CountdownReminderRule[]; // default false
+    shake?: boolean | number | CountdownShakeOptions; // 默认 false
+    endingAnimation?: boolean | CountdownEndingAnimationOptions; // 默认 false；true 为最后 5 秒每秒一次
+    finishAnimation?: boolean | CountdownEffectOptions; // 默认 false；实际归零时播放一次
     onChange?: (remaining: number) => void;
     onFinish?: () => void;
 }
 ```
 
 默认风格是白色 20px 圆角面板、暖色边框和柔和投影；`island` 使用 `rgb(247,243,223)` 羊皮纸背景与 2px `#d4c4a8` 虚线边框。每个 DD / HH / mm / ss token 渲染为独立的 12px 圆角数字块（奶油渐变底 `linear-gradient(180deg, #fff, #f8f8f0)`；island 风格下为 `#fffdf4→#f8f8f0` 渐变底；1.5px `#d4c9b4` 细边框通过 `bordered` 属性开启，默认无边框），格式中的字面量（如 `:`、`天`）渲染为普通分隔符，冒号与数字同字号、900 字重、`#8b7355`。数字块内每一位数字是包含两轮 0-9 的纵向数字条，所有变化都以 0.35s `cubic-bezier(0.4, 0, 0.2, 1)` 过渡向下滚动（里程表式）；数字滚过 0 回绕时，数字条先无动画瞬移到下一循环的同数字位置，再继续向下滚动，方向永不反向。数字采用大地棕 `#8b7355`、900 字重、等宽数字，三档字号为 20/26/34px。滚动数字条对辅助技术隐藏，由视觉隐藏的完整格式化文本代替；根节点使用 `role="timer"` 与 `aria-live="off"`，避免读屏软件每 250ms 打断用户。
+
+`reminder` 默认关闭；设为 `true` 使用默认规则：剩余 ≤60 秒为暖橙 `#c77c34`，≤10 秒为错误色 `var(--animal-error-color, #e05a5a)`。传入 `{ seconds, color }` 数组完全替换默认规则；颜色支持 CSS 颜色或变量。阈值按显示的向上取整秒数判断，命中多档时采用最小阈值，不要求数组排序；相同阈值取首项，无效阈值（负数或非有限数）与空颜色被忽略，空数组等同关闭。提醒只修改数字、分隔符及已开启的数字块边框，颜色过渡 0.2s，保持前缀与面板原样。归零保留命中的提醒色，重置到阈值外或关闭提醒时恢复默认色，计时与回调语义不变。
+
+`shake` 保留布尔值和秒数简写，新增对象配置阈值、加强阶段、周期、位移、旋转与缓动。抖动位于内部数字组，回弹位于外部动效层，两个 transform 不冲突。每轮只重播装饰，不重挂数字条。离屏和隐藏页面停止循环定时器；重置或关闭会清理当前动效。减少动态效果时禁用循环运动，归零可选轻微淡入或完全静止。
+
+`finishAnimation` 保留归零播放一次的语义，并新增对象配置。`endingAnimation` 将同一套回弹与波纹应用到最后几秒：`true` 默认最后 5 秒每秒一次；对象自定义阈值、间隔和视觉参数。二者可独立开关、分别设置风格，归零时循环切换到一次性收尾。完整参数与像素规范见 [倒计时动效](countdown-motion.md)。
+
+```tsx
+<Countdown value={deadline} reminder shake endingAnimation finishAnimation />
+<Countdown value={deadline} reminder />
+<Countdown value={deadline} reminder shake />
+<Countdown value={deadline} reminder shake={8} />
+<Countdown value={deadline} reminder={[{ seconds: 120, color: '#c77c34' }, { seconds: 30, color: '#b25770' }]} />
+```
 
 ## Time（实时时钟卡片）
 

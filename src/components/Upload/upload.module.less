@@ -163,6 +163,8 @@
 }
 
 .textItem {
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -189,6 +191,76 @@
     display: inline-flex;
     color: @text-muted;
     flex-shrink: 0;
+}
+
+.fileDetails {
+    flex: 1;
+    min-width: 0;
+
+    .fileName {
+        display: block;
+    }
+}
+
+.fileProgress {
+    margin-top: 6px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.cardProgress {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.cardPercent {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.backgroundProgress {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.backgroundFill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--animal-primary-color, @teal);
+    color: #fff;
+    opacity: 0.28;
+    overflow: hidden;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.backgroundPercent {
+    flex-shrink: 0;
+    color: @text;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.cardMask.cardMaskBackground {
+    isolation: isolate;
+    background: rgba(255, 253, 247, 0.88);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .backgroundFill {
+        transition: none;
+    }
 }
 
 // ---------- Inline thumbnail (listType="picture") ----------

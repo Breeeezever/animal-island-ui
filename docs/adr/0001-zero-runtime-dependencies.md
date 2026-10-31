@@ -36,8 +36,8 @@ The library needs exactly three things at runtime: `react` and `react-dom` for r
 ```json
 "peerDependencies": {
     "classnames": "^2.5.1",
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
 }
 ```
 
@@ -55,7 +55,7 @@ Font packages (`@fontsource/nunito`, `@fontsource/noto-sans-sc`) are development
 
 - Installing the library adds no transitive packages. The published tarball is `dist/` plus type shims.
 - The host application owns the React version. A single React instance is guaranteed, so hooks and context work across the boundary without the "two copies of React" failure mode.
-- `react` is accepted from 17 upward. The library must therefore avoid APIs introduced after React 17 unless guarded.
+- `react` and `react-dom` require 18 or later because components use React 18 APIs such as `useId`. React 17 is not supported; APIs introduced after React 18 must be guarded or accompanied by a peer-range update.
 - Consumers must have `classnames` installed. npm 7 and later install missing peer dependencies automatically, so this is usually invisible; consumers on older npm or on strict package managers (pnpm without `auto-install-peers`) will see an unmet-peer warning and must add it explicitly.
 - Any future runtime utility must be vendored into `src/` or promoted to a peer dependency. Adding a `dependencies` entry breaks this decision and must supersede this record.
 - Keeping the externals list correct is part of the build contract described in [ADR 0003](0003-vite-library-mode-build.md); removing an entry silently ships a duplicate of that package to every consumer.
