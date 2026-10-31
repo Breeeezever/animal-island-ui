@@ -215,6 +215,13 @@ Pure CSS, no image assets: `dashed-*` types draw a 2px dashed rule via `linear-g
 
 When `icon` is set (an SVG component, e.g. `FishIcon`), the divider switches to icon-connected mode (same tiling idea as the old Footer icon chain): a `flex` row repeats `[icon][gap]` units to fill the width, controlled by `iconSize` (default 24) and `iconGap` (default 8). Each gap holds a short 4×2px brown connector bar, horizontally centered so it sits visually between the two neighboring icons; the last icon ends the row without a trailing connector, so both ends of the divider are icons. Cycle count is recalculated on resize via `ResizeObserver`.
 
+`ocean-wave`: 24px high, mint `#19c8b9` (matching `squiggle`), reusing the two CSS-mask wave layers in `src/internal/Wave.tsx` and `wave.module.less`. Wavelength 128px, opacity 0.28 / 0.48, second layer offset 20% vertically and -32px in phase, opposing linear loops of 6s / 9s. `animated` defaults to `true`; false retains a static wave. Pauses offscreen or when hidden and stops under reduced motion; `icon` still takes precedence over `type`.
+
+```tsx
+<Divider type="ocean-wave" />
+<Divider type="ocean-wave" animated={false} />
+```
+
 ## Background (pattern wallpaper)
 
 ```tsx
