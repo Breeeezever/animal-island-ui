@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Table, type TableColumn } from './Table';
+import { NoData } from '../NoData';
 import styles from './table.module.less';
 
 interface Row extends Record<string, unknown> {
@@ -41,6 +42,18 @@ describe('Table', () => {
     it('数据为空时显示 emptyText', () => {
         render(<Table columns={anyColumns} dataSource={[]} emptyText="无内容" />);
         expect(screen.getByText('无内容')).toBeInTheDocument();
+    });
+
+    it('emptyText 允许组件等块级内容', () => {
+        render(
+            <Table columns={anyColumns} dataSource={[]} emptyText={<NoData size="small" data-testid="table-empty" />} />
+        );
+        const empty = screen.getByTestId('table-empty');
+        // 空态包裹层必须是块级元素；回退到 <span> 会让 NoData 的 div 落在内联父级下
+        expect(empty.tagName).toBe('DIV');
+        expect(empty.parentElement?.tagName).toBe('DIV');
+        expect(empty.closest(`.${styles.emptyContent}`)).toBeInTheDocument();
+        expect(empty).toHaveTextContent('暂无数据');
     });
 
     it('column.render 自定义单元格', () => {
