@@ -1,9 +1,25 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import styles from './countdown.module.less';
+import {
+    resolveEffect,
+    resolveEnding,
+    resolveShake,
+    type CountdownShakeOptions,
+    type CountdownEffectOptions,
+    type CountdownEndingAnimationOptions,
+} from './motion';
 
 export type CountdownSize = 'small' | 'middle' | 'large';
 export type CountdownVariant = 'default' | 'island';
+
+/** 倒计时提醒规则，按显示的剩余秒数匹配阈值。 */
+export interface CountdownReminderRule {
+    /** 剩余秒数小于等于此值时生效，须为非负有限数；多档命中时取最小阈值 */
+    seconds: number;
+    /** 数字、分隔符与已开启数字块边框的颜色，支持 CSS 颜色或变量 */
+    color: string;
+}
 
 export interface CountdownProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'prefix'> {
     /** 结束时间，可以传时间戳或 Date */
@@ -18,6 +34,14 @@ export interface CountdownProps extends Omit<React.HTMLAttributes<HTMLDivElement
     variant?: CountdownVariant;
     /** 数字块是否带边框，默认无 */
     bordered?: boolean;
+    /** 提醒配置：默认 false；true 使用 60 秒橙色 / 10 秒红色，数组完全替换默认规则 */
+    reminder?: boolean | readonly CountdownReminderRule[];
+    /** 抖动提醒，默认 false；兼容 true / 秒数简写，对象自定义阈值、节奏、位移、旋转及缓动 */
+    shake?: boolean | number | CountdownShakeOptions;
+    /** 最后几秒循环回弹与波纹，默认 false；true 使用最后 5 秒每秒一次，对象自定义 */
+    endingAnimation?: boolean | CountdownEndingAnimationOptions;
+    /** 归零时播放一次，默认 false；对象自定义回弹、波纹、时长及减少动态效果的替代反馈 */
+    finishAnimation?: boolean | CountdownEffectOptions;
     /** 剩余毫秒变化时触发 */
     onChange?: (remaining: number) => void;
     /** 倒计时归零时触发 */
@@ -27,6 +51,23 @@ export interface CountdownProps extends Omit<React.HTMLAttributes<HTMLDivElement
 const toTimestamp = (value: number | Date) => (value instanceof Date ? value.getTime() : value);
 
 const pad = (value: number) => String(value).padStart(2, '0');
+
+/** 开启提醒时的默认配色，橙色保持暖色调，红色沿用错误色令牌。 */
+const DEFAULT_REMINDERS: readonly CountdownReminderRule[] = [
+    { seconds: 60, color: '#c77c34' },
+    { seconds: 10, color: 'var(--animal-error-color, #e05a5a)' },
+];
+
+/** 从任意顺序的规则中取最小命中阈值，不排序或修改调用方的数组。 */
+const getReminderColor = (seconds: number, rules: readonly CountdownReminderRule[]): string | undefined => {
+    let matched: CountdownReminderRule | undefined;
+    for (const rule of rules) {
+        // 排除无效规则；同阈值保留首项，使重复配置有确定的优先级。
+        if (!Number.isFinite(rule.seconds) || rule.seconds < 0 || !rule.color.trim()) continue;
+        if (seconds <= rule.seconds && (!matched || rule.seconds < matched.seconds)) matched = rule;
+    }
+    return matched?.color;
+};
 
 type TimePart = { kind: 'token'; token: 'DD' | 'HH' | 'mm' | 'ss' } | { kind: 'literal'; text: string };
 
@@ -119,33 +160,55 @@ export const Countdown: React.FC<CountdownProps> = ({
     size = 'middle',
     variant = 'default',
     bordered = false,
+    reminder = false,
+    shake = false,
+    endingAnimation = false,
+    finishAnimation = false,
     onChange,
     onFinish,
     className,
+    style,
     ...rest
 }) => {
+    // 同一截止时间的 Date 对象即使重建，也不能重新触发本轮完成反馈。
+    const deadline = toTimestamp(value);
     // 距离结束时刻还剩多少毫秒；dayjs 的 diff 负责跨时区/跨夏令时的真实时间差
-    const getRemaining = useCallback(() => Math.max(0, dayjs(toTimestamp(value)).diff(dayjs())), [value]);
+    const getRemaining = useCallback(() => Math.max(0, dayjs(deadline).diff(dayjs())), [deadline]);
     const [remaining, setRemaining] = useState(getRemaining);
+    const [finishedDeadline, setFinishedDeadline] = useState<number | null>(null);
+    const timerRef = useRef<HTMLDivElement>(null);
+    const [motionVisible, setMotionVisible] = useState(false);
+    const [pulseTick, setPulseTick] = useState(0);
+    const shakeOptions = resolveShake(shake);
+    const endingOptions = resolveEnding(endingAnimation);
+    const finishOptions = resolveEffect(finishAnimation);
+    const finishEnabled = Boolean(finishAnimation);
     const finishedRef = useRef(false);
     const onChangeRef = useRef(onChange);
     const onFinishRef = useRef(onFinish);
+    const finishAnimationRef = useRef(finishEnabled);
 
     onChangeRef.current = onChange;
     onFinishRef.current = onFinish;
+    finishAnimationRef.current = finishEnabled;
 
     useEffect(() => {
         finishedRef.current = false;
+        setFinishedDeadline(null);
         let timer: number | undefined;
+        let countedDown = false;
 
         const update = () => {
             const next = getRemaining();
+            if (next > 0) countedDown = true;
             setRemaining(next);
             onChangeRef.current?.(next);
 
             if (next === 0) {
                 if (!finishedRef.current) {
                     finishedRef.current = true;
+                    // 只有本轮实际经历过正数才播放，挂载已过期时间或切换到过期截止时间不补播。
+                    if (countedDown && finishAnimationRef.current) setFinishedDeadline(deadline);
                     onFinishRef.current?.();
                 }
                 // 归零后清除定时器，避免 setInterval 空转（远端 5a002e0 修复）
@@ -166,33 +229,158 @@ export const Countdown: React.FC<CountdownProps> = ({
                 window.clearInterval(timer);
             }
         };
-    }, [getRemaining]);
+    }, [getRemaining, deadline]);
 
-    const classNames = [styles.countdown, styles[size], styles[variant], bordered && styles.bordered, className]
+    useEffect(() => {
+        if (!finishEnabled) {
+            // 关闭后清除本轮记录，重新开启开关也不会重播已经结束的倒计时。
+            setFinishedDeadline(null);
+            return;
+        }
+        if (finishedDeadline === null) return;
+        const timer = window.setTimeout(() => setFinishedDeadline(null), finishOptions.duration);
+        return () => window.clearTimeout(timer);
+    }, [finishEnabled, finishedDeadline, finishOptions.duration]);
+
+    // 使用与数字显示一致的向上取整秒数，避免还显示 11 秒时提前进入 10 秒提醒。
+    const remainingSeconds = Math.ceil(remaining / 1_000);
+    const reminderColor = getReminderColor(remainingSeconds, reminder === true ? DEFAULT_REMINDERS : reminder || []);
+    // 与显示秒数共用阈值；零值和非正配置不会触发抖动，重置截止时间后可重新进入提醒。
+    const shaking = remainingSeconds > 0 && remainingSeconds <= shakeOptions.seconds;
+    const urgent = shaking && remainingSeconds <= shakeOptions.urgentSeconds;
+    const ending = remainingSeconds > 0 && remainingSeconds <= endingOptions.seconds;
+    const finishing = finishEnabled && remaining === 0 && finishedDeadline === deadline;
+    const looping = shaking || ending;
+    useEffect(() => {
+        const element = timerRef.current;
+        if (!element || !looping) return;
+        let visible = typeof IntersectionObserver === 'undefined';
+        /** 合并视口与页面可见性，后台或离屏时暂停抖动。 */
+        const update = () => {
+            // 页面恢复时仍需尊重视口位置，避免隐藏在滚动区域外的组件继续播放。
+            setMotionVisible(visible && !document.hidden);
+        };
+        const observer =
+            typeof IntersectionObserver === 'undefined'
+                ? undefined
+                : new IntersectionObserver(([entry]) => {
+                      visible = entry?.isIntersecting ?? false;
+                      update();
+                  });
+        observer?.observe(element);
+        document.addEventListener('visibilitychange', update);
+        update();
+        return () => {
+            observer?.disconnect();
+            document.removeEventListener('visibilitychange', update);
+        };
+    }, [looping]);
+    useEffect(() => {
+        if (!ending || !motionVisible) return;
+        // 只重启装饰层，不重挂数字条；配置对象重建不改变相同节奏，离屏停止循环定时器。
+        setPulseTick((tick) => tick + 1);
+        const timer = window.setInterval(() => setPulseTick((tick) => tick + 1), endingOptions.interval);
+        return () => window.clearInterval(timer);
+    }, [ending, motionVisible, endingOptions.interval]);
+    const effect = finishing ? finishOptions : endingOptions;
+    const effectActive = finishing || ending;
+    const effectKey = finishing ? `finish-${deadline}` : `pulse-${deadline}-${pulseTick}`;
+    const classNames = [
+        styles.countdown,
+        styles[size],
+        styles[variant],
+        bordered && styles.bordered,
+        reminderColor && styles.reminding,
+        shaking && styles.shaking,
+        urgent && styles.urgent,
+        ending && styles.ending,
+        finishing && styles.finishing,
+        className,
+    ]
         .filter(Boolean)
         .join(' ');
     const parts = parseFormat(format);
-    const digits = splitSeconds(Math.ceil(remaining / 1_000), format);
+    const digits = splitSeconds(remainingSeconds, format);
     // 读屏文本：滚动数字条对辅助技术隐藏，用完整格式化串代替
     const readable = parts.map((part) => (part.kind === 'token' ? digits[part.token] : part.text)).join('');
 
     return (
-        <div className={classNames} role="timer" aria-live="off" {...rest}>
+        <div
+            ref={timerRef}
+            className={classNames}
+            style={
+                {
+                    ...style,
+                    '--animal-countdown-reminder-color': reminderColor,
+                    '--countdown-shake-duration': `${shakeOptions.duration}ms`,
+                    '--countdown-shake-distance': `${shakeOptions.distance}px`,
+                    '--countdown-shake-angle': `${shakeOptions.rotation}deg`,
+                    '--countdown-urgent-duration': `${shakeOptions.urgentDuration}ms`,
+                    '--countdown-urgent-distance': `${shakeOptions.urgentDistance}px`,
+                    '--countdown-urgent-angle': `${shakeOptions.urgentRotation}deg`,
+                    '--countdown-shake-easing': shakeOptions.easing,
+                    '--countdown-bounce-duration': `${effect.bounceDuration}ms`,
+                    '--countdown-press-scale': effect.pressScale,
+                    '--countdown-pop-scale': effect.popScale,
+                    '--countdown-press-offset': `${effect.pressOffset}px`,
+                    '--countdown-pop-offset': `${effect.popOffset}px`,
+                    '--countdown-ripple-duration': `${effect.rippleDuration}ms`,
+                    '--countdown-ripple-color': effect.color,
+                    '--countdown-ripple-opacity': effect.opacity,
+                    '--countdown-ripple-width': `${effect.width}px`,
+                    '--countdown-ripple-offset': `${-effect.offset}px`,
+                    '--countdown-ripple-radius': `${effect.radius}px`,
+                    '--countdown-ripple-start-scale': effect.startScale,
+                    '--countdown-ripple-scale-x': effect.scaleX,
+                    '--countdown-ripple-scale-y': effect.scaleY,
+                    '--countdown-effect-easing': effect.easing,
+                    '--countdown-effect-play-state': finishing || motionVisible ? 'running' : 'paused',
+                    '--countdown-fade-duration': `${effect.fadeDuration}ms`,
+                    '--countdown-fade-opacity': effect.fadeOpacity,
+                } as React.CSSProperties
+            }
+            role="timer"
+            aria-live="off"
+            {...rest}
+        >
             {prefix !== undefined && <span className={styles.prefix}>{prefix}</span>}
-            <span className={styles.group} aria-hidden="true">
-                {parts.map((part, i) =>
-                    part.kind === 'token' ? (
-                        <span key={`${part.token}-${i}`} className={styles.unit}>
-                            {digits[part.token].split('').map((d, j) => (
-                                <DigitRoll key={`${part.token}-${j}`} digit={d} />
-                            ))}
-                        </span>
-                    ) : (
-                        <span key={`sep-${i}`} className={/[:：]/.test(part.text) ? styles.colon : styles.sep}>
-                            {part.text}
-                        </span>
-                    )
-                )}
+            <span
+                aria-hidden="true"
+                className={[
+                    styles.motion,
+                    effectActive && effect.bounce && styles.bouncing,
+                    ending && (pulseTick % 2 ? styles.pulseOdd : styles.pulseEven),
+                    effect.reducedMotion === 'none' && styles.noReducedMotion,
+                ]
+                    .filter(Boolean)
+                    .join(' ')}
+            >
+                <span
+                    className={styles.group}
+                    style={shaking ? { animationPlayState: motionVisible ? 'running' : 'paused' } : undefined}
+                >
+                    {parts.map((part, i) =>
+                        part.kind === 'token' ? (
+                            <span key={`${part.token}-${i}`} className={styles.unit}>
+                                {digits[part.token].split('').map((d, j) => (
+                                    <DigitRoll key={`${part.token}-${j}`} digit={d} />
+                                ))}
+                            </span>
+                        ) : (
+                            <span key={`sep-${i}`} className={/[:：]/.test(part.text) ? styles.colon : styles.sep}>
+                                {part.text}
+                            </span>
+                        )
+                    )}
+                </span>
+                {effectActive &&
+                    Array.from({ length: effect.count }, (_, index) => (
+                        <span
+                            key={`${effectKey}-${index}`}
+                            className={styles.ripple}
+                            style={{ animationDelay: `${index * effect.delay}ms` }}
+                        />
+                    ))}
             </span>
             <span className={styles.srOnly}>{readable}</span>
         </div>

@@ -151,7 +151,17 @@ export { Image } from './components/Image';
 export type { ImageProps, ImageColor } from './components/Image';
 
 export { Countdown } from './components/Countdown';
-export type { CountdownProps, CountdownSize, CountdownVariant } from './components/Countdown';
+export type {
+    CountdownProps,
+    CountdownSize,
+    CountdownVariant,
+    CountdownReminderRule,
+    CountdownShakeOptions,
+    CountdownBounceOptions,
+    CountdownRippleOptions,
+    CountdownEffectOptions,
+    CountdownEndingAnimationOptions,
+} from './components/Countdown';
 
 export { CountUp } from './components/CountUp';
 export type {
