@@ -195,3 +195,6 @@ export type {
     UploadShowUploadList,
     UploadOnChange,
 } from './components/Upload';
+
+export { NoData } from './components/NoData';
+export type { NoDataProps, NoDataSize, NoDataVariant } from './components/NoData';

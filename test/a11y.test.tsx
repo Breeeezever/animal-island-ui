@@ -69,6 +69,7 @@ import { TimePicker } from '@/components/TimePicker';
 import { Title } from '@/components/Title';
 import { Tooltip } from '@/components/Tooltip';
 import { Typewriter } from '@/components/Typewriter';
+import { NoData } from '@/components/NoData';
 
 afterEach(() => {
     cleanup();
@@ -489,6 +490,11 @@ describe('a11y smoke / 全组件 axe-core 自动检查', () => {
             />
         );
         await expectNoA11yViolations(containerOf(r), 'Table');
+    });
+
+    it('NoData (文案与恢复操作)', async () => {
+        const r = render(<NoData variant="search" description="请调整筛选条件" extra={<Button>清除筛选</Button>} />);
+        await expectNoA11yViolations(containerOf(r), 'NoData');
     });
 
     it('Image (带 alt)', async () => {

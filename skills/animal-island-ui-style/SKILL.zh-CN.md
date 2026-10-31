@@ -9,7 +9,7 @@
 
 ## 正文对照
 
-animal-island-ui 是采用原创治愈系海岛风格设计的 React + TypeScript 组件库 —— 40 个组件、两个运行时依赖（`naive-icons` 图标、`dayjs` 日期）、MIT License
+animal-island-ui 是采用原创治愈系海岛风格设计的 React + TypeScript 组件库 —— 41 个组件、两个运行时依赖（`naive-icons` 图标、`dayjs` 日期）、MIT License
 
 源码与设计规范定义：https://github.com/guokaigdg/animal-island-ui
 
@@ -57,6 +57,7 @@ props 参考按大类分组在 `references/components/` 下（props、合法取�
 | 浮层 | Modal, Drawer, Tooltip | [overlays.md](references/components/overlays.md) |
 | 反馈 | Progress, Skeleton, BackTop, Loading, Countdown, Time | [feedback.md](references/components/feedback.md) |
 | 通知 | Notification（命令式 API） | [Notification.md](references/components/Notification.md) |
+| 空状态 | NoData | [no-data.md](references/components/no-data.md) |
 | 数据展示 | Table, CodeBlock, Tag, Badge, Pagination | [data-display.md](references/components/data-display.md) |
 | 日历 | Calendar | [calendar.md](references/components/calendar.md) |
 | 计分滚动 | CountUp | [CountUp.md](references/components/CountUp.md) |

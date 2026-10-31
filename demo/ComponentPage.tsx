@@ -19,6 +19,7 @@ import NotificationDemo from './components/Notification';
 import ProgressDemo from './components/Progress';
 import LoadingDemo from './components/Loading';
 import SkeletonDemo from './components/Skeleton';
+import NoDataDemo from './components/NoData';
 import BackTopDemo from './components/BackTop';
 import ImageDemo from './components/Image';
 import AvatarDemo from './components/Avatar';
@@ -87,6 +88,7 @@ const PAGES: Record<string, React.FC> = {
     form: FormDemo,
     upload: UploadDemo,
     skeleton: SkeletonDemo,
+    'no-data': NoDataDemo,
     backtop: BackTopDemo,
     image: ImageDemo,
     avatar: AvatarDemo,

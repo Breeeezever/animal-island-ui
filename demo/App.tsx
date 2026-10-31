@@ -105,6 +105,7 @@ const MENU_ITEMS: MenuItem[] = [
             { key: 'tooltip', label: 'Tooltip 气泡提示' },
             { key: 'progress', label: 'Progress 进度条' },
             { key: 'skeleton', label: 'Skeleton 骨架屏' },
+            { key: 'no-data', label: 'NoData 空状态', isNew: true },
             { key: 'backtop', label: 'BackTop 返回顶部' },
         ],
     },
