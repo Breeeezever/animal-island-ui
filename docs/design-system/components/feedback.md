@@ -98,7 +98,7 @@ The small dot layer carries over from the old wallpaper track — 14px grid, 7px
 <Progress percent={58} wave animated={false} />
 ```
 
-Waves reuse `src/internal/Wave.tsx` and `wave.module.less`: 128px wavelength, opposing linear 6s / 9s loops, opacity 0.28 / 0.48; the second layer starts 20% lower with a -32px phase offset. Fixed-width masks translate while the fill width still represents the actual percentage. The track minimum width is 0 to fit Upload’s 84px picture cards.
+Waves reuse `src/internal/Wave.tsx` and `wave.module.less`: 128px wavelength, opposing linear 6s / 9s loops, opacity 0.28 / 0.48; the second layer starts 20% lower with a -32px phase offset. Both `-webkit-mask` / `mask` and their position declarations are provided for prefixed WebKit engines. Fixed-width masks translate while the fill width still represents the actual percentage. The track minimum width is 0 to fit Upload’s 84px picture cards.
 
 ## Loading (fullscreen falling snow)
 

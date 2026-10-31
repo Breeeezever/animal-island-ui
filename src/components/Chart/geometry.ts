@@ -68,6 +68,8 @@ export interface ChartScene {
     layers?: { seriesIndex: number; node: React.ReactNode }[];
     /** 坐标绘图区；辅助线与指针命中共用同一边界 */
     plot?: { left: number; right: number; top: number; bottom: number; horizontal: boolean };
+    /** 雷达圆形命中边界与维度数量；独立于笛卡尔辅助线区域 */
+    polarPlot?: { cx: number; cy: number; radius: number; count: number };
 }
 
 /** 只接受真正的有限数，避免把空字符串和 null 当作零。 */

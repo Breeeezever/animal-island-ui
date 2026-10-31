@@ -1,5 +1,5 @@
 import React from 'react';
-import { LeafIcon, SearchIcon } from 'naive-icons';
+import { InboxIcon, SearchIcon } from 'naive-icons';
 import styles from './no-data.module.less';
 
 /** 空态尺寸，适用于表格单元、卡片与整块内容区。 */
@@ -27,26 +27,19 @@ export interface NoDataProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
     bordered?: boolean;
 }
 
-/** 默认装饰采用留白手账纸；搜索态叠加图标，简洁态只保留单张纸。 */
+/** 空收纳盒与搜索图标直接采用 naive-icons 的原生造型和配色。 */
 const NoDataArtwork: React.FC<{ variant: NoDataVariant }> = ({ variant }) => {
-    // 纸张是 CSS 几何装饰，具象图标仍复用 naive-icons，不额外引入图片或手写 SVG。
-    return (
-        <span className={styles.paperScene}>
-            {variant !== 'simple' && <span className={styles.paperBack} />}
-            <span className={styles.paperFront}>
-                {variant !== 'simple' && <span className={styles.paperTape} />}
-                {variant === 'default' && <LeafIcon className={styles.paperLeaf} color="#8aa98b" strokeWidth={2} />}
-                <span className={styles.paperLine} />
-                <span className={styles.paperLineShort} />
-            </span>
-            {variant === 'search' && <SearchIcon className={styles.searchSymbol} color="#809b8b" strokeWidth={3} />}
-        </span>
+    // 保留图标库内部的粗描边与实色填充，不覆盖 SVG 子节点或额外叠加底托。
+    return variant === 'search' ? (
+        <SearchIcon className={styles.sceneIcon} />
+    ) : (
+        <InboxIcon className={styles.sceneIcon} />
     );
 };
 
 NoDataArtwork.displayName = 'NoDataArtwork';
 
-/** 海岛手账风空态；装饰与可读文字分离，保留自定义图标和操作区。 */
+/** 海岛风空态；装饰与可读文字分离，保留自定义图标和操作区。 */
 export const NoData: React.FC<NoDataProps> = ({
     variant = 'default',
     size = 'medium',

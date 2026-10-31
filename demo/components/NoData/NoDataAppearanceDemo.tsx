@@ -2,12 +2,12 @@ import React from 'react';
 import { NoData } from '../../../src';
 import { sectionStyle, sectionTitleStyle } from '../../tools';
 
-/** 纸张留白与搜索两种构图的独立预览，原有尺寸、文案和操作演示继续保留。 */
+/** 空收纳盒与搜索两种原生图标的独立预览，原有尺寸、文案和操作演示继续保留。 */
 export const NoDataAppearanceDemo: React.FC = () => {
     // 并排展示常用空态，窄屏自然换行，便于直接比较两种图形的区别。
     return (
-        <section style={sectionStyle} aria-label="新增海岛手账空态预览">
-            <div style={sectionTitleStyle}>新增示例：海岛手账空态</div>
+        <section style={sectionStyle} aria-label="naive-icons 原生图标空态预览">
+            <div style={sectionTitleStyle}>naive-icons 原生图标空态</div>
             <div
                 style={{
                     display: 'grid',

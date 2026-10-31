@@ -29,17 +29,25 @@ export function relatedMarks(marks: ChartMark[], active: ChartMark, shared: bool
     );
 }
 
-/** 坐标图整列/整行命中；离散点只在邻近范围内命中，避免远处空白误报数据。 */
+/** 坐标图按行列、雷达按维度角度命中；单项提示限制在数据点邻近范围。 */
 export function nearestMark(scene: ChartScene, x: number, y: number, shared: boolean): ChartMark | undefined {
-    const { plot, marks } = scene;
-    if (!plot || x < plot.left || x > plot.right || y < plot.top || y > plot.bottom) return undefined;
+    const { plot, polarPlot, marks } = scene;
+    if (polarPlot) {
+        if (Math.hypot(x - polarPlot.cx, y - polarPlot.cy) > polarPlot.radius) return undefined;
+    } else if (!plot || x < plot.left || x > plot.right || y < plot.top || y > plot.bottom) {
+        return undefined;
+    }
+    const angle = polarPlot ? Math.atan2(x - polarPlot.cx, polarPlot.cy - y) : 0;
     let nearest: ChartMark | undefined;
     let distance = Infinity;
-    // 分类提示只比较类别中心距离；同列多个系列以指针距图形端点距离打破平局。
+    // 雷达按维度索引定位，零值仍属于原维度；余弦距离保证首尾角度连续。
     for (const mark of marks) {
-        const value = shared
-            ? Math.abs((plot.horizontal ? y : x) - (mark.axisPosition ?? mark.x))
-            : Math.hypot(x - mark.x, y - mark.y);
+        let value = Math.hypot(x - mark.x, y - mark.y);
+        if (shared && polarPlot) {
+            value = 1 - Math.cos(angle - (Math.PI * 2 * mark.point.dataIndex) / polarPlot.count);
+        } else if (shared && plot) {
+            value = Math.abs((plot.horizontal ? y : x) - (mark.axisPosition ?? mark.x));
+        }
         if (
             value < distance ||
             (value === distance &&

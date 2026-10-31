@@ -44,9 +44,9 @@ export interface NoDataProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
 <NoData size="small" variant="simple" icon={null} title="No matches" />
 ```
 
-- Default uses layered cream/mint journal paper with a LeafIcon imprint. Search adds a sage SearchIcon; simple keeps one upright blank sheet. Custom icons retain their own colors in a cream tile. Paper geometry is CSS; no image assets or handwritten SVG are added.
-- Title inherits `--animal-text-color`; description uses `--animal-text-color-secondary` and the bordered surface uses `--animal-bg-color`.
-- Override paper colors through `--no-data-paper`, `--no-data-paper-line`, `--no-data-mint` and `--no-data-mint-line` on the root.
+- Default uses the original naive-icons InboxIcon; search uses SearchIcon and simple uses a smaller InboxIcon. Original solid colors and rounded ink strokes are preserved. No badge, background shape, rotation, shadow or SVG fill/stroke overrides are added.
+- Default icon areas are 64/96/120px square for small/medium/large; simple and custom icons use 32/52/64px square areas. Custom icons retain their own colors without a tile.
+- Title inherits `--animal-text-color`; description uses `--animal-text-color-secondary` and the bordered surface uses `--animal-bg-color`. Use the `icon` slot for a different icon or its supported color props.
 - `undefined` uses the default title/icon; explicit null or false hides it. `extra` takes precedence over children, including null/false.
 - The root is a native div; pass `role="status"` or `aria-live` when a business flow requires announcements. Decorative icons are hidden from assistive technology; action content remains keyboard-accessible.
 - The component has no built-in retry, loading or request behavior. Pass real business actions via Button. No continuous animation.

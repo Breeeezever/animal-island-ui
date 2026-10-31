@@ -6,7 +6,7 @@ import type { CardColor, CardProps, TagColor } from '../../../src';
 // 改技能内容时同步此处
 // ============================================
 
-export const INTRO_TAGS = ['React + TypeScript', '37 个组件', '唯一依赖 naive-icons', 'MIT License'];
+export const INTRO_TAGS = ['React + TypeScript', '42 个组件', '依赖 naive-icons / dayjs', 'MIT License'];
 
 export interface QuickStep {
     title: string;

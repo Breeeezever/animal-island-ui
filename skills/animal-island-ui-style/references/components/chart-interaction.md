@@ -46,7 +46,7 @@ export interface ChartTooltipOptions {
 # Behavior
 
 - `tooltip={true}` defaults to `{ trigger: 'axis', crosshair: true, showPercentage: true }`; `false` hides the panel and crosshair.
-- Category charts compare visible series at the same data index. Time compares exact x timestamps; radar compares the same dimension. Scatter, bubble and other non-category types use item tooltips. Missing values stay missing.
+- Category charts compare visible series at the same data index. Time compares exact x timestamps; radar compares the same dimension. Scatter, bubble and other non-category types use item tooltips. Missing values stay missing. Cartesian plots resolve nearby categories; radar resolves the nearest visible dimension by angle inside its circular plot, including zero-valued points.
 - Pie/ring/rose percentages use the sum of currently drawn values. Funnel uses the first visible stage and previous visible stage; a zero denominator omits the corresponding rate. Percentages use 0–100 units and may exceed 100 for increasing funnel values.
 - `highlight={false}` disables emphasis and dimming. `selectable={false}` disables locking but keeps tooltips, callbacks and keyboard access.
 - Clicking a mark locks the reading; clicking it again, an empty plot area, the release button or Escape unlocks. Arrow/Home/End navigation also unlocks and moves focus. Hidden/removed data, changed chart identity and loading clear selection.

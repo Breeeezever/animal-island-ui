@@ -127,6 +127,7 @@ export function radarScene({ props, points, width, height }: SceneContext): Char
     return {
         background: <>{background}</>,
         layers,
+        polarPlot: { cx, cy, radius, count },
         marks: points.map((p) => {
             const [x, y] = at(p.dataIndex, p.value);
             return {

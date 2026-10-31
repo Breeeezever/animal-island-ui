@@ -2,8 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { setup } from '@test/utils';
 import { Chart } from './Chart';
-import { normalize, axisTicks } from './geometry';
+import { normalize, axisTicks, polar } from './geometry';
 import { cartesianScene } from './Cartesian';
+import { radarScene } from './Polar';
 import { nearestMark, relatedMarks } from './interaction';
 import type { ChartProps, ChartType } from './types';
 
@@ -90,6 +91,33 @@ describe('Chart', () => {
         expect(relatedMarks(scene.marks, scene.marks[1], true).map((mark) => mark.point.value)).toEqual([20, 30]);
         expect(nearestMark(scene, scene.marks[0].x, scene.plot!.top + 1, true)?.point.x).toBe(1000);
         expect(nearestMark(scene, 0, 0, true)).toBeUndefined();
+    });
+
+    it('雷达空白按角度命中维度，零值和首尾角度保留归属，单项提示与圆外保持边界', () => {
+        // 首维度全为零且存在缺测；按端点角度推断会把中心零值错误归给另一维度。
+        const props: ChartProps = {
+            type: 'radar',
+            categories: ['甲', '乙', '丙', '丁'],
+            max: 100,
+            series: [
+                { name: '本期', data: [0, 60, null, 50] },
+                { name: '上期', data: [0, 70, 40, 55] },
+            ],
+        };
+        const scene = radarScene({ props, points: normalize(props), width: 640, height: 300, format: String });
+        const { cx, cy, radius } = scene.polarPlot!;
+        const beforeTop = polar(cx, cy, radius * 0.9, -0.05);
+        const afterTop = polar(cx, cy, radius * 0.9, 0.05);
+        expect(nearestMark(scene, ...beforeTop, true)?.point.dataIndex).toBe(0);
+        expect(nearestMark(scene, ...afterTop, true)?.point.dataIndex).toBe(0);
+        const right = polar(cx, cy, radius * 0.95, Math.PI / 2);
+        const active = nearestMark(scene, ...right, true)!;
+        expect(active.point.dataIndex).toBe(1);
+        expect(relatedMarks(scene.marks, active, true).map((mark) => mark.point.value)).toEqual([60, 70]);
+        expect(nearestMark(scene, cx, cy + radius * 0.9, true)?.point.seriesName).toBe('上期');
+        expect(nearestMark(scene, ...beforeTop, false)).toBeUndefined();
+        expect(nearestMark(scene, cx + radius + 1, cy, true)).toBeUndefined();
+        expect(nearestMark(scene, cx + radius * 0.9, cy + radius * 0.9, true)).toBeUndefined();
     });
 
     it.each<ChartType>(['column', 'bar', 'line', 'area', 'mount', 'mix', 'pie', 'ring', 'rose', 'funnel', 'word'])(

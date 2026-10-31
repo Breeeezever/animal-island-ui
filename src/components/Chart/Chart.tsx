@@ -61,6 +61,20 @@ export const Chart: React.FC<ChartProps> = ({
     const [selectedKey, setSelectedKey] = useState<string | null>(null);
     const [legendFocus, setLegendFocus] = useState<string | null>(null);
     const marksRef = useRef(new Map<string, SVGGElement>());
+    const pointerFrame = useRef<number | null>(null);
+    const pendingPointer = useRef<{
+        node: SVGSVGElement;
+        x: number;
+        y: number;
+        key: string | null;
+    } | null>(null);
+    /** 丢弃未提交的悬停，避免离开、锁定或切换数据后旧帧重新弹出提示。 */
+    const cancelPointer = useCallback(() => {
+        // 事件结束后不再保留 DOM 节点；帧编号使用 null，兼容编号为零的实现。
+        if (pointerFrame.current !== null) cancelAnimationFrame(pointerFrame.current);
+        pointerFrame.current = null;
+        pendingPointer.current = null;
+    }, []);
     const tooltipId = useId();
     const tooltipOptions: ChartTooltipOptions = tooltip && typeof tooltip === 'object' ? tooltip : {};
     const shared = tooltipOptions.trigger !== 'item' && SHARED_TYPES.has(type);
@@ -148,8 +162,43 @@ export const Chart: React.FC<ChartProps> = ({
     }, [options, visiblePoints, width, chartHeight, valueFormatter, type]);
     const selected = selectable ? scene.marks.find((mark) => interactionKey(mark) === selectedKey) : undefined;
     const active = selected ?? scene.marks.find((mark) => interactionKey(mark) === (activeKey ?? focusedKey));
-    const related = active ? relatedMarks(scene.marks, active, shared) : [];
-    const relatedKeys = new Set(related.map((mark) => mark.key));
+    const related = useMemo(() => (active ? relatedMarks(scene.marks, active, shared) : []), [scene, active, shared]);
+    const relatedKeys = useMemo(() => new Set(related.map((mark) => mark.key)), [related]);
+    useEffect(() => cancelPointer, [scene, loading, selectedKey, shared, cancelPointer]);
+    /** 同一绘制帧只处理最后一次指针位置，命中及布局测量也随帧合并。 */
+    const movePointer = (event: React.PointerEvent<SVGSVGElement>) => {
+        if (event.pointerType === 'touch' || selected) return;
+        const target = (event.target as Element).closest('[data-chart-mark]');
+        pendingPointer.current = {
+            node: event.currentTarget,
+            x: event.clientX,
+            y: event.clientY,
+            key: target?.getAttribute('data-chart-mark') ?? null,
+        };
+        if (pointerFrame.current !== null) return;
+        // 只保存事件数据，不把 React 事件对象带入下一帧。
+        pointerFrame.current = requestAnimationFrame(() => {
+            pointerFrame.current = null;
+            const pointer = pendingPointer.current;
+            pendingPointer.current = null;
+            if (!pointer) return;
+            let key = pointer.key;
+            if (!key) {
+                const bounds = pointer.node.getBoundingClientRect();
+                const mark =
+                    bounds.width > 0 && bounds.height > 0
+                        ? nearestMark(
+                              scene,
+                              ((pointer.x - bounds.left) * width) / bounds.width,
+                              ((pointer.y - bounds.top) * chartHeight) / bounds.height,
+                              shared
+                          )
+                        : undefined;
+                key = mark ? interactionKey(mark) : null;
+            }
+            setActiveKey((current) => (current === key ? current : key));
+        });
+    };
     const focusedLegend = entries.find((entry) => entry.key === legendFocus && !hidden.includes(entry.key));
     const validFocus = scene.marks.some((mark) => interactionKey(mark) === focusedKey);
     const hiddenCount = entries.filter((entry) => hidden.includes(entry.key)).length;
@@ -180,6 +229,7 @@ export const Chart: React.FC<ChartProps> = ({
     /** 清理临时和锁定状态，Escape、恢复图例与关闭按钮保持一致。 */
     const clearActive = () => {
         // 同时清理焦点对应的提示状态，防止解除锁定后旧提示立即出现。
+        cancelPointer();
         setActiveKey(null);
         setFocusedKey(null);
         setSelectedKey(null);
@@ -188,6 +238,7 @@ export const Chart: React.FC<ChartProps> = ({
     const activate = (mark: ChartMark) => {
         const key = interactionKey(mark);
         // selection 不依赖 onDataClick，只有查看需求的图表也可以锁定读数。
+        cancelPointer();
         setActiveKey(key);
         if (selectable) setSelectedKey(selectedKey === key ? null : key);
         onDataClick?.(mark.point);
@@ -200,7 +251,7 @@ export const Chart: React.FC<ChartProps> = ({
             return legendKey(mark.point.seriesIndex, mark.point.name, mark.point.dataIndex) !== focusedLegend.key;
         return Boolean(active && !relatedKeys.has(mark.key));
     };
-    const total = scene.marks.reduce((sum, mark) => sum + Math.max(0, mark.point.value), 0);
+    const total = useMemo(() => scene.marks.reduce((sum, mark) => sum + Math.max(0, mark.point.value), 0), [scene]);
     const tooltipContext: ChartTooltipContext | undefined = active
         ? {
               type,
@@ -285,7 +336,10 @@ export const Chart: React.FC<ChartProps> = ({
                 className={styles.viewport}
                 style={{ minHeight: chartHeight }}
                 onScroll={(event) => setScrollLeft(event.currentTarget.scrollLeft)}
-                onPointerLeave={() => setActiveKey(null)}
+                onPointerLeave={() => {
+                    cancelPointer();
+                    setActiveKey(null);
+                }}
             >
                 {loading ? (
                     <div className={styles.state} style={{ height: chartHeight }} role="status">
@@ -300,22 +354,7 @@ export const Chart: React.FC<ChartProps> = ({
                             className={styles.canvas}
                             role="group"
                             aria-label={label}
-                            onPointerMove={(event) => {
-                                if (event.pointerType === 'touch' || selected) return;
-                                const target = (event.target as Element).closest('[data-chart-mark]');
-                                if (target) {
-                                    setActiveKey(target.getAttribute('data-chart-mark'));
-                                    return;
-                                }
-                                const bounds = event.currentTarget.getBoundingClientRect();
-                                const mark = nearestMark(
-                                    scene,
-                                    ((event.clientX - bounds.left) * width) / bounds.width,
-                                    ((event.clientY - bounds.top) * chartHeight) / bounds.height,
-                                    shared
-                                );
-                                setActiveKey(mark ? interactionKey(mark) : null);
-                            }}
+                            onPointerMove={movePointer}
                             onClick={(event) => {
                                 if (!(event.target as Element).closest('[data-chart-mark]')) clearActive();
                             }}
@@ -389,9 +428,14 @@ export const Chart: React.FC<ChartProps> = ({
                                     aria-describedby={hasTooltip && active === mark ? tooltipId : undefined}
                                     aria-label={`${mark.point.seriesName}，${mark.point.name}，${describe(mark)}`}
                                     onPointerEnter={(event) => {
+                                        cancelPointer();
                                         if (event.pointerType !== 'touch') setActiveKey(interactionKey(mark));
                                     }}
-                                    onFocus={() => setFocusedKey(interactionKey(mark))}
+                                    onFocus={() => {
+                                        cancelPointer();
+                                        setActiveKey(null);
+                                        setFocusedKey(interactionKey(mark));
+                                    }}
                                     onBlur={() => setFocusedKey(null)}
                                     onClick={() => activate(mark)}
                                     onKeyDown={(event) => {

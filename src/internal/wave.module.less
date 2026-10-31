@@ -18,6 +18,7 @@
         inset: 0;
         right: -@wave-period;
         background: currentColor;
+        -webkit-mask: @wave-mask left center / @wave-period 100% repeat-x;
         mask: @wave-mask left center / @wave-period 100% repeat-x;
         opacity: 0.28;
         animation: ocean-drift 6s linear infinite;
@@ -27,6 +28,7 @@
     &::after {
         top: 20%;
         opacity: 0.48;
+        -webkit-mask-position: -32px center;
         mask-position: -32px center;
         animation-duration: 9s;
         animation-direction: reverse;
