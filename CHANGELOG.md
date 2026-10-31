@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-11-01
+
+### Added
+
+- 新增 `Chart` SVG 图表组件（组件数 40 → 42）：19 种统计图形（柱 / 条 / 折线 / 面积 / 山峰 / 混合 / 散点 / 气泡 / 饼 / 环 / 玫瑰 / 雷达 / 弧形 / 仪表盘 / 漏斗 / 词云 / 蜡烛 / 时间轴 / 地图），共用图例、提示、键盘导航、数据明细表与空态。无新增图表运行时依赖，不请求远程数据
+- 新增 `NoData` 空状态组件：`default` / `search` / `simple` 三种形态，`small` / `medium` / `large` 三档尺寸，可自定义图标、标题、说明与操作区
+- `Countdown` 新增分级提醒与可配置紧迫动效：提醒颜色、抖动、结束与完成动画可按阶段配置
+- `Divider` 新增海波浪动效样式
+- `Progress` 支持自定义颜色与海波浪效果
+- `Upload` 新增背景填充与进度条展示
+- 文档与 skill 参考补齐 Chart、NoData、Countdown 动效及中英文镜像；demo 侧边栏新增独立的「图表统计」分类与 19 个类型页
+
+### Changed
+
+- **破坏性变更：最低 React 版本提升至 18**。`react` / `react-dom` 的 peerDependencies 由 `>=17.0.0` 改为 `>=18.0.0`；组件使用 React 18 的 `useId`。React 18 起支持，React 17 不再支持；仍在 React 17 上的项目应停留在 2.x
+- `Table` 的 `emptyText` 改为块级容器，可直接传入 `NoData` 等块级组件，不再受 `<span>` 包裹限制
+- 空状态文字与背景、上传背景进度改为跟随运行时主题变量
+- `AGENTS.md` 运行时依赖说明补上 `dayjs`，与 `package.json` 保持一致
+
+### Fixed
+
+- 图表网格、坐标文字、图例、数据表与空态颜色改用主题 CSS 变量，主题切换时跟随；移除 SVG `<g>` 上无效的 `border-radius` 焦点圆角
+- 图表、波浪与空状态在评审中发现的可访问性与交互问题
+
 ## [2.3.0] - 2026-10-17
 
 ### Added

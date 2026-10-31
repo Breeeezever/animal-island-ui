@@ -2,8 +2,8 @@
 
 animal-island-ui is a React 18 + TypeScript 5.7 component library (42 components, Less
 Modules, Vite 7 library build, Vitest 4) inspired by a cozy island-style UI.
-One runtime dependency: `naive-icons` (the icon set); everything else is a peerDependency
-or devDependency. MIT License.
+Two runtime dependencies: `naive-icons` (the icon set) and `dayjs` (the date layer);
+everything else is a peerDependency or devDependency. MIT License.
 
 This file is the entry point for coding agents. It routes; the referenced docs hold the
 detail. Keep it lean — add new rules to the docs below, not here.
@@ -111,7 +111,7 @@ if a file you touched is noticeably denser, most of what was added is restatemen
 
 - Never invent component APIs — read the source or declarations first.
 - Visual changes must satisfy [docs/design-system/design-rules.md](docs/design-system/design-rules.md).
-- Keep runtime dependencies to a minimum — the only one is `naive-icons`
+- Keep runtime dependencies to a minimum — the only ones are `naive-icons` and `dayjs`
   (rationale in [docs/adr/](docs/adr/README.md)); never disable `preserveModules` / `cssCodeSplit`.
 - Conventional Commits; branch from `main`.
 - Docs are English-primary with Chinese mirrors under `docs/zh-CN/`.
