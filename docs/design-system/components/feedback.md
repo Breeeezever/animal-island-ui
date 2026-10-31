@@ -17,6 +17,9 @@ interface ProgressProps {
     size?: ProgressSize;        // small=14px / middle=24px / large=32px
     showInfo?: boolean;         // default true; label sits right of the bar
     variant?: ProgressVariant;  // scene image for the fill; omit to use the mint gradient
+    color?: string;
+    wave?: boolean;
+    animated?: boolean;
     infoFormat?: (p: number) => ReactNode; // default `${p}%`
     duration?: number;          // seconds; 0 disables the fill width animation; default 0.6
     className?: string;
@@ -31,7 +34,7 @@ interface ProgressProps {
     box-sizing: border-box;  /* height includes the border, so size = total height */
     flex: 1 1 auto;
     width: 100%;
-    min-width: 80px;
+    min-width: 0;
     background:
         radial-gradient(circle, rgba(196, 184, 158, 0.1) 1.5px, transparent 1.5px) 7px 7px / 14px 14px,
         #f8f8f0;              /* fine cream dots over the unchanged cream base */
@@ -86,8 +89,16 @@ The small dot layer carries over from the old wallpaper track — 14px grid, 7px
 - `duration=0` → the fill width transition is disabled (`transition: none`) and jumps instantly.
 - a11y: the root div carries `role="progressbar"` plus `aria-valuemin=0` / `aria-valuemax=100` / `aria-valuenow=<rounded percent>` / `aria-valuetext=<string result of infoFormat>`.
 - Under `prefers-reduced-motion: reduce`, the fill width transition is switched off automatically.
-- Without a `variant`, `Progress.tsx` still sets an inline `background-color: #19c8b9`. The stylesheet gradient is fully opaque, so it paints on top and that inline color is only a paint-order fallback, not the visible result.
-- The 100% brightening applies to the gradient fill only. A `variant` injects its own `background-image` inline and deliberately keeps the scene art un-tinted at 100%.
+- The 100% brightening applies to the default mint gradient only. A `variant` injects its own `background-image` inline and deliberately keeps the scene art un-tinted at 100%.
+
+`color` accepts a CSS color or variable with a translucent top highlight and bottom shade; it retains the chosen hue at 100%. `variant` takes precedence over `color`; omitting both preserves the original mint gradient. `wave` defaults to `false` and adds two white wave layers inside the fill, composable with colors and scenes. `animated` defaults to `true`; false or 0% / 100% keeps the waves static. Loops pause offscreen or when hidden and stop under reduced motion. `duration` controls width transitions only.
+
+```tsx
+<Progress percent={58} color="#82d5bb" wave />
+<Progress percent={58} wave animated={false} />
+```
+
+Waves reuse `src/internal/Wave.tsx` and `wave.module.less`: 128px wavelength, opposing linear 6s / 9s loops, opacity 0.28 / 0.48; the second layer starts 20% lower with a -32px phase offset. Fixed-width masks translate while the fill width still represents the actual percentage. The track minimum width is 0 to fit Upload’s 84px picture cards.
 
 ## Loading (fullscreen falling snow)
 

@@ -1,3 +1,4 @@
+import { ProgressAppearanceDemo } from './ProgressAppearanceDemo';
 import React, { useEffect, useState } from 'react';
 import { Button, Progress } from '../../../src';
 import {
@@ -58,10 +59,18 @@ const PROGRESS_API: ApiRow[] = [
     { prop: 'size', desc: '尺寸', type: `'small' | 'middle' | 'large'`, defaultVal: "'middle'" },
     { prop: 'showInfo', desc: '是否显示百分比文字（显示在进度条右侧）', type: 'boolean', defaultVal: 'true' },
     {
+        prop: 'color',
+        desc: '填充颜色（支持 CSS 变量），保留高光；variant 优先',
+        type: 'string',
+        defaultVal: '薄荷渐变',
+    },
+    { prop: 'wave', desc: '叠加双层海浪，可与颜色或场景图组合', type: 'boolean', defaultVal: 'false' },
+    { prop: 'animated', desc: '海浪动画；0% / 100% 自动静止', type: 'boolean', defaultVal: 'true' },
+    {
         prop: 'variant',
-        desc: 'fill 背景场景图（传时当前进度区域显示该场景，从左揭开；不传为纯色 #19c8b9）',
+        desc: 'fill 背景场景图（优先于 color，从左揭开；不传时为薄荷渐变）',
         type: `'sweet-corner' | 'forest-grove' | 'starry-camp' | 'coffee-break'`,
-        defaultVal: '-（不传纯色 fill）',
+        defaultVal: '-（不传为薄荷渐变）',
     },
     { prop: 'infoFormat', desc: '自定义文字格式化', type: '(percent: number) => ReactNode', defaultVal: '${percent}%' },
     { prop: 'duration', desc: 'fill 宽度动画时长(秒),0 = 不动画', type: 'number', defaultVal: '0.6' },
@@ -244,6 +253,7 @@ const App = () => {
 
 export default App;`}
             />
+            <ProgressAppearanceDemo />
             <ApiTable rows={PROGRESS_API} />
         </div>
     );

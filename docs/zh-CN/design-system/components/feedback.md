@@ -17,6 +17,9 @@ interface ProgressProps {
     size?: ProgressSize;        // small=14px / middle=24px / large=32px
     showInfo?: boolean;         // default true；文字显示在进度条右侧
     variant?: ProgressVariant;  // fill 场景图；不传时用薄荷渐变
+    color?: string;
+    wave?: boolean;
+    animated?: boolean;
     infoFormat?: (p: number) => ReactNode; // default `${p}%`
     duration?: number;          // seconds; 0 disables the fill width animation; default 0.6
     className?: string;
@@ -31,7 +34,7 @@ interface ProgressProps {
     box-sizing: border-box;  /* 高度含描边，保证 size 是总高 */
     flex: 1 1 auto;
     width: 100%;
-    min-width: 80px;
+    min-width: 0;
     background:
         radial-gradient(circle, rgba(196, 184, 158, 0.1) 1.5px, transparent 1.5px) 7px 7px / 14px 14px,
         #f8f8f0;              /* 细奶油波点 + 未改动的奶油底 */
@@ -86,8 +89,16 @@ interface ProgressProps {
 - `duration=0` → 关闭 fill 宽度过渡（`transition: none`），瞬间到位。
 - a11y：根 div 有 `role="progressbar"` + `aria-valuemin=0/aria-valuemax=100/aria-valuenow=<四舍五入后的 percent>/aria-valuetext=<infoFormat 的字符串结果>`。
 - `prefers-reduced-motion: reduce` 时 fill 宽度过渡自动关闭。
-- 不传 `variant` 时 `Progress.tsx` 仍会内联写入 `background-color: #19c8b9`；样式表里的渐变完全不透明、盖在其上，所以这个内联色只是兜底，不是实际观感。
-- 100% 提亮只作用于渐变 fill。传了 `variant` 时场景图会内联注入自己的 `background-image`，100% 下刻意保持场景原色不染色。
+- 100% 提亮只作用于默认薄荷渐变 fill。传了 `variant` 时场景图会内联注入自己的 `background-image`，100% 下刻意保持场景原色不染色。
+
+`color` 支持 CSS 颜色或变量，叠加透明高光与底部阴影，100% 时保留自定义色。`variant` 优先于 `color`；两者都未传时保持原薄荷渐变。`wave` 默认 `false`，在 fill 内叠加白色双层海浪，可与颜色、场景图组合。`animated` 默认 `true`，为 `false` 或进度为 0% / 100% 时保持静态；离屏或页面隐藏时暂停，减少动态效果设置下停止。`duration` 只控制进度宽度过渡。
+
+```tsx
+<Progress percent={58} color="#82d5bb" wave />
+<Progress percent={58} wave animated={false} />
+```
+
+海浪复用 `src/internal/Wave.tsx` 与 `wave.module.less`：128px 波长，6s / 9s 匀速反向循环，透明度 0.28 / 0.48；第二层顶部偏移 20%、相位偏移 -32px。固定纹理波长配合 transform 位移，fill 宽度仍对应真实百分比。轨道最小宽度为 0，可适配 Upload 的 84px 图片卡片。
 
 ## Loading（全屏落雪）
 

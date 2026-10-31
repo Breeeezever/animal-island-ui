@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
+import { Wave } from '../../internal/Wave';
 import { ProgressSize, ProgressProps, ProgressVariant } from './types';
 import styles from './progress.module.less';
 import { sweetCorner, coffeeBreak } from '../../assets/image/sceneImages';
@@ -23,6 +24,9 @@ export const Progress: React.FC<ProgressProps> = ({
     percent,
     size = 'middle',
     variant,
+    color,
+    wave = false,
+    animated = true,
     showInfo = true,
     infoFormat,
     duration = 0.6,
@@ -62,7 +66,7 @@ export const Progress: React.FC<ProgressProps> = ({
     const inlineFillStyle: React.CSSProperties = {
         width: `${safePercent}%`,
         transitionDuration: `${duration}s`,
-        // 传入 variant 时用场景图铺满（从左揭开）；未传时用纯色 fill
+        // 场景图优先；自定义色用透明高光叠色，避免被默认薄荷渐变覆盖。
         ...(variant
             ? {
                   backgroundImage: `url(${VARIANT_BG[variant]})`,
@@ -70,7 +74,13 @@ export const Progress: React.FC<ProgressProps> = ({
                   backgroundPosition: 'left top',
                   backgroundSize: trackW > 0 ? `${trackW}px auto` : '100% auto',
               }
-            : { backgroundColor: '#19c8b9' }),
+            : color
+              ? {
+                    backgroundColor: color,
+                    backgroundImage:
+                        'linear-gradient(180deg, rgba(255,255,255,0.24), transparent 60%, rgba(61,52,40,0.08))',
+                }
+              : {}),
     };
 
     // 百分比文字固定显示在进度条右侧
@@ -94,7 +104,9 @@ export const Progress: React.FC<ProgressProps> = ({
         >
             <div className={styles.row}>
                 <div className={trackCls} ref={trackRef}>
-                    <div className={fillCls} style={inlineFillStyle} />
+                    <div className={fillCls} style={inlineFillStyle}>
+                        {wave && <Wave animated={animated && safePercent > 0 && safePercent < 100} />}
+                    </div>
                 </div>
                 {showInfo && <div className={classNames(styles.info, styles.right)}>{renderedInfo}</div>}
             </div>
