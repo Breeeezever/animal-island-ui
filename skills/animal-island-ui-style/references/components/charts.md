@@ -4,6 +4,12 @@ Import `Chart` and its types from `animal-island-ui`; import `animal-island-ui/s
 19 chart types share legends, tooltips, keyboard access and an expandable data table.
 This is an independent React API; uCharts configurations are not accepted.
 
+# Demo labels and type selection
+
+The demo's bottom **图表统计** category starts with **Chart 图表总览**, followed by bilingual type entries. Use the lowercase `ChartType` values from [data declarations](chart-data.md) in code. Display labels `Mountain`, `Mixed`, `WordCloud`, `Candlestick` and `TimeSeries` map to `mount`, `mix`, `word`, `candle` and `time`; `ArcBar` maps to `arcbar`. These labels do not introduce exported components or API aliases.
+
+For example, **Mountain 山峰图** uses `<Chart type="mount" smooth series={series} />` for rounded peaks. The full label mapping and demo routes are in [Chart navigation](https://github.com/guokaigdg/animal-island-ui/blob/main/docs/design-system/demo-site.md#chart-navigation).
+
 # Public declarations
 
 Props copied verbatim from source. See [data declarations](chart-data.md) for input types and [interaction declarations](chart-interaction.md) for tooltip options.

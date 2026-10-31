@@ -187,3 +187,33 @@ line-height: 1.8;
 | CSS 变量名              | `#e8c87a`                       |
 | `:root`                 | `#f0a870`                       |
 | 十六进制色值            | `#8ab8e0`                       |
+
+# 图表导航
+
+**图表统计** 分类位于左侧菜单最下方，排在各组件分类之后。首项为 **Chart 图表总览**（`#/charts`）；其余 19 个类型入口按下表顺序，统一显示为 **英文类型名称 + 中文名称**。桌面侧栏与移动端菜单共用这份配置。
+
+| `Chart.type` | 侧栏名称 |
+| --- | --- |
+| `column` | Column 柱状图 |
+| `bar` | Bar 条状图 |
+| `line` | Line 折线图 |
+| `area` | Area 面积图 |
+| `mount` | Mountain 山峰图 |
+| `mix` | Mixed 混合图 |
+| `pie` | Pie 饼图 |
+| `ring` | Ring 环形图 |
+| `rose` | Rose 玫瑰图 |
+| `radar` | Radar 雷达图 |
+| `scatter` | Scatter 散点图 |
+| `bubble` | Bubble 气泡图 |
+| `arcbar` | ArcBar 圆弧进度 |
+| `gauge` | Gauge 仪表盘 |
+| `funnel` | Funnel 漏斗图 |
+| `word` | WordCloud 词云图 |
+| `candle` | Candlestick K线图 |
+| `time` | TimeSeries 时序图 |
+| `map` | Map 地图统计 |
+
+`demo/chartPages.ts` 统一维护 `type`、中文 `label`、英文 `englishLabel` 和 `desc`，`demo/App.tsx` 拼接中英文菜单名称。类型路由仍为 `#/chart-${type}`；例如 **Mountain 山峰图** 打开 `#/chart-mount`，组件使用 `<Chart type="mount" series={series} />`。显示名称不是 API 取值，也不是独立导出的组件。页面标题、总览卡片和图集链接继续使用中文 `label`。
+
+图表视觉、交互与图集布局见 [Chart](components/charts.md)。

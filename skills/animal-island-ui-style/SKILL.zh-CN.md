@@ -65,6 +65,8 @@ props 参考按大类分组在 `references/components/` 下（props、合法取�
 | 媒体 | Image, Avatar, Carousel | [media.md](references/components/media.md) |
 | 装饰 | Footer, Divider, Cursor, Typewriter, Background | [decorative.md](references/components/decorative.md) |
 
+当图表需求使用演示站的英文名称时，先通过 [Chart 类型选择](references/components/charts.md#demo-labels-and-type-selection) 确认对应的 `type`。其中链接的数据与交互参考分别说明输入结构和数据提示配置。
+
 ### 硬规则（违反即 bug）
 
 1. 不虚构 props。用到的每个 prop 必须出现在组件参考里（已安装项目中以包内 TypeScript 声明为最终事实）

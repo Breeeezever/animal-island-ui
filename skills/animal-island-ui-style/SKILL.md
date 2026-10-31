@@ -81,6 +81,8 @@ values, defaults — copied from source):
 | Media | Image, Avatar, Carousel | [media.md](references/components/media.md) |
 | Decorative | Footer, Divider, Cursor, Typewriter, Background | [decorative.md](references/components/decorative.md) |
 
+When a chart request uses an English demo label, resolve it through [Chart type selection](references/components/charts.md#demo-labels-and-type-selection) before choosing `type`. The linked data and interaction references cover input shapes and tooltip configuration.
+
 ## Hard rules (violations are bugs)
 
 1. Never invent props. Every prop must appear in the component reference (or, in an
