@@ -175,6 +175,8 @@ export type { CarouselProps } from './components/Carousel';
 export { Upload } from './components/Upload';
 export type {
     UploadProps,
+    UploadProgressConfig,
+    UploadProgressType,
     UploadFile,
     UploadFileStatus,
     UploadListType,
