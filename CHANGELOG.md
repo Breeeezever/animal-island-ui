@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - 2026-11-07
+
+### Fixed
+
+- `Calendar` / `CodeBlock` / `Tooltip` 适配 React 19 的类型变更：`ReactElement.props` 的默认类型由 `any` 改为 `unknown`、`useRef` 删掉了无参重载。运行时行为不变（`useRef()` 与 `useRef(undefined)` 等价）
+- CI 补上组件库构建与产物守卫：demo 是从 `src/` 引组件的，此前 GitHub CI 从未构建过组件库，产物层面的问题（比如 peer 依赖被子路径入口带着打进 `dist/`）在 CI 里根本看不见
+- CI 的测试矩阵加上 React 版本维度，React 18 / 19 分别跑测试与类型检查
+
+## [3.0.2] - 2026-11-07
+
+### Fixed
+
+- **修复 React 19 下调用 `Notification` 报 `TypeError: Cannot set properties of undefined (setting 'usingClientEntryPoint')`**（[issue #78](https://github.com/guokaigdg/animal-island-ui/issues/78)）
+    - 根因：构建时 `rollupOptions.external` 只列了 `react` / `react-dom` / `react/jsx-runtime` / `classnames` 四个**字面量**，而 Rollup 的数组匹配是精确匹配 —— `react-dom/client` 这个**子路径入口**没被 external 住，于是旧版 `react-dom/client` 被打进产物。它会去写**消费者** react-dom 的 `__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.usingClientEntryPoint`，而 React 19 已移除该字段 → 调用即崩
+    - 修复：`external` 改为判定函数 `isPeerDependency`，覆盖 `react` / `react-dom` / `classnames` 的**全部子路径入口**，以后新增任何子路径都不会再漏
+    - 新增 `npm run check:bundle` 产物守卫并接入 `npm run ci`：一旦有 peer 依赖（或那个已被 React 移除的内部字段）重新出现在 `dist/`，构建直接失败
+
+## [3.0.1] - 2026-11-07
+
+### Changed
+
+- `naive-icons` 升级至 `1.14.0`（图标数 202 → **709**，**无破坏性变更，旧图标全部保留**）：
+    - 新增 508 枚图标，分类从 11 个扩到 18 个（新增建筑场所 / 设备硬件 / 健康医疗 / 工具 / 金融 / 办公 / 运动）
+    - `user` / `user-plus` / `user-minus` / `users` 改为无五官画风，16px 下不再糊成黑点
+    - `donut` 糖屑加粗且相邻不同色
+    - `no-data` 图标的 React 版与 `svg/` 目录同步为同一图形（此前两版不一致，自 naive-icons 1.13.0 起上游已修复）
+- `NoData` 空态改用 naive-icons 原生的 `NoDataIcon`（`default` / `simple` 变体），`search` 变体仍用 `SearchIcon`
+- `Button` 的 loading 图标不再覆写描边色（`color="currentColor"`），跟随图标库原生配色，描边回归墨色后在青绿底上更清晰
+- ADR 0005 的运行时依赖版本同步为 `^1.14.0`
+
+### Fixed
+
+- demo 图标页补齐 709 枚图标的中文名（此前仅覆盖 201 枚），并改用 naive-icons 官方导出的 `IconComponent` 类型
+
 ## [3.0.0] - 2026-11-01
 
 ### Added
