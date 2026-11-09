@@ -122,7 +122,7 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     },
     loading: {
         title: 'Loading 加载',
-        desc: '全屏落雪加载指示器 — 50 片随机雪花旋转飘落 + 暗角夜空，中央提示文字、delay 防闪烁，结束时渐变消失',
+        desc: '全屏加载指示器 — type="snow" 是 50 片随机雪花旋转飘落 + 暗角夜空，type="circle" 关闭时圆形扩散展开、右下角一艘帆船随波逐流',
     },
     form: {
         title: 'Form 表单',
@@ -170,6 +170,6 @@ export const PAGE_INFO: Record<string, { title: string; desc: string }> = {
     },
     skill: {
         title: 'Skill 介绍',
-        desc: '项目配套的 animal-island-ui-style 技能 — 可安装到 AI 编码代理（Claude Code / Codex / Cursor），教模型按治愈系海岛风格搭建 React 页面或单文件 HTML',
+        desc: '项目配套的 animal-island-ui-style 技能 — 可安装到 AI 编码代理（Claude Code / Codex / Cursor），教模型按治愈系海岛风格搭建 React 页面或单文件 HTML · 从首页「开始使用」进入时会先盖一层圆形展开 Loading',
     },
 };

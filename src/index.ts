@@ -41,7 +41,7 @@ export { Typewriter } from './components/Typewriter';
 export type { TypewriterProps } from './components/Typewriter';
 
 export { Select } from './components/Select';
-export type { SelectProps, SelectOption } from './components/Select';
+export type { SelectProps, SelectOption, SelectVariant } from './components/Select';
 
 export { DatePicker } from './components/DatePicker';
 export type { DatePickerProps, DatePickerSize, DatePickerStatus, DatePickerValue } from './components/DatePicker';
@@ -130,7 +130,7 @@ export { Progress } from './components/Progress';
 export type { ProgressProps, ProgressSize } from './components/Progress';
 
 export { Loading } from './components/Loading';
-export type { LoadingProps } from './components/Loading';
+export type { LoadingProps, LoadingType } from './components/Loading';
 
 // ============================================
 // 新增组件
