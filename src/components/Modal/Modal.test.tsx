@@ -1,11 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { Modal } from './Modal';
+import { Drawer } from '../Drawer/Drawer';
 import styles from './modal.module.less';
 
 describe('Modal', () => {
+    // 用 beforeEach 而不是 afterEach 清 body.overflow：RTL 的自动清理（卸载）会把
+    // overflow 还原成加锁前保存的值，而它跑在 afterEach 之后 —— afterEach 里清空会被覆盖。
+    beforeEach(() => {
+        document.body.style.overflow = '';
+    });
+
     it('open=false 不渲染', () => {
         render(<Modal open={false}>content</Modal>);
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -285,5 +292,53 @@ describe('Modal', () => {
             const body = screen.getByRole('dialog').querySelector(`.${styles.body}`)!;
             expect(getComputedStyle(body).userSelect).toBe('text');
         });
+    });
+
+    it('关闭后恢复 body 原有的 overflow，而不是清空', () => {
+        // 消费方常给 body 设置 overflow，统一写入 '' 会把页面样式抹掉
+        document.body.style.overflow = 'auto';
+        const { rerender } = render(
+            <Modal open typewriter={false}>
+                content
+            </Modal>
+        );
+        expect(document.body.style.overflow).toBe('hidden');
+        rerender(
+            <Modal open={false} typewriter={false}>
+                content
+            </Modal>
+        );
+        expect(document.body.style.overflow).toBe('auto');
+    });
+
+    it('嵌套浮层：抽屉里的弹窗关掉后，抽屉仍锁着背景滚动', () => {
+        // 旧实现里 Modal 的 cleanup 会把 body.overflow 抹成 ''，
+        // 于是外层抽屉还开着，页面却已经能滚了
+        const { rerender } = render(
+            <Drawer open placement="right">
+                <Modal open typewriter={false}>
+                    content
+                </Modal>
+            </Drawer>
+        );
+        expect(document.body.style.overflow).toBe('hidden');
+
+        rerender(
+            <Drawer open placement="right">
+                <Modal open={false} typewriter={false}>
+                    content
+                </Modal>
+            </Drawer>
+        );
+        expect(document.body.style.overflow).toBe('hidden');
+
+        rerender(
+            <Drawer open={false} placement="right">
+                <Modal open={false} typewriter={false}>
+                    content
+                </Modal>
+            </Drawer>
+        );
+        expect(document.body.style.overflow).not.toBe('hidden');
     });
 });
