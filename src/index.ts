@@ -157,10 +157,6 @@ export type {
     CountdownVariant,
     CountdownReminderRule,
     CountdownShakeOptions,
-    CountdownBounceOptions,
-    CountdownRippleOptions,
-    CountdownEffectOptions,
-    CountdownEndingAnimationOptions,
 } from './components/Countdown';
 
 export { CountUp } from './components/CountUp';
@@ -177,7 +173,7 @@ export type {
 } from './components/CountUp';
 
 export { Time } from './components/Time';
-export type { TimeProps, TimeLocale } from './components/Time';
+export type { TimeProps, TimeLocale, TimeVariant } from './components/Time';
 
 export { Carousel } from './components/Carousel';
 export type { CarouselProps } from './components/Carousel';

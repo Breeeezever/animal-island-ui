@@ -410,8 +410,6 @@ interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'
     bordered?: boolean; // 默认 false — 数字块是否带 1.5px 细边框
     reminder?: boolean | readonly CountdownReminderRule[]; // default false
     shake?: boolean | number | CountdownShakeOptions; // 默认 false
-    endingAnimation?: boolean | CountdownEndingAnimationOptions; // 默认 false；true 为最后 5 秒每秒一次
-    finishAnimation?: boolean | CountdownEffectOptions; // 默认 false；实际归零时播放一次
     onChange?: (remaining: number) => void;
     onFinish?: () => void;
 }
@@ -421,12 +419,9 @@ interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'
 
 `reminder` 默认关闭；设为 `true` 使用默认规则：剩余 ≤60 秒为暖橙 `#c77c34`，≤10 秒为错误色 `var(--animal-error-color, #e05a5a)`。传入 `{ seconds, color }` 数组完全替换默认规则；颜色支持 CSS 颜色或变量。阈值按显示的向上取整秒数判断，命中多档时采用最小阈值，不要求数组排序；相同阈值取首项，无效阈值（负数或非有限数）与空颜色被忽略，空数组等同关闭。提醒只修改数字、分隔符及已开启的数字块边框，颜色过渡 0.2s，保持前缀与面板原样。归零保留命中的提醒色，重置到阈值外或关闭提醒时恢复默认色，计时与回调语义不变。
 
-`shake` 保留布尔值和秒数简写，新增对象配置阈值、加强阶段、周期、位移、旋转与缓动。抖动位于内部数字组，回弹位于外部动效层，两个 transform 不冲突。每轮只重播装饰，不重挂数字条。离屏和隐藏页面停止循环定时器；重置或关闭会清理当前动效。减少动态效果时禁用循环运动，归零可选轻微淡入或完全静止。
-
-`finishAnimation` 保留归零播放一次的语义，并新增对象配置。`endingAnimation` 将同一套回弹与波纹应用到最后几秒：`true` 默认最后 5 秒每秒一次；对象自定义阈值、间隔和视觉参数。二者可独立开关、分别设置风格，归零时循环切换到一次性收尾。完整参数与像素规范见 [倒计时动效](countdown-motion.md)。
+`shake` 保留布尔值和秒数简写，新增对象配置阈值、加强阶段、周期、位移、旋转与缓动。抖动只作用于内部数字组：前缀、面板和布局保持不动，滚动数字条保留自身的纵向位移。离屏和隐藏页面停止循环动画；重置或关闭会清理当前效果。减少动态效果时完全移除抖动。完整参数与像素规范见 [倒计时抖动](countdown-motion.md)。
 
 ```tsx
-<Countdown value={deadline} reminder shake endingAnimation finishAnimation />
 <Countdown value={deadline} reminder />
 <Countdown value={deadline} reminder shake />
 <Countdown value={deadline} reminder shake={8} />
@@ -441,8 +436,10 @@ interface CountdownProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'
 
 ```ts
 export type TimeLocale = 'en' | 'zh-cn';
+export type TimeVariant = 'default' | 'game';
 
 export interface TimeProps extends React.HTMLAttributes<HTMLDivElement> {
+    variant?: TimeVariant;  // 默认 'default'；'game' 为竖排 HUD 排布
     weekdayFormat?: string; // 默认 'dddd'
     dateFormat?: string;    // 默认 'MMM D'；locale 为 'zh-cn' 时默认 'M月D日'
     locale?: TimeLocale;    // 默认 'en'
@@ -451,4 +448,9 @@ export interface TimeProps extends React.HTMLAttributes<HTMLDivElement> {
 
 两个格式都支持 dayjs **核心** token（`dddd` / `ddd` / `MMM` / `M` / `D` / `YYYY`…），插件 token 不会展开。`zh-cn` 在组件模块内注册 —— 打包进本包的 dayjs 实例看不到宿主应用的 locale 导入，所以这一步让 `locale="zh-cn"` 开箱即用。格式化都在实例副本上进行（`dayjs(now).locale(locale)`），从不调用全局 `dayjs.locale()`，因此不会改动进程级状态。
 
-卡片为纵向堆叠的 inline-flex 面板 —— 背景为 `var(--animal-bg-color)`、20px 圆角、`--animal-shadow-sm` 柔和投影、无边框，挂载时以 `--animal-motion-duration-slow` 淡入。时钟为 44px / 900 字重 / `var(--animal-text-color)`，等宽数字、1px 字距；冒号按秒闪烁（`step-end`，50% 处透明度为 0）。日期胶囊为 `var(--animal-primary-color-bg)` 底、999px 圆角的药丸形，内含大写星期（`var(--animal-primary-color)`、800 字重、1px 字距）、`·` 分隔点（禁用色调）与月日（`var(--animal-text-color-secondary)`、700 字重）。根节点使用 `role="timer"` 与 `aria-live="off"`，每秒刷新不打断读屏软件。
+两种排布共用同一套内容规则（`weekdayFormat` / `dateFormat` / `locale` 对两者都生效）：
+
+- **`default`** —— 卡片：上方时间，下方一个日期胶囊装星期与月日。
+- **`game`** —— 裸的竖排 HUD：**完全没有卡片外壳**（透明、无投影、无圆角），内边距 50px，上方时间、其下 8px 处一条细分隔线，下方月日用纯文本、周几单独装胶囊。沿用原版的版式：时钟 40px / 900 字重 / 2px 字距、颜色 `#8b7355`（冒号用 `top: -0.08em`、左右各 1px）；分隔线是横贯内容宽度再多 5px 的 2px `rgba(159, 146, 125, 0.35)`；月日 22px / 800 字重 / 2px 字距、颜色 `#8b7355`；周几装在 `#fffbe7` 药丸里（15px / 900 字重、`line-height: 1`、`padding: 7px 16px 5px`，高 27px；上方多 1px 让中文墨迹落在视觉中心，且不设字距以保证水平居中）、文字 `#8b7355`。**这些颜色是字面值而非 `--animal-*` 令牌** —— 它们就是原版的取色，所以覆盖库里的颜色变量不会改变这个变体。
+
+卡片为纵向堆叠的 inline-flex 面板 —— 背景为 `var(--animal-bg-color)`、20px 圆角、`--animal-shadow-sm` 柔和投影、无边框，挂载时以 `--animal-motion-duration-slow` 淡入。时钟为 44px / 900 字重 / `var(--animal-time-color, #8b7355)`，等宽数字、1px 字距；冒号按秒闪烁（`step-end`，50% 处透明度为 0）。日期胶囊为 `var(--animal-primary-color-bg)` 底、999px 圆角的药丸形，内含大写星期（`var(--animal-primary-color)`、800 字重、1px 字距）、`·` 分隔点（禁用色调）与月日（`var(--animal-text-color-secondary)`、700 字重）。根节点使用 `role="timer"` 与 `aria-live="off"`，每秒刷新不打断读屏软件。
