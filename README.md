@@ -47,9 +47,10 @@ A lightweight, cozy React + TypeScript UI component library with an original isl
 - Icons (**naive-icons**): <https://github.com/guokaigdg/naive-icons>
 - Vue version (**animal-island-vue**): <https://github.com/guokaigdg/animal-island-vue>
 - WeChat Mini Program version (**animal-island-wx**): <https://github.com/lns567/animal-island-wx>
+- Flutter version (**animal-island-ui-flutter**): <https://github.com/Ibuprofenighty/animal-island-ui-flutter>
 
 <h2>
-    <img src="./docs/img/icons/sparkles.svg" width="18" alt="" />
+    <img src="./docs/img/icons/ai-agent.svg" width="18" alt="" />
     Use AI to Generate animal-island-ui Pages
 </h2>
 
